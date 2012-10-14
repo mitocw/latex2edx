@@ -1,0 +1,3 @@
+#!/bin/bash
+nohup gunicorn -p gunicorn.pid -b edxvm2:8103 -w 2 latex2edx_xserver:do_latex2edx_xserver 2>> LOG.gunicorn >> LOG.gunicorn &
+
