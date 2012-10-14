@@ -1,0 +1,54 @@
+name: edXcourse
+<course tal:attributes='number self/attributes/number; name self/attributes/name' tal:content='self'></course>
+
+name: edXchapter
+<chapter tal:attributes='name self/attributes/name' tal:content='self'></chapter>
+
+name: edXsection
+<section tal:attributes='name self/attributes/name' tal:content='self'></section>
+
+name: edXsequential
+<sequential tal:content='self'></sequential>
+
+name: edXproblem
+<problem type="lecture" showanswer="attempted" tal:attributes='name self/attributes/name; points self/attributes/points'><text tal:content='self'></text></problem>
+
+name: edXtext
+<html tal:attributes='name self/attributes/name' tal:content='self'></html>
+
+name: edXinline
+<p style="display:inline" tal:content='self'></p>
+
+name: edXshowhide
+<edxshowhide tal:attributes='id self/attributes/id; description self/attributes/description' tal:content='self'></edxshowhide>
+
+name: edXabox
+<abox tal:content='self'></abox>
+
+name: edXinclude
+<edxinclude tal:content='self'></edxinclude>
+
+name: edXsolution
+<solution><font color="blue">Answer: </font><font color="blue" tal:content='self'></font></solution>
+
+name: edXscript
+<script type="text/python" system_path="python_lib" tal:content='self'></script>
+
+name: edXanswer
+<answer type="text/python" tal:content='self'></answer>
+
+name: edXjavascript
+<script type="text/javascript" tal:content='self'></script>
+
+name: edXmath
+<displaymath tal:content='self/source'></displaymath>
+
+name: includegraphics
+<includegraphics tal:attributes="style string:${self/attributes/width}" tal:content='self'></includegraphics>
+
+name: section
+<h1 tal:content='self'></h1>
+
+name: subsection
+<h2 tal:content='self'></h2>
+
