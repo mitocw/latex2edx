@@ -43,6 +43,9 @@ name: edXjavascript
 name: edXmath
 <displaymath tal:content='self/source'></displaymath>
 
+name: edXxml
+<edxxml tal:content='self/source'></edxxml>
+
 name: includegraphics
 <includegraphics tal:attributes="style string:${self/attributes/width}" tal:content='self'></includegraphics>
 

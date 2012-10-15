@@ -161,6 +161,7 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub(r'(?s)<math>\\\[(.*?)\\\]</math>',fix_displaymath,s)
             s = re.sub(r'(?s)<abox>(.*?)</abox>',do_abox,s)
             s = re.sub('<includegraphics style="(.*?)">(.*?)</includegraphics>',do_image,s)	# includegraphics
+            s = re.sub('(?s)<edxxml>\\\\edXxml{(.*?)}</edxxml>','\\1',s)
 
         except Exception, err:
             print "Error in MyRenderer.processFileContent: ",err
@@ -394,7 +395,8 @@ def process_showhide(tree):
             print "Error: edXshowhide must be given an id argument.  Aborting."
             raise Exception
         print "---> showhide %s" % shid
-        jscmd = "javascript:toggleDisplay('%s','hide','show')" % shid
+        #jscmd = "javascript:toggleDisplay('%s','hide','show')" % shid
+        jscmd = "javascript:$('#%s').toggle()" % shid
 
         shtable = etree.Element('table')
         showhide.addnext(shtable)

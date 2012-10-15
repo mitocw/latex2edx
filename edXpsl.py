@@ -48,6 +48,9 @@ class endedXjavascript(Base.endverbatim):
 class edXmath(Base.Environment):
     args = 'self'
 
+class edXxml(Base.Command):
+    args = 'self'
+
 class edXproblem(Base.Environment):
     args = '{ name } { points } self'
 
