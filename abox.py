@@ -108,6 +108,7 @@ class AnswerBox(object):
             oi.set('options',optionstr)
             oi.set('correct',self.stripquotes(abargs['expect']))
             abxml.append(oi)
+            self.copy_attrib(abargs,'inline',abxml)
             
         if abtype=='multiplechoiceresponse':
             self.require_args(['expect','options'])
@@ -141,6 +142,8 @@ class AnswerBox(object):
                 tl.set('size','80')
                 abxml.append(tl)
                 abxml.set('answer','unknown')
+                self.copy_attrib(abargs,'inline',tl)
+                self.copy_attrib(abargs,'inline',abxml)
             
         elif abtype=='stringresponse':
             self.require_args(['expect'])
@@ -149,6 +152,7 @@ class AnswerBox(object):
             abxml.append(tl)
             abxml.set('answer',self.stripquotes(abargs['expect']))
             self.copy_attrib(abargs,'inline',tl)
+            self.copy_attrib(abargs,'inline',abxml)
 
         elif abtype=='customresponse':
             self.require_args(['expect','cfn'])
@@ -159,6 +163,7 @@ class AnswerBox(object):
             abxml.append(tl)
             tl.set('correct_answer',self.stripquotes(abargs['expect']))
             self.copy_attrib(abargs,'inline',tl)
+            self.copy_attrib(abargs,'inline',abxml)
             
         elif abtype=='externalresponse' or abtype== 'coderesponse':
             if 'url' in abargs:
@@ -172,6 +177,7 @@ class AnswerBox(object):
 
         elif abtype=='numericalresponse':
             self.require_args(['expect'])
+            self.copy_attrib(abargs,'inline',abxml)
             tl = etree.Element('textline')
             self.copy_attrib(abargs,'size',tl)
             self.copy_attrib(abargs,'inline',tl)
@@ -200,6 +206,7 @@ class AnswerBox(object):
             self.copy_attrib(abargs,'inline',tl)
             self.copy_attrib(abargs,'size',tl)
             abxml.append(tl)
+            self.copy_attrib(abargs,'inline',abxml)
             if 'correct_answer' in abargs:
                 tl.set('correct_answer',self.stripquotes(abargs['correct_answer']))
             else:
@@ -253,6 +260,10 @@ class AnswerBox(object):
         except Exception, err:
             print "Error %s in parsing abox argument %s" % (err,s)
             return {}
+
+        if '' in abargstxt:
+            abargstxt.remove('')
+            
         try:
             abargs = dict([x.split('=',1) for x in abargstxt])
         except Exception, err:

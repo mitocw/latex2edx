@@ -47,8 +47,11 @@ name: includegraphics
 <includegraphics tal:attributes="style string:${self/attributes/width}" tal:content='self'></includegraphics>
 
 name: section
-<h1 tal:content='self'></h1>
+<h2 tal:content='self'></h2>
 
 name: subsection
-<h2 tal:content='self'></h2>
+<h3 tal:content='self'></h3>
+
+name: subsection
+<h4 tal:content='self'></h4>
 
