@@ -51,7 +51,7 @@ class AnswerBox(object):
         </numericalresponse>
         
         -----------------------------------------------------------------------------
-	<abox type="multichoice" expect="Yellow" options="Red","Green","Yellow","Blue" />
+	<abox type="oldmultichoice" expect="Yellow" options="Red","Green","Yellow","Blue" />
 
         <multiplechoiceresponse direction="vertical" randomize="yes">
          <choicegroup type="MultipleChoice">
@@ -61,6 +61,18 @@ class AnswerBox(object):
             <choice location="bottom" correct="false" name="blue">Blue</choice>
          </choicegroup>
         </multiplechoiceresponse>
+        -----------------------------------------------------------------------------
+	<abox type="multichoice" expect="1","3" options="0","1","2","3","4" />
+
+        <choiceresponse>
+          <checkboxgroup>
+            <choice correct="false"><text>0</text></choice>
+            <choice correct="true"><text>1</text></choice>
+            <choice correct="false"><text>2</text></choice>
+            <choice correct="true"><text>3</text></choice>
+            <choice correct="false"><text>4</text></choice>
+          </checkboxgroup>
+        </choiceresponse>
         -----------------------------------------------------------------------------
         '''
         self.aboxstr = aboxstr
@@ -79,7 +91,8 @@ class AnswerBox(object):
         type2response = { 'custom': 'customresponse',
                           'external': 'externalresponse',
                           'code': 'coderesponse',
-                          'multichoice': 'multiplechoiceresponse',
+                          'multichoice' : 'choiceresponse',
+                          'oldmultichoice': 'multiplechoiceresponse',
                           'numerical': 'numericalresponse',
                           'option': 'optionresponse',
                           'shortans' : 'shortanswerresponse',
@@ -121,7 +134,21 @@ class AnswerBox(object):
                 choice = etree.SubElement(cg,'choice')
                 choice.set('correct','true' if op==expect else 'false')
                 choice.set('name',str(cnt))
-                choice.text = "<span> %s</span>" %op 
+                choice.append(etree.XML("<span> %s</span>" %op))
+                cnt += 1
+            
+        if abtype=='choiceresponse':
+            self.require_args(['expect','options'])
+            cg = etree.SubElement(abxml,'checkboxgroup')
+            optionstr, options = self.get_options(abargs)
+            expectstr, expects = self.get_options(abargs,'expect')
+            cnt = 1
+            print "choice; options=/%s/, expects=/%s/" % (options,expects)
+            for op in options:
+                choice = etree.SubElement(cg,'choice')
+                choice.set('correct','true' if (op in expects) else 'false')
+                choice.set('name',str(cnt))
+                choice.append(etree.XML("<text>%s</text>" %op))
                 cnt += 1
 
         elif abtype=='shortanswerresponse':
@@ -224,8 +251,8 @@ class AnswerBox(object):
         # print s
         return etree.XML(s)
 
-    def get_options(self,abargs):
-        optstr = abargs['options']			# should be double quoted strings, comma delimited
+    def get_options(self,abargs,arg='options'):
+        optstr = abargs[arg]			# should be double quoted strings, comma delimited
         #options = [c for c in csv.reader([optstr])][0]	# turn into list of strings
         options = split_args_with_quoted_strings(optstr, lambda(x): x==',')		# turn into list of strings
         options = map(self.stripquotes, options)
