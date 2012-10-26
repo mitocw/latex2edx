@@ -1,13 +1,13 @@
 from plasTeX import Base
 
 class edXcourse(Base.Environment):
-    args = '{ number } { name } self'
+    args = '{ number } { url_name } self'
 
 class edXchapter(Base.Environment):
-    args = '{ name } self'
+    args = '{ url_name } self'
 
 class edXsection(Base.Environment):
-    args = '{ name } self'
+    args = '{ url_name } self'
 
 class edXsequential(Base.Environment):
     args = 'self'
@@ -52,10 +52,10 @@ class edXxml(Base.Command):
     args = 'self'
 
 class edXproblem(Base.Environment):
-    args = '{ name } { points } self'
+    args = '{ url_name } { attrib_string } self'
 
 class edXtext(Base.Environment):	# indicates HTML file to be included (ie <html...> in course.xml)
-    args = '{ name } self'
+    args = '{ url_name } self'
 
 class edXsolution(Base.Environment):
     args = 'self'
