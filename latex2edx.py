@@ -192,13 +192,35 @@ class MyRenderer(XHTML.Renderer):
 # output problem into XML file
 
 def content_to_file(content, tagname, fnsuffix, pdir='.', single=''):
-    pname = content.get('name','noname')
+    pname = content.get('url_name','noname')
     pfn = pname.replace(' ','_').replace('/','').replace(':','_').replace('(','').replace(')','')
     print "  %s '%s' --> %s/%s.%s" % (tagname,pname,pdir,pfn,fnsuffix)
-    nprob = etree.Element(tagname)
+    
+    #set default attributes for problems
+    if tagname=='problem':
+		content.set('showanswer','closed')
+		content.set('rerandomize','never')
+    
+    #extract attributes from attrib_string 
+    attrib_list=content.get('attrib_string').split(', ') #all attribute=value pairs must be separated by ', '
+    if len(attrib_list)==1 & len(attrib_list[0].split('='))==1: #a single number n is interpreted as points="n"
+   		content.set('points',attrib_list[0])	
+   		content.attrib.pop('attrib_string') #remove attrib_string
+    else: #the normal case, can remove backwards compatibility later if desired	
+		for s in attrib_list: 
+			attrib_and_val=s.split('=')    	
+			if len(attrib_and_val) != 2:
+				print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
+				sys.exit(-1)
+			content.set(attrib_and_val[0],attrib_and_val[1].strip("\"")) #remove extra quotes
+		content.attrib.pop('attrib_string') #remove attrib_string
+
+	# create a copy to return of the content tag, remove url_name
+    nprob = etree.Element(tagname)	
     for a in content.attrib:
         nprob.set(a,content.get(a))
-        content.attrib.pop(a)
+        if a=='url_name': #remove url_name as an attribute, it becomes the filename
+        	content.attrib.pop(a)       	
     #open('%s/%s.xml' % (pdir,pfn),'w').write(etree.tostring(content,pretty_print=True))
     if single:
         ppath = single
@@ -249,14 +271,14 @@ def update_content(section, existing_section, tagname):
     for content in section.findall('.//%s' % tagname):
         pfound = False
         for existing_content in existing_section.findall('.//%s' % tagname):
-            if content.get('name') == existing_content.get('name'):	# content exists
+            if content.get('url_name') == existing_content.get('url_name'):	# content exists
                 pfound = True
         if not pfound:					# add content to sequential inside section
             seq = existing_section.find('.//sequential')
             if seq is None:
                 seq = etree.SubElement(existing_section,'sequential')
             seq.append(content)
-            print "         Added new %s '%s' to section" % (tagname,content.get('name'))
+            print "         Added new %s '%s' to section" % (tagname,content.get('url_name'))
 
 #-----------------------------------------------------------------------------
 # update chapter in course.xml file
@@ -280,22 +302,22 @@ def update_chapter(chapter,cdir):
     # see if chapter exists already
     chapfound = False
     for existing_chapter in course.findall('//chapter'):
-        if chapter.get('name') == existing_chapter.get('name'):			# chapter exists
-            print "    --> Found existing chapter '%s'" % chapter.get('name')
+        if chapter.get('url_name') == existing_chapter.get('url_name'):			# chapter exists
+            print "    --> Found existing chapter '%s'" % chapter.get('url_name')
             for section in chapter.findall('.//section'):
                 secfound = False
                 for existing_section in existing_chapter.findall('.//section'):
-                    if section.get('name') == existing_section.get('name'):	# section exists
-                        print "      --> Found existing section '%s'" % section.get('name')
+                    if section.get('url_name') == existing_section.get('url_name'):	# section exists
+                        print "      --> Found existing section '%s'" % section.get('url_name')
                         secfound = True
                         update_content(section,existing_section,'problem')
                         update_content(section,existing_section,'html')
                 if not secfound:						# section does not exist
-                    print "      --> Adding section '%s'" % section.get('name')
+                    print "      --> Adding section '%s'" % section.get('url_name')
                     existing_chapter.append(section)				# add new section to the chapter
             chapfound = True
     if not chapfound:								# chapter does not exist
-        print "      --> Adding chapter '%s'" % chapter.get('name')
+        print "      --> Adding chapter '%s'" % chapter.get('url_name')
         course.getroot().append(chapter)					# add new chapter to the course
                         
     # write out course.xml
@@ -308,10 +330,10 @@ def extract_problems(tree,pdir):
     # extract problems and put those in separate files
     for problem in tree.findall('.//problem'):
         pfn, nprob = problem_to_file(problem,pdir)	# write problem to file
-        nprob.set('filename',pfn)		# build new <problem> tag to include in course.xml
-        nprob.set('type','lecture')
-        nprob.set('showanswer','attempted')
-        nprob.set('rerandomize','never')
+        # remove all attributes, put in url_name, source_file into the <problem> tag in course.xml
+        for a in nprob.attrib:
+        	nprob.attrib.pop(a)
+        nprob.set('url_name',pfn)		
         nprob.set('source_file',INPUT_TEX_FILENAME)
         parent = problem.getparent()		# replace problem with <problem ... /> course xml link
         parent.insert(parent.index(problem),nprob)

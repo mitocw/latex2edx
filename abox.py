@@ -134,7 +134,7 @@ class AnswerBox(object):
                 choice = etree.SubElement(cg,'choice')
                 choice.set('correct','true' if op==expect else 'false')
                 choice.set('name',str(cnt))
-                choice.append(etree.XML("<span> %s</span>" %op))
+                choice.append(etree.XML("<text> %s</text>" %op))
                 cnt += 1
             
         if abtype=='choiceresponse':
