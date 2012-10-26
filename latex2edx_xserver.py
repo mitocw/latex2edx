@@ -54,25 +54,28 @@ def do_latex2edx(latexin):
     tmpfn_tex = tempfile.NamedTemporaryFile(dir=TMPDIR, delete=False, suffix='.tex', mode='w')
     tmpfn_xml = tmpfn_tex.name[:-4] + '.xml'
 
-    latex = r'''\documentclass[12pt]{article}
-    \usepackage{edXpsl}
-    
-    \begin{document}
-    
-    \begin{edXproblem}{lec1_Q2}{10}
-    
-    %s
-    
-    \end{edXproblem}
-    
-    \end{document}    
-    ''' % latexin
-    
+    if 'begin{document}' not in latexin:
+        latex = r'''\documentclass[12pt]{article}
+        \usepackage{edXpsl}
+        
+        \begin{document}
+        
+        \begin{edXproblem}{lec1_Q2}{10}
+        
+        %s
+        
+        \end{edXproblem}
+        
+        \end{document}    
+        ''' % latexin
+    else:
+        latex = latexin
 
     tmpfn_tex.write(latex)
     tmpfn_tex.close()
     cmd = 'python latex2edx.py -single %s %s' % (tmpfn_xml, tmpfn_tex.name)
     print cmd
+    LOG(cmd)
     errors = os.popen(cmd).read()
     if os.path.exists(tmpfn_xml):
         xml = open(tmpfn_xml).read()
@@ -82,10 +85,20 @@ def do_latex2edx(latexin):
 
 #-----------------------------------------------------------------------------
 
+def get_client_address(environ):
+    try:
+        return environ['HTTP_X_FORWARDED_FOR'].split(',')[-1].strip()
+    except KeyError:
+        return environ.get('HTTP_HOSTIP',environ.get('REMOTE_ADDR',''))
+
+#-----------------------------------------------------------------------------
+
 def do_latex2edx_xserver(environ, start_response):
 
     LOG('-----------------------------------------------------------------------------')
-    LOG('connect at %s' % time.ctime(time.time()))
+    LOG('connect from %s at %s' % (get_client_address(environ), time.ctime(time.time())))
+    LOG('referer: %s' % environ.get('HTTP_REFERER',''))
+    # LOG(str(environ))
 
     qs = environ.get('QUERY_STRING', '')
     parameters = parse_qs(qs)
