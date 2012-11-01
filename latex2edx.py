@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# File:   latex2edx.py
+# File:   latex2edx.py  
 # Date:   19-Jun-12
 # Author: I. Chuang <ichuang@mit.edu>
 #
@@ -30,7 +30,7 @@ from lxml.html.soupparser import fromstring as fsbs
 import csv
 import codecs
 import copy
-from abox import AnswerBox
+from abox import AnswerBox, split_args_with_quoted_strings
 
 # set the zpts templates path
 zptspath = os.path.abspath('render')
@@ -198,29 +198,29 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single=''):
     
     #set default attributes for problems
     if tagname=='problem':
-		content.set('showanswer','closed')
-		content.set('rerandomize','never')
+        content.set('showanswer','closed')
+        content.set('rerandomize','never')
     
     #extract attributes from attrib_string 
-    attrib_list=content.get('attrib_string').split(', ') #all attribute=value pairs must be separated by ', '
+    attrib_list=split_args_with_quoted_strings(content.get('attrib_string'))    
     if len(attrib_list)==1 & len(attrib_list[0].split('='))==1: #a single number n is interpreted as points="n"
-   		content.set('points',attrib_list[0])	
-   		content.attrib.pop('attrib_string') #remove attrib_string
-    else: #the normal case, can remove backwards compatibility later if desired	
-		for s in attrib_list: 
-			attrib_and_val=s.split('=')    	
-			if len(attrib_and_val) != 2:
-				print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
-				sys.exit(-1)
-			content.set(attrib_and_val[0],attrib_and_val[1].strip("\"")) #remove extra quotes
-		content.attrib.pop('attrib_string') #remove attrib_string
+        content.set('points',attrib_list[0])
+        content.attrib.pop('attrib_string') #remove attrib_string
+    else: #the normal case, can remove backwards compatibility later if desired
+        for s in attrib_list: 
+            attrib_and_val=s.split('=')    	
+            if len(attrib_and_val) != 2:
+                print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
+                sys.exit(-1)
+            content.set(attrib_and_val[0],attrib_and_val[1].strip("\"")) #remove extra quotes
+        content.attrib.pop('attrib_string') #remove attrib_string
 
-	# create a copy to return of the content tag, remove url_name
+    # create a copy to return of the content tag, remove url_name
     nprob = etree.Element(tagname)	
     for a in content.attrib:
         nprob.set(a,content.get(a))
         if a=='url_name': #remove url_name as an attribute, it becomes the filename
-        	content.attrib.pop(a)       	
+            content.attrib.pop(a)       	
     #open('%s/%s.xml' % (pdir,pfn),'w').write(etree.tostring(content,pretty_print=True))
     if single:
         ppath = single
@@ -332,7 +332,7 @@ def extract_problems(tree,pdir):
         pfn, nprob = problem_to_file(problem,pdir)	# write problem to file
         # remove all attributes, put in url_name, source_file into the <problem> tag in course.xml
         for a in nprob.attrib:
-        	nprob.attrib.pop(a)
+            nprob.attrib.pop(a)
         nprob.set('url_name',pfn)		
         nprob.set('source_file',INPUT_TEX_FILENAME)
         parent = problem.getparent()		# replace problem with <problem ... /> course xml link
