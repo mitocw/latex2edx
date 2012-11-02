@@ -203,8 +203,8 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single=''):
     
     #extract attributes from attrib_string 
     attrib_list=split_args_with_quoted_strings(content.get('attrib_string'))    
-    if len(attrib_list)==1 & len(attrib_list[0].split('='))==1: #a single number n is interpreted as points="n"
-        content.set('points',attrib_list[0])
+    if len(attrib_list)==1 & len(attrib_list[0].split('='))==1: #a single number n is interpreted as weight="n"
+        content.set('weight',attrib_list[0]) 
         content.attrib.pop('attrib_string') #remove attrib_string
     else: #the normal case, can remove backwards compatibility later if desired
         for s in attrib_list: 
@@ -483,7 +483,7 @@ def usage():
 default_dir = '.'
 UPDATE_MODE = False
 SINGLE_FN = ''
-imdir = 'html'	# image directory
+imdir = 'static/html'	# image directory
 imurl = 'html'	# image url (may need to be class number)
 
 if len(sys.argv)==1:
@@ -492,7 +492,7 @@ if len(sys.argv)==1:
 while sys.argv[1][0]=='-':
     if sys.argv[1]=='-d':
         default_dir = sys.argv[2]
-        imdir = '%s/%s' % (default_dir,imdir)
+        #imdir = '%s/%s' % (default_dir,imdir)
         sys.argv.pop(1)
         sys.argv.pop(1)
     elif sys.argv[1]=='-update':
@@ -502,6 +502,10 @@ while sys.argv[1][0]=='-':
         imurl = sys.argv[2]
         sys.argv.pop(1)
         sys.argv.pop(1)
+    elif sys.argv[1]=='-imdir':
+        imdir = sys.argv[2]
+        sys.argv.pop(1)
+        sys.argv.pop(1)        
     elif sys.argv[1]=='-single':
         SINGLE_FN = sys.argv[2]
         sys.argv.pop(1)
