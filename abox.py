@@ -243,7 +243,11 @@ class AnswerBox(object):
             
         elif abtype=='imageresponse':
             self.require_args(['src','width','height','rectangle'])
-            print abargs
+            rect = abargs.get('rectangle')
+            if re.match('\(\d+\,\d+\)\-\(\d+,\d+\)',rect) is None: #check for rectangle syntax
+                print "[abox.py] ERROR: imageresponse rectancle %s has wrong syntax" % rect
+                print "[abox.py] Answer box string is \"%s\"" % self.aboxstr
+                sys.exit(0)
             ii = etree.Element('imageinput')
             self.copy_attrib(abargs,'src',ii)
             self.copy_attrib(abargs,'width',ii)
