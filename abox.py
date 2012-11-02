@@ -219,10 +219,10 @@ class AnswerBox(object):
                 raise
             abxml.set('answer',answer)
             rp = etree.SubElement(tl,"responseparam")
-            rp.attrib['description'] = "Numerical Tolerance"
+            #rp.attrib['description'] = "Numerical Tolerance" #not needed
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
-            rp.attrib['name'] = "tol"
+            #rp.attrib['name'] = "tol" #not needed
         
         elif abtype=='symbolicresponse':
             self.require_args(['expect'])
