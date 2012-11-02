@@ -99,6 +99,7 @@ class AnswerBox(object):
                           'shortanswer' : 'shortanswerresponse',
                           'string': 'stringresponse',
                           'symbolic': 'symbolicresponse',
+                          'image': 'imageresponse'
                           }
 
         if 'type' in abargs and abargs['type'] in type2response:
@@ -239,6 +240,16 @@ class AnswerBox(object):
             else:
                 tl.set('correct_answer',self.stripquotes(abargs['expect']))
             tl.set('math','1')	# use dynamath
+            
+        elif abtype=='imageresponse':
+            self.require_args(['src','width','height','rectangle'])
+            print abargs
+            ii = etree.Element('imageinput')
+            self.copy_attrib(abargs,'src',ii)
+            self.copy_attrib(abargs,'width',ii)
+            self.copy_attrib(abargs,'height',ii)
+            self.copy_attrib(abargs,'rectangle',ii)
+            abxml.append(ii)
  
         # has hint function?
         if 'hintfn' in abargs:
