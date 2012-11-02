@@ -99,6 +99,7 @@ class AnswerBox(object):
                           'shortanswer' : 'shortanswerresponse',
                           'string': 'stringresponse',
                           'symbolic': 'symbolicresponse',
+                          'image': 'imageresponse'
                           }
 
         if 'type' in abargs and abargs['type'] in type2response:
@@ -219,10 +220,10 @@ class AnswerBox(object):
                 raise
             abxml.set('answer',answer)
             rp = etree.SubElement(tl,"responseparam")
-            rp.attrib['description'] = "Numerical Tolerance"
+            #rp.attrib['description'] = "Numerical Tolerance" #not needed
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
-            rp.attrib['name'] = "tol"
+            #rp.attrib['name'] = "tol" #not needed
         
         elif abtype=='symbolicresponse':
             self.require_args(['expect'])
@@ -239,6 +240,20 @@ class AnswerBox(object):
             else:
                 tl.set('correct_answer',self.stripquotes(abargs['expect']))
             tl.set('math','1')	# use dynamath
+            
+        elif abtype=='imageresponse':
+            self.require_args(['src','width','height','rectangle'])
+            rect = abargs.get('rectangle')
+            if re.match('\(\d+\,\d+\)\-\(\d+,\d+\)',rect) is None: #check for rectangle syntax
+                print "[abox.py] ERROR: imageresponse rectancle %s has wrong syntax" % rect
+                print "[abox.py] Answer box string is \"%s\"" % self.aboxstr
+                sys.exit(0)
+            ii = etree.Element('imageinput')
+            self.copy_attrib(abargs,'src',ii)
+            self.copy_attrib(abargs,'width',ii)
+            self.copy_attrib(abargs,'height',ii)
+            self.copy_attrib(abargs,'rectangle',ii)
+            abxml.append(ii)
  
         # has hint function?
         if 'hintfn' in abargs:
