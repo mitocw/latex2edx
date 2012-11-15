@@ -216,8 +216,9 @@ class AnswerBox(object):
             try:
                 x = float(answer)
             except Exception as err:
-                print "Error - numericalresponse expects numerical expect value, for %s" % s
-                raise
+                if not answer[0]=='$':	# may also be a string variable (starts with $)
+                    print "Error - numericalresponse expects numerical expect value, for %s" % s
+                    raise
             abxml.set('answer',answer)
             rp = etree.SubElement(tl,"responseparam")
             #rp.attrib['description'] = "Numerical Tolerance" #not needed
