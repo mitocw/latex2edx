@@ -12,6 +12,9 @@ import json
 from path import path
 import tempfile
 import urllib
+import base64
+import gzip
+from StringIO import StringIO
 
 from cgi import parse_qs, escape
 
@@ -117,6 +120,13 @@ def do_latex2edx_xserver(environ, start_response):
             print "ok"
         else:
             print "ERROR! no JSON data found in %s" % qs
+
+    elif 'raw' in parameters:	# ajax POST
+        LOG('raw')
+        data = {'latexin': environ['wsgi.input'].read()}
+        LOG("data=%s" % data)
+        mode = 'post'
+
     else:
         data = parameters
         mode = 'html'
@@ -124,14 +134,16 @@ def do_latex2edx_xserver(environ, start_response):
     latexin = data.get('latexin','')
     if type(latexin)==list:
         latexin = latexin[0]
-    print "latexin = ",latexin
+    LOG("latexin = %s" % latexin)
 
     html = '''<html><form><h2>Latex input:</h2>'''
     html += '''<textarea name="latexin" rows="10" cols="50">%s</textarea>''' % (latexin[0] if latexin else '')
     html += '''<input type="submit" name="Convert"></form>'''
 
+    xml = ''
+    errors = ''
+
     if latexin:
-        print "latexin = ", latexin
         xml, errors = do_latex2edx(latexin)
 
         html += '<h2>edX XML:</h2>'
@@ -143,6 +155,11 @@ def do_latex2edx_xserver(environ, start_response):
     if mode=='html':
         start_response('200 OK', [('Content-Type', 'text/html')])
         return [html]
+    elif mode=='post':
+        start_response('200 OK', [('Content-Type', "text/json")])
+        jsondat = json.dumps({'xml': xml, 'message': errors, 'images': ''})
+        LOG("Return: %s" % jsondat)
+        return [jsondat]
     else:
         start_response('200 OK', [('Content-Type', "application/json")])
         jsondat = json.dumps({'xml': xml, 'message': errors})
