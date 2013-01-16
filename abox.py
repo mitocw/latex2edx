@@ -51,7 +51,7 @@ class AnswerBox(object):
         </numericalresponse>
         
         -----------------------------------------------------------------------------
-	<abox type="oldmultichoice" expect="Yellow" options="Red","Green","Yellow","Blue" />
+	<abox type="multichoice" expect="Yellow" options="Red","Green","Yellow","Blue" />
 
         <multiplechoiceresponse direction="vertical" randomize="yes">
          <choicegroup type="MultipleChoice">
@@ -62,7 +62,7 @@ class AnswerBox(object):
          </choicegroup>
         </multiplechoiceresponse>
         -----------------------------------------------------------------------------
-	<abox type="multichoice" expect="1","3" options="0","1","2","3","4" />
+	<abox type="oldmultichoice" expect="1","3" options="0","1","2","3","4" />
 
         <choiceresponse>
           <checkboxgroup>
@@ -91,8 +91,8 @@ class AnswerBox(object):
         type2response = { 'custom': 'customresponse',
                           'external': 'externalresponse',
                           'code': 'coderesponse',
-                          'multichoice' : 'choiceresponse',
-                          'oldmultichoice': 'multiplechoiceresponse',
+                          'oldmultichoice' : 'choiceresponse',
+                          'multichoice': 'multiplechoiceresponse',
                           'numerical': 'numericalresponse',
                           'option': 'optionresponse',
                           'shortans' : 'shortanswerresponse',
