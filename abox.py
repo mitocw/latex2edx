@@ -74,6 +74,22 @@ class AnswerBox(object):
           </checkboxgroup>
         </choiceresponse>
         -----------------------------------------------------------------------------
+        <abox type="formula" expect="m*c^2" samples="m,c@1,2:3,4#10" type="cs" size="40" math="1" tolerance="0.01" />
+
+        format of samples:  <variables>@<lower_bounds>:<upper_bound>#<num_samples
+
+        * variables    - a set of variables that are allowed as student input
+        * lower_bounds - for every variable defined in variables, a lower
+                         bound on the numerical tests to use for that variable
+        * upper_bounds - for every variable defined in variables, an upper
+                         bound on the numerical tests to use for that variable
+
+        <formularesponse type="cs" samples="m,c@1,2:3,4#10" answer="m*c^2">
+            <responseparam type="tolerance" default="0.01"/> 
+            <textline size="40" math="1" />    
+        </formularesponse>
+        -----------------------------------------------------------------------------
+
         '''
         self.aboxstr = aboxstr
         self.xml = self.abox2xml(aboxstr)
@@ -95,6 +111,7 @@ class AnswerBox(object):
                           'multichoice': 'multiplechoiceresponse',
                           'numerical': 'numericalresponse',
                           'option': 'optionresponse',
+                          'formula': 'formularesponse', 
                           'shortans' : 'shortanswerresponse',
                           'shortanswer' : 'shortanswerresponse',
                           'string': 'stringresponse',
@@ -226,6 +243,22 @@ class AnswerBox(object):
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
             #rp.attrib['name'] = "tol" #not needed
         
+        elif abtype=='formularesponse':
+            self.require_args(['expect','samples'])
+            self.copy_attrib(abargs,'inline',abxml)
+            self.copy_attrib(abargs,'type',abxml)
+            self.copy_attrib(abargs,'samples',abxml)
+            tl = etree.Element('textline')
+            self.copy_attrib(abargs,'size',tl)
+            self.copy_attrib(abargs,'inline',tl)
+            self.copy_attrib(abargs,'math',tl)
+            abxml.append(tl)
+            answer = self.stripquotes(abargs['expect'])
+            abxml.set('answer',answer)
+            rp = etree.SubElement(tl,"responseparam")
+            rp.attrib['type'] = "tolerance"
+            rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
+
         elif abtype=='symbolicresponse':
             self.require_args(['expect'])
             self.copy_attrib(abargs,'expect',abxml)
