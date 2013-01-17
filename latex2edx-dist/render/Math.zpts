@@ -1,0 +1,35 @@
+name: math ensuremath
+<math tal:content='self/source'></math>
+
+name: displaymath equation
+<table class="equation" width="100%" tal:attributes="id self/id" cellspacing="0" cellpadding="7">
+<tr>
+    <td class='equation'><math tal:content='self/source'></math></td>
+</tr>
+</table>
+
+name: eqnarray eqnarray* align align* gather gather* falign falign* \
+      multiline multiline* alignat alignat* split
+type: xml
+<table class="eqnarray" cellspacing="0" cellpadding="7" width="100%"
+       tal:attributes="id self/id">
+<tr tal:repeat="row self" tal:attributes="id row/id">
+    <td tal:condition="self/ownerDocument/context/packages/documentclass/fleqn" class="fleqn"></td>
+    <td tal:condition="not:self/ownerDocument/context/packages/documentclass/fleqn" style="width:40%"></td>
+    <metal:block tal:repeat="cell row">
+    <metal:block tal:define="alignment 
+           python:test(cell.style.get('text-align'), cell.style.get('text-align'),
+                       path('repeat/cell/start'), 'right', 
+                       path('repeat/cell/end'), 'left', 'center')">
+        <td tal:attributes="style string:vertical-align:middle;; 
+                                  text-align:${alignment}; colspan cell/attributes/colspan"
+            >
+	    <math tal:content='cell/source'></math>
+        </td>
+    </metal:block>
+    </metal:block>
+    <td tal:condition="self/ownerDocument/context/packages/documentclass/fleqn" style="width:80%"></td>
+    <td tal:condition="not:self/ownerDocument/context/packages/documentclass/fleqn" style="width:40%"></td>
+    <td class="eqnnum" style="width:20%"><span tal:condition="row/ref">(<span tal:content="row/ref">1.1.1</span>)</span></td>
+</tr>
+</table>

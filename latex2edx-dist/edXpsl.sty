@@ -1,0 +1,19 @@
+%
+% Notes: edXpsl does not like certain pacakages.  This includes:
+%        enumerate, paralist
+%
+
+\usepackage{verbatim}
+
+\newenvironment{edXcourse}[2]{{\noindent\Large\bf edX Course: #1}~\\}{}
+\newenvironment{edXchapter}[1]{\section{#1}}{}
+\newenvironment{edXsection}[1]{\subsection{#1}}{}
+\newenvironment{edXsequential}{}{}
+\newenvironment{edXscript}{\verbatim}{\endverbatim}
+\newenvironment{edXanswer}{\verbatim}{\endverbatim}
+\newenvironment{edXjavascript}{\verbatim}{\endverbatim}
+\newenvironment{edXproblem}[2]{\subsubsection{{\bf #1}}}{}
+\newenvironment{edXtext}[1]{\subsubsection{{\bf #1}}}{}
+\newenvironment{edXmath}{$$}{$$}
+\newcommand\edXsolution[1]{#1}
+\newcommand\edXabox[1]{\fbox{#1}}

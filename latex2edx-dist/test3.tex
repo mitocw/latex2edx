@@ -1,0 +1,159 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\textwidth = 6.5 in
+\textheight = 9 in
+\oddsidemargin = 0.0 in
+\evensidemargin = 0.0 in
+\topmargin = 0.0 in
+\headheight = 0.0 in
+\headsep = 0.0 in
+\parskip = 0.2in
+\parindent = 0.0in
+
+\usepackage{edXpsl}
+\begin{document}
+
+\begin{edXcourse}{8.01x}{Mechanics}
+
+\begin{edXchapter}{Problems}
+
+\begin{edXsection}{Bead, Spring and Hoop -- Casting a Mirror}
+
+\begin{edXsequential}
+
+%%%%%%%%%%%%%%%%%%%%
+\begin{edXproblem}{Blocks and Pulleys 3}{10}
+
+% \section{Blocks and Pulleys 3}  
+
+% {\bf Blocks and Pulleys 3}
+\vspace{0.2in}
+
+\centerline {
+\edXxml{<img src="/static/html/C130f1.png" width="675"/>}
+}
+
+\vspace{0.1in}
+In the system shown above $m_1 > m_2$. The pulleys are massless and frictionless, and the rope joining the blocks has no mass. The coefficient of static friction between the blocks and the tables is greater than the coefficient of kinetic friction: $\mu_s > \mu_k$. The downward acceleration of gravity is $g$. 
+\begin{itemize}
+\item[a)] 
+Imagine that when the system is released from rest body 3 accelerates downward at a constant rate of magnitude $a$, but only one of the other blocks moves. Which block does not move, and what is the magnitude and direction of the friction force holding it back?
+
+In this part $a$ is a given quantity. Let $T$ be the tension in the rope.
+\edXabox{ type="symbolic" expect="0" size="80" }
+
+
+
+\begin{edXsolution}
+
+
+\begin{minipage}{2.0in}
+\vspace{.2in}
+\centerline {
+\edXxml{<img src="/static/html/C130Sf2.png" width="120"/>}
+}
+\vspace{.2in}
+\end{minipage}
+\begin{minipage}{3.5in}
+\begin{eqnarray*}
+F &=& ma\\
+-2T +m_3 g &=& m_3 a\\
+T &=& (1/2)(g-a)m_3\\
+\end{eqnarray*}
+\end{minipage}
+
+$T$ exceeds the static friction force limit on one block but not the other.\\
+
+$f_s|_{max} = \mu_sN =  \mu_s m_i g$\\
+
+$\Rightarrow$ lightest mass moves first.\\
+
+$\Rightarrow$ \underline{$m_1$ does not move.}\\
+
+\edXxml{<img src="/static/html/C130Sf3.png" width="240"/>}
+
+
+
+
+\newpage
+\item[b)] 
+Now consider the case where, when released from rest, all three blocks begin to move.  Find $N$ equations that must be solved to find the dynamics of this system. Draw a \fbox{box} around each of the equations. Make a list of the $N$ unknowns in these equations. \underline{Underline} the list. \underline{Do not solve this system of equations.
+}\end{itemize}
+
+The obvious dynamical variables are the accelerations $\ddot{x_1}$, $\ddot{x_2}$ and $\ddot{x_3}$, The other variable that influences the motion of each of the masses is the tension $T$. These are the  four variables we will try to find.
+
+\begin{minipage}{3.0in}
+\vspace{.2in}
+\centerline {
+\edXxml{<img src="/static/html/C130Sf4.png" width="210"/>}
+}
+\vspace{.2in}
+\end{minipage}
+\begin{minipage}{3.5in}
+$F_y = m_1\ddot{y}_1$\\
+$N_1 - m_1g = 0 \;\;\Rightarrow\;\;N_1 = m_1g$\\
+
+$F_x=m_1\ddot{x_1}$\\
+$f_1-T=m_1\ddot{x}_1 = \mu_k m_1g -T$\\
+
+\fbox{$m_1\ddot{x}_1 =  \mu_k m_1g -T$}\\
+\end{minipage}
+
+\begin{minipage}{3.0in}
+\vspace{.2in}
+\centerline {
+\edXxml{<img src="/static/html/C130Sf5.png" width="210"/>}
+}
+\vspace{.2in}
+\end{minipage}
+\begin{minipage}{3.5in}
+$F_y = m_2\ddot{y}_2$\\
+$N_2 - m_2g = 0 \;\;\Rightarrow\;\;N_2 = m_2g$\\
+
+$F_x=m_2\ddot{x_2}$\\
+$f_2-T=m_1\ddot{x}_2 = \mu_k m_2g -T$\\
+
+\fbox{$m_2\ddot{x}_2 =  \mu_k m_2g -T$}\\
+\end{minipage}
+
+\begin{minipage}{3.0in}
+\vspace{.2in}
+\centerline {
+\edXxml{<img src="/static/html/C130Sf6.png" width="75"/>}
+}
+\vspace{.2in}
+\end{minipage}
+\begin{minipage}{3.5in}
+$F_y = m_3\ddot{y}_3$\\
+$-2T +m_3 g = m_3 \ddot{y}_3$\\
+
+\fbox{$ m_3 \ddot{y}_3 = m_3 g -2T $}\\
+\end{minipage}
+
+Let $L$ be the length of the rope and $R$ the radius of the pulleys.\\
+
+\centerline{ $ L = x_1 + x_2 + 2y_3 +2\pi R \;\;\Rightarrow \;\; $ \fbox{$\ddot{x}_1 +\ddot{x}_2 +2\ddot{y}_3 = 0$} }
+
+We now have four equations in the four unknowns \underline{ $\ddot{x}_1$, $\ddot{x}_2$, $\ddot{y}_3$ and $T$ }.
+
+
+\end{edXsolution}
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{edXsequential}
+
+\end{edXsection}
+\end{edXchapter}
+\end{edXcourse}
+
+\end{document}
+
+
+

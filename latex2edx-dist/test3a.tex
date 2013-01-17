@@ -1,0 +1,64 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\textwidth = 6.5 in
+\textheight = 9 in
+\oddsidemargin = 0.0 in
+\evensidemargin = 0.0 in
+\topmargin = 0.0 in
+\headheight = 0.0 in
+\headsep = 0.0 in
+\parskip = 0.2in
+\parindent = 0.0in
+
+\usepackage{edXpsl}
+\begin{document}
+
+\begin{edXcourse}{8.01x}{Mechanics}
+
+\begin{edXchapter}{Problems}
+
+\begin{edXsection}{Bead, Spring and Hoop -- Casting a Mirror}
+
+\begin{edXsequential}
+
+%%%%%%%%%%%%%%%%%%%%
+\begin{edXproblem}{Blocks and Pulleys 3}{10}
+
+% \section{Blocks and Pulleys 3}  
+
+% {\bf Blocks and Pulleys 3}
+\vspace{0.2in}
+
+\centerline {
+\edXxml{<img src="/static/html/C130f1.png" width="675"/>}
+}
+
+\vspace{0.1in}
+In the system shown above $m_1 > m_2$. The pulleys are massless and frictionless, and the rope joining the blocks has no mass. The coefficient of static friction between the blocks and the tables is greater than the coefficient of kinetic friction: $\mu_s > \mu_k$. The downward acceleration of gravity is $g$. 
+\begin{itemize}
+\item[a)] 
+Imagine that when the system is released from rest body 3 accelerates downward at a constant rate of magnitude $a$, but only one of the other blocks moves. Which block does not move, and what is the magnitude and direction of the friction force holding it back?
+
+In this part $a$ is a given quantity. Let $T$ be the tension in the rope.
+\edXabox{ type="symbolic" expect="0" size="80" }
+
+~
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{edXsequential}
+
+\end{edXsection}
+\end{edXchapter}
+\end{edXcourse}
+
+\end{document}
+
+
+
