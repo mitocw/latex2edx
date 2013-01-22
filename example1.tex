@@ -1,20 +1,20 @@
 %
-% File:   test3.tex
+% File:   example1.tex
 % Date:   17-Jul-12
 % Author: I. Chuang <ichuang@mit.edu>
 %
 % Example latex source file for an edX course.
 % This file can be compiled using
 %
-%   python latex2edx -prefix ATEST test3.tex
+%   python latex2edx example1.tex
 %
 % to generate all the content files for an example edX course named
 % "1.00x".  The files are saved in a subdirectory named "1.00x", and
 % include:
 %
 %     1.00x/course.xml               - main table of contents for course
-%     1.00x/problem/Problem_1.xml   - problem 1 (symbolic response example)
-%     1.00x/problem/Problem_2.xml   - problem 2 (option response example)
+%     1.00x/problems/Problem_1.xml   - problem 1 (symbolic response example)
+%     1.00x/problems/Problem_2.xml   - problem 2 (option response example)
 
 \documentclass[12pt]{article}
 
@@ -75,10 +75,6 @@ What state is Detroit in?
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{edXvertical}{A sample vertical - multiple problems in one day}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \begin{edXproblem}{Problem 3.5}{10}
 
 \section{Example of numerical response}  
@@ -109,10 +105,6 @@ Enter a python list of two numbers which sum to 10:
 \edXabox{expect="[1,9]" type="custom" cfn="sumtest"}
 
 \end{edXproblem}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\end{edXvertical}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

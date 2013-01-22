@@ -75,7 +75,7 @@ class MyRenderer(XHTML.Renderer):
             return '[mathjax]%s[/mathjax]' % x
 
         def do_image(m):
-            #print "[do_image] m=%s" % repr(m.groups())
+            # print "[do_image] m=%s" % repr(m.groups())
             style = m.group(1)
             sm = re.search('width=([0-9\.]+)(.*)',style)
             if sm:
@@ -83,11 +83,7 @@ class MyRenderer(XHTML.Renderer):
                 width = float(sm.group(1))
                 if 'in' in widtype:
                     width = width * 110
-                if 'extwidth' in widtype:
-                    width = width * 110 * 6
                 width = int(width)
-                if width==0:
-                    width = 400
             else:
                 width = 400
 
@@ -273,41 +269,26 @@ def cleanup_xml(xml):
 
     walk_tree(xml)
 
-    FLAG_drop_sequential = False
+    # 21jan13 new xml format: drop section, add display_name to sequential and to chapter
+    for ch in xml.findall('.//chapter'):
+        un = ch.get('url_name','')
+        if un:
+            ch.set('display_name',un)
+            ch.attrib.pop('url_name')
+    for seq in xml.findall('.//sequential'):
+        p = seq.getparent()
+        dn = seq.get('display_name','')
+        if p.tag=='section':
+            ndn = p.get('url_name','')
+            if not dn and ndn:
+                seq.set('display_name',ndn)
+            p.addnext(seq)	# move up to parent's level
     
-    if FLAG_drop_sequential:
-        # 21jan13 new xml format: drop section, add display_name to sequential and to chapter
-        for ch in xml.findall('.//chapter'):
-            un = ch.get('url_name','')
-            if un:
-                ch.set('display_name',un)
-                ch.attrib.pop('url_name')
-        for seq in xml.findall('.//sequential'):
-            p = seq.getparent()
-            dn = seq.get('display_name','')
-            if p.tag=='section':
-                ndn = p.get('url_name','')
-                if not dn and ndn:
-                    seq.set('display_name',ndn)
-                p.addnext(seq)	# move up to parent's level
-        
-        for sec in xml.findall('.//section'):
-            if len(sec)>0:
-                print "oops, non-empty section!  sec=%s" % etree.tostring(sec)
-            else:
-                sec.getparent().remove(sec)
-
-    FLAG_convert_section_to_sequential = True
-    if FLAG_convert_section_to_sequential:
-        # 23jan13 - convert <section> (which is no longer used) to <sequential>
-        # and turn url_name into display_name
-        for sec in xml.findall('.//section'):
-            sec.tag = 'sequential'
-            un = sec.get('url_name','')
-            if un:
-                sec.set('display_name',un)
-                sec.attrib.pop('url_name')
-
+    for sec in xml.findall('.//section'):
+        if len(sec)>0:
+            print "oops, non-empty section!  sec=%s" % etree.tostring(sec)
+        else:
+            sec.getparent().remove(sec)
     return xml
 
 #-----------------------------------------------------------------------------
@@ -339,8 +320,7 @@ def update_chapter(chapter,cdir):
     course = etree.parse(cxfn)
 
     # extract problems & html
-    #pdir = '%s/problems' % cdir
-    pdir = '%s/problem' % cdir
+    pdir = '%s/problems' % cdir
     hdir = '%s/html' % cdir
     extract_problems(chapter,pdir)
     extract_html(chapter,hdir)
@@ -417,7 +397,7 @@ def course_to_files(course, update_mode, default_dir, fnprefix=''):
             update_chapter(chapter,default_dir)
         return
 
-    pdir = '%s/problem' % cdir
+    pdir = '%s/problems' % cdir
     hdir = '%s/html' % cdir
     if not os.path.exists(cdir):
         os.mkdir(cdir)

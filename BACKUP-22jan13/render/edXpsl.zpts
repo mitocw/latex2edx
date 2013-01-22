@@ -7,9 +7,6 @@ name: edXchapter
 name: edXsection
 <section tal:attributes='url_name self/attributes/url_name' tal:content='self'></section>
 
-name: edXvertical
-<vertical tal:attributes='display_name self/attributes/display_name' tal:content='self'></vertical>
-
 name: edXsequential
 <sequential tal:content='self'></sequential>
 

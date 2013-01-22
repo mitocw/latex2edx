@@ -75,7 +75,7 @@ class MyRenderer(XHTML.Renderer):
             return '[mathjax]%s[/mathjax]' % x
 
         def do_image(m):
-            #print "[do_image] m=%s" % repr(m.groups())
+            # print "[do_image] m=%s" % repr(m.groups())
             style = m.group(1)
             sm = re.search('width=([0-9\.]+)(.*)',style)
             if sm:
@@ -83,11 +83,7 @@ class MyRenderer(XHTML.Renderer):
                 width = float(sm.group(1))
                 if 'in' in widtype:
                     width = width * 110
-                if 'extwidth' in widtype:
-                    width = width * 110 * 6
                 width = int(width)
-                if width==0:
-                    width = 400
             else:
                 width = 400
 
@@ -195,42 +191,36 @@ class MyRenderer(XHTML.Renderer):
 #-----------------------------------------------------------------------------
 # output problem into XML file
 
-def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''):
+def content_to_file(content, tagname, fnsuffix, pdir='.', single=''):
     pname = content.get('url_name','noname')
     pfn = pname.replace(' ','_').replace('/','').replace(':','_').replace('(','').replace(')','')
-    pfn = pfn.replace(',','_')
-    pfn = fnprefix + pfn
     print "  %s '%s' --> %s/%s.%s" % (tagname,pname,pdir,pfn,fnsuffix)
-
+    
     #set default attributes for problems
     if tagname=='problem':
         content.set('showanswer','closed')
         content.set('rerandomize','never')
     
     #extract attributes from attrib_string 
-    attrib_string = content.get('attrib_string','')
-    if attrib_string:
-        attrib_list=split_args_with_quoted_strings(attrib_string)    
-        if len(attrib_list)==1 & len(attrib_list[0].split('='))==1: #a single number n is interpreted as weight="n"
-            content.set('weight',attrib_list[0]) 
-            content.attrib.pop('attrib_string') #remove attrib_string
-        else: #the normal case, can remove backwards compatibility later if desired
-            for s in attrib_list: 
-                attrib_and_val=s.split('=')    	
-                if len(attrib_and_val) != 2:
-                    print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
-                    sys.exit(-1)
-                content.set(attrib_and_val[0],attrib_and_val[1].strip("\"")) #remove extra quotes
-            content.attrib.pop('attrib_string') #remove attrib_string
+    attrib_list=split_args_with_quoted_strings(content.get('attrib_string'))    
+    if len(attrib_list)==1 & len(attrib_list[0].split('='))==1: #a single number n is interpreted as weight="n"
+        content.set('weight',attrib_list[0]) 
+        content.attrib.pop('attrib_string') #remove attrib_string
+    else: #the normal case, can remove backwards compatibility later if desired
+        for s in attrib_list: 
+            attrib_and_val=s.split('=')    	
+            if len(attrib_and_val) != 2:
+                print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
+                sys.exit(-1)
+            content.set(attrib_and_val[0],attrib_and_val[1].strip("\"")) #remove extra quotes
+        content.attrib.pop('attrib_string') #remove attrib_string
 
-    # create a copy to return of the content tag, with just the filename as the url_name
+    # create a copy to return of the content tag, remove url_name
     nprob = etree.Element(tagname)	
-    nprob.set('url_name',pfn)
-    content.attrib.pop('url_name')       	# remove url_name from our own tag
-    
-    # set display_name
-    content.set('display_name',pname)
-
+    for a in content.attrib:
+        nprob.set(a,content.get(a))
+        if a=='url_name': #remove url_name as an attribute, it becomes the filename
+            content.attrib.pop(a)       	
     #open('%s/%s.xml' % (pdir,pfn),'w').write(etree.tostring(content,pretty_print=True))
     if single:
         ppath = single
@@ -245,11 +235,11 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
         sys.exit(0)
     return pfn, nprob
 
-def problem_to_file(problem, pdir='.', single='', fnprefix=''):
-    return content_to_file(problem,'problem','xml', pdir, single=single, fnprefix=fnprefix)
+def problem_to_file(problem, pdir='.', single=''):
+    return content_to_file(problem,'problem','xml', pdir, single=single)
 
-def html_to_file(html, pdir='.', single='', fnprefix=''):
-    return content_to_file(html,'html','xml',pdir, single=single, fnprefix=fnprefix)
+def html_to_file(html, pdir='.', single=''):
+    return content_to_file(html,'html','html',pdir, single=single)
 
 #-----------------------------------------------------------------------------
 # helper functions for constructing course.xml
@@ -272,42 +262,6 @@ def cleanup_xml(xml):
         return tree
 
     walk_tree(xml)
-
-    FLAG_drop_sequential = False
-    
-    if FLAG_drop_sequential:
-        # 21jan13 new xml format: drop section, add display_name to sequential and to chapter
-        for ch in xml.findall('.//chapter'):
-            un = ch.get('url_name','')
-            if un:
-                ch.set('display_name',un)
-                ch.attrib.pop('url_name')
-        for seq in xml.findall('.//sequential'):
-            p = seq.getparent()
-            dn = seq.get('display_name','')
-            if p.tag=='section':
-                ndn = p.get('url_name','')
-                if not dn and ndn:
-                    seq.set('display_name',ndn)
-                p.addnext(seq)	# move up to parent's level
-        
-        for sec in xml.findall('.//section'):
-            if len(sec)>0:
-                print "oops, non-empty section!  sec=%s" % etree.tostring(sec)
-            else:
-                sec.getparent().remove(sec)
-
-    FLAG_convert_section_to_sequential = True
-    if FLAG_convert_section_to_sequential:
-        # 23jan13 - convert <section> (which is no longer used) to <sequential>
-        # and turn url_name into display_name
-        for sec in xml.findall('.//section'):
-            sec.tag = 'sequential'
-            un = sec.get('url_name','')
-            if un:
-                sec.set('display_name',un)
-                sec.attrib.pop('url_name')
-
     return xml
 
 #-----------------------------------------------------------------------------
@@ -339,8 +293,7 @@ def update_chapter(chapter,cdir):
     course = etree.parse(cxfn)
 
     # extract problems & html
-    #pdir = '%s/problems' % cdir
-    pdir = '%s/problem' % cdir
+    pdir = '%s/problems' % cdir
     hdir = '%s/html' % cdir
     extract_problems(chapter,pdir)
     extract_html(chapter,hdir)
@@ -373,15 +326,15 @@ def update_chapter(chapter,cdir):
 #-----------------------------------------------------------------------------
 # extract problems into separate XML files
 
-def extract_problems(tree,pdir,fnprefix=''):
+def extract_problems(tree,pdir):
     # extract problems and put those in separate files
     for problem in tree.findall('.//problem'):
-        problem.set('source_file',INPUT_TEX_FILENAME)
-        pfn, nprob = problem_to_file(problem,pdir,fnprefix=fnprefix)	# write problem to file
+        pfn, nprob = problem_to_file(problem,pdir)	# write problem to file
         # remove all attributes, put in url_name, source_file into the <problem> tag in course.xml
-        #for a in nprob.attrib:
-        #    nprob.attrib.pop(a)
-        #nprob.set('url_name',pfn)		
+        for a in nprob.attrib:
+            nprob.attrib.pop(a)
+        nprob.set('url_name',pfn)		
+        nprob.set('source_file',INPUT_TEX_FILENAME)
         parent = problem.getparent()		# replace problem with <problem ... /> course xml link
         parent.insert(parent.index(problem),nprob)
         parent.remove(problem)
@@ -389,12 +342,11 @@ def extract_problems(tree,pdir,fnprefix=''):
 #-----------------------------------------------------------------------------
 # extract html segments into separate XML files
 
-def extract_html(tree,pdir,fnprefix=''):
+def extract_html(tree,pdir):
     # extract html segments and put those in separate files
     for html in tree.findall('.//html'):
-        html.set('source_file',INPUT_TEX_FILENAME)
-        pfn, nprob = html_to_file(html,pdir,fnprefix=fnprefix)
-        # nprob.set('filename',pfn)
+        pfn, nprob = html_to_file(html,pdir)
+        nprob.set('filename',pfn)
         parent = html.getparent()		# replace html with <html ... /> course xml link
         parent.insert(parent.index(html),nprob)
         parent.remove(html)
@@ -402,7 +354,7 @@ def extract_html(tree,pdir,fnprefix=''):
 #-----------------------------------------------------------------------------
 # output course into XML file
 
-def course_to_files(course, update_mode, default_dir, fnprefix=''):
+def course_to_files(course, update_mode, default_dir):
     
     cnumber = course.get('number')	# course number, like 18.06x
     print "Course number: %s" % cnumber
@@ -417,7 +369,7 @@ def course_to_files(course, update_mode, default_dir, fnprefix=''):
             update_chapter(chapter,default_dir)
         return
 
-    pdir = '%s/problem' % cdir
+    pdir = '%s/problems' % cdir
     hdir = '%s/html' % cdir
     if not os.path.exists(cdir):
         os.mkdir(cdir)
@@ -426,8 +378,8 @@ def course_to_files(course, update_mode, default_dir, fnprefix=''):
         if not os.path.exists(hdir):
             os.mkdir(hdir)
     
-    extract_problems(course,pdir,fnprefix)
-    extract_html(course,hdir,fnprefix)
+    extract_problems(course,pdir)
+    extract_html(course,hdir)
     cleanup_xml(course)
     
     # write out course.xml
@@ -523,7 +475,6 @@ def usage():
     print "   -update      : update the course.xml file, instead of creating it from scratch"
     print "   -imurl       : image URL prefix (eg '8.01') -- only sometimes needed, eg for stable-edx4edx branch"
     print "   -single fn   : only do single problem or HTML file creation, generating file fn"
-    print "   -prefix pfx  : add this prefix in front of all html / problem filenames (for disambiguation)"
     sys.exit(0)
 
 #-----------------------------------------------------------------------------
@@ -534,7 +485,6 @@ UPDATE_MODE = False
 SINGLE_FN = ''
 imdir = 'static/html'	# image directory
 imurl = 'html'	# image url (may need to be class number)
-fnprefix = ''	# prefix for url_name filenames
 
 if len(sys.argv)==1:
     usage()
@@ -558,10 +508,6 @@ while sys.argv[1][0]=='-':
         sys.argv.pop(1)        
     elif sys.argv[1]=='-single':
         SINGLE_FN = sys.argv[2]
-        sys.argv.pop(1)
-        sys.argv.pop(1)
-    elif sys.argv[1]=='-prefix':	# fnprefix
-        fnprefix = sys.argv[2]
         sys.argv.pop(1)
         sys.argv.pop(1)
     else:
@@ -645,7 +591,7 @@ course = xml.find('.//course')		# top-level entry for edX course - should only b
 chapters = xml.findall('.//chapter')	# get all chapters
 
 if course is not None:
-    course_to_files(course, UPDATE_MODE, default_dir, fnprefix=fnprefix)
+    course_to_files(course, UPDATE_MODE, default_dir)
 
 elif chapters and UPDATE_MODE:
     for chapter in chapters:

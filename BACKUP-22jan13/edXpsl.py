@@ -12,9 +12,6 @@ class edXsection(Base.Environment):
 class edXsequential(Base.Environment):
     args = 'self'
 
-class edXvertical(Base.Environment):
-    args = '{ display_name } self'
-
 class edXabox(Base.Command):
     args = 'self'
 

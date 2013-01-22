@@ -1,0 +1,76 @@
+%
+% File:   example7.tex
+% Date:   29-Jul-12
+% Author: I. Chuang <ichuang@mit.edu>
+%
+% Example latex source file for an edX course.
+% This file can be compiled using
+%
+%   python latex2edx -update example7.tex
+
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl}	% edX
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{edXchapter}{Author tools}
+
+\begin{edXsection}{More Sample problems generated from LaTeX}
+
+\begin{edXsequential}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{edXproblem}{Latex Example Problem with ShowHide Hint}{40}
+
+\edXinclude{showhide.js}
+
+\section{Example of Problem with ShowHide}  
+
+This is a sample problem, which is worth 10 points.
+
+Give the correct python {\tt type} for the following expressions.  Select {\tt noneType} if the expression is illegal.
+
+\begin{itemize}
+\item {\tt 3}   \edXabox{expect="int" options="noneType","int","float"}
+\item {\tt 5.2} \edXabox{expect="float" options="noneType","int","float"}
+\item {\tt 3/2} \edXabox{expect="int" options="noneType","int","float"}
+\item {\tt 1+[]} \edXabox{expect="noneType" options="noneType","int","float"}
+\end{itemize}
+
+\begin{edXshowhide}{id1}{Hint}
+If any of the above answers confuse you, try running the code on your own machine and 
+inserting print statements to print out intermediate values of variables so you can examine what 
+happens to certain variables - for example, \texttt{guess} - as the program is executed.
+\end{edXshowhide}
+
+The showhide hint is generated in the latex file with this code:
+\begin{verbatim}
+
+\edXinclude{showhide.js}
+
+...
+
+\begin{edXshowhide}{id1}{Hint}
+If any of the above answers confuse you, try running the code on your own machine and 
+inserting print statements to print out intermediate values of variables so you can examine what 
+happens to certain variables - for example, \texttt{guess} - as the program is executed.
+\end{edXshowhide}
+
+\end{verbatim}
+
+where {\tt showhide.js} contains the javascript and css code used.
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{edXsequential}
+
+\end{edXsection}
+\end{edXchapter}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
