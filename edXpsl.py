@@ -4,7 +4,7 @@ class edXcourse(Base.Environment):
     args = '{ number } { url_name } self'
 
 class edXchapter(Base.Environment):
-    args = '{ url_name } self'
+    args = '{ display_name } self'
 
 class edXsection(Base.Environment):
     args = '{ url_name } self'
@@ -19,6 +19,9 @@ class edXabox(Base.Command):
     args = 'self'
 
 class edXinline(Base.Command):
+    args = 'self'
+
+class edXvideo(Base.Command):
     args = 'self'
 
 class includegraphics(Base.Command):

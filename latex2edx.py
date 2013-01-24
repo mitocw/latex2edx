@@ -18,6 +18,8 @@
 # to be in the same directory as the script.
 #
 # 13-Aug-12: does html files (edXtext), javascript, include, answer
+# 22-Jan-13: use new XML format
+# 23-Jan-13: add video tag handling, unbundle course to course/*.xml if url_name acceptable
 
 import os, sys, string, re, urllib
 import glob
@@ -193,12 +195,31 @@ class MyRenderer(XHTML.Renderer):
         return res
 
 #-----------------------------------------------------------------------------
+# make an acceptable url name
+# note that all url names must be unique!
+
+URLNAMES = []
+
+def make_urlname(s):
+    map = {'"\':<>': '',
+           ',/().;=+ ': '_',
+           '/': '__',
+           '&': 'and',
+           }
+    for m,v in map.items():
+        for ch in m:
+            s = s.replace(ch,v)
+    while s in URLNAMES:
+        s += 'x'
+    URLNAMES.append(s)
+    return s
+
+#-----------------------------------------------------------------------------
 # output problem into XML file
 
 def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''):
     pname = content.get('url_name','noname')
-    pfn = pname.replace(' ','_').replace('/','').replace(':','_').replace('(','').replace(')','')
-    pfn = pfn.replace(',','_')
+    pfn = make_urlname(pname)
     pfn = fnprefix + pfn
     print "  %s '%s' --> %s/%s.%s" % (tagname,pname,pdir,pfn,fnsuffix)
 
@@ -258,7 +279,7 @@ def cleanup_xml(xml):
 
     # clean up course tree so it has nothing but allowed tags
 
-    psltags = ['course', 'chapter', 'section', 'sequential', 'vertical', 'problem', 'html']
+    psltags = ['course', 'chapter', 'section', 'sequential', 'vertical', 'problem', 'html', 'video']
     def walk_tree(tree):
         nchildren = [walk_tree(x) for x in tree]
         while None in nchildren: nchildren.remove(None)
@@ -307,6 +328,17 @@ def cleanup_xml(xml):
             if un:
                 sec.set('display_name',un)
                 sec.attrib.pop('url_name')
+
+    # move contents of video elements into attrib
+    for video in xml.findall('.//video'):
+        try:
+            chk = etree.XML('<video %s/>' % video.text)
+        except Exception, err:
+            print "[latex2edx] Oops, badly formatted video tag attributes: '%s'" % video.text
+            sys.exit(-1)
+        video.addprevious(chk)
+        video.getparent().remove(video)
+        print "  video element: %s" % etree.tostring(chk)
 
     return xml
 
@@ -430,9 +462,37 @@ def course_to_files(course, update_mode, default_dir, fnprefix=''):
     extract_html(course,hdir,fnprefix)
     cleanup_xml(course)
     
+    # if the url_name given is in reasonable format, eg 2013_Fall (no spaces), then write
+    # contents of <course> to that filename in the course subdir, ie unbundle it
+    if not ' ' in course.get('url_name',''):
+        course = unbundle(cdir, course)
+
+    if not course.get('course',''):	# ensure that <course> has course="number" and org="MITx"
+        course.set('course',cnumber)
+        course.set('org','MITx')
+
     # write out course.xml
     #open('%s/course.xml' % cdir,'w').write(etree.tostring(course,pretty_print=True))
     os.popen('xmllint -format -o %s/course.xml -' % cdir,'w').write(etree.tostring(course,pretty_print=True))
+
+
+def unbundle(cdir, xml):
+    '''Unbundle XML by one level, by writing pointer tag using url_name, and contents to subdir of tag name'''
+    un = xml.get('url_name','')
+    if not un:
+        return xml
+    uname = make_urlname(un)
+
+    # write out out XML as a file with name url_name in directory ./tag
+    xml.attrib.pop('url_name')
+    tdir = '%s/%s' % (cdir, xml.tag)
+    if not os.path.exists(tdir):
+        os.mkdir(tdir)
+    os.popen('xmllint -format -o %s/%s.xml -' % (tdir,uname),'w').write(etree.tostring(xml,pretty_print=True))
+
+    nxml = etree.Element(xml.tag)
+    nxml.set('url_name',uname)
+    return nxml
 
 #-----------------------------------------------------------------------------
 # process edX macros like edXshowhide and edXinclude, which are not handled by plasTeX

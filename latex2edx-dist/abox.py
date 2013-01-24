@@ -8,6 +8,8 @@
 #                    note that shortanswer can be implemented right now using customresponse and textbox
 # 04-Sep-12 ichuang: switch from shlex to FSM, merge in changes for math and inline from 8.21
 # 13-Oct-12 ichuang: remove csv entirely, use FSM for splitting options instead
+# 20-Jan-13 ichuang: add formularesponse
+# 23-Jan-13 ichuang: add multiple-line customresponse, with proper inline and math handling
 
 import os, sys, string ,re
 #import shlex	# for split keeping quoted strings intact
@@ -42,6 +44,15 @@ class AnswerBox(object):
         <textline size="40" correct_answer="(3 * 5) / (2 + 3)"/><br/>
         </customresponse>
         
+        -----------------------------------------------------------------------------
+        <abox type="custom" expect="20" answers="11","9" prompts="Integer 1:","Integer 2:" inline="1" cfn="test_add" />
+
+        <customresponse cfn="test_add" expect="20" inline="1">
+            <p style="display:inline">Integer 1:<textline correct_answer="11" inline="1"/></p>
+            <br/>
+            <p style="display:inline">Integer 2:<textline correct_answer="9" inline="1"/></p>
+        </customresponse>
+
         -----------------------------------------------------------------------------
         <abox type="numerical" expect="3.141" tolerance="5%" />
         
@@ -202,13 +213,41 @@ class AnswerBox(object):
         elif abtype=='customresponse':
             self.require_args(['expect','cfn'])
             abxml.set('cfn',self.stripquotes(abargs['cfn']))
-            self.copy_attrib(abargs,'expect',abxml)
-            tl = etree.Element('textline')
-            self.copy_attrib(abargs,'size',tl)
-            abxml.append(tl)
-            tl.set('correct_answer',self.stripquotes(abargs['expect']))
-            self.copy_attrib(abargs,'inline',tl)
             self.copy_attrib(abargs,'inline',abxml)
+            self.copy_attrib(abargs,'expect',abxml)
+            if not 'answers' in abargs:
+                answers = [self.stripquotes(abargs['expect'])]
+            else:	# multiple inputs for this customresponse
+                ansstr, answers = self.get_options(abargs,'answers')
+            if 'prompts' in abargs:
+                promptstr, prompts = self.get_options(abargs,'prompts')
+            else:
+                prompts = ['']
+            if not len(prompts)==len(answers):
+                print "Error: number of answers and prompts must match in:"
+                print aboxstr
+                sys.exit(-1)
+
+            cnt = 0
+            for ans, prompt in zip(answers,prompts):
+                tl = etree.Element('textline')
+                self.copy_attrib(abargs,'size',tl)
+                tl.set('correct_answer',ans)
+                self.copy_attrib(abargs,'inline',tl)
+                self.copy_attrib(abargs,'math',tl)
+                if prompt:
+                    elem = etree.Element('p')
+                    if 'inline' in abargs:
+                        elem.set('style','display:inline')
+                    elem.text = prompt
+                    elem.append(tl)
+                else:
+                    elem = tl
+                if cnt>0:
+                    abxml.append(etree.Element('br'))	# linebreak between boxes if multiple
+                abxml.append(elem)
+                cnt += 1
+                    
             
         elif abtype=='externalresponse' or abtype== 'coderesponse':
             if 'url' in abargs:

@@ -2,7 +2,7 @@ name: edXcourse
 <course tal:attributes='number self/attributes/number; url_name self/attributes/url_name' tal:content='self'></course>
 
 name: edXchapter
-<chapter tal:attributes='url_name self/attributes/url_name' tal:content='self'></chapter>
+<chapter tal:attributes='display_name self/attributes/display_name' tal:content='self'></chapter>
 
 name: edXsection
 <section tal:attributes='url_name self/attributes/url_name' tal:content='self'></section>
@@ -48,6 +48,9 @@ name: edXmath
 
 name: edXxml
 <edxxml tal:content='self/source'></edxxml>
+
+name: edXvideo
+<video tal:content='self'></video>
 
 name: includegraphics
 <includegraphics tal:attributes="style string:${self/attributes/width}" tal:content='self'></includegraphics>
