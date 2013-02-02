@@ -1,0 +1,135 @@
+\documentclass[12pt]{article}
+\usepackage{amsmath}
+
+\usepackage{graphicx}
+\usepackage{edXpsl}	% edX 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+\begin{edXcourse}{8.02x}{Electricity \& Magnetism}
+
+\begin{edXchapter}{Week9}
+
+\begin{edXsequential}
+
+\begin{edXproblem}{ps2_p5}{display_name="Two spherical conductors" showanswer="always" rerandomize="never" weight="15"}
+
+
+\begin{edXscript}
+import math
+VA=80
+VB=-30
+e=1.602e-19 
+me=9.1e-31 
+mp=1.672e-27 
+eps0=8.854e-12
+mu0=4e-7*math.pi 
+parta=math.sqrt(2*e*(VA-VB)/(me))
+\end{edXscript}
+
+%\begin{center}
+%\includegraphics[width=4in]{images/ps2_p5_fig1.png}
+%\end{center}
+
+
+There are two spherical conductors, $A$ and $B$. They are placed in vacuum. $A$ has a 
+radius $r_A=25$ cm and $B$ of $r_B=35$ cm. The distance between the centers of the two spheres 
+is $d=225$ cm.
+
+$A$ has a potential of $V_A=+80$ Volt and $B$ has a potential of $V_B=-30$ Volt.
+
+a. An electron is released with zero speed from $B$. What will its speed be as it 
+reaches $A$? Express you answer in terms of the following variables,
+if relevant, $r_A$, $r_B$,$V_A$, $V_B$, $d$, $m_e$, $m_p$ and natural
+constants. 
+
+Try script value: \$parta
+Try using script value in answer
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% NOT WORKING
+\edXabox{type="numerical" expect="\$parta" tolerance="5\%"}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\edXabox{type="symbolic" expect="sqrt(2*e*(V_A-V_B)/(m_e))"} 
+
+
+b. A proton is released with zero speed from $A$. What will its speed be as it reaches 
+$B$? Express you answer in terms of the following variables,
+if relevant, $r_A$, $r_B$,$V_A$, $V_B$, $d$, $m_e$, $m_p$ and natural constants.
+
+\edXabox{type="symbolic" expect="sqrt(2*e*(V_A-V_B)/(m_p))"} 
+
+c. We now change only the potential of $B$ to $V_B=+25$ Volt. What now is the ratio  
+
+of the speed of the electron (as it arrives at $A$) and the speed of the  
+
+
+proton (as it arrives at $B$)? Express you answer in terms of the following variables,
+if relevant, $r_A$, $r_B$,$V_A$, $V_B$, $d$, $m_e$, $m_p$ and natural
+constants.
+
+\edXabox{type="symbolic" expect="sqrt(m_p/m_e)"} 
+
+\begin{edXsolution}
+The electron has charge $q_{e} =-e $ \textbf{ }and mass $m_{e}  $ .\textbf{ }Let 
+ $\Delta V_{BA} =V_{A} -V_{B}  $  denote the electric potential
+ difference between the 
+spheres. The change in potential energy $\Delta U_{BA} =U_{A} -U_{B}  $  
+when the electron is moved from the initial position is
+
+$$\Delta U_{BA} =q\Delta V_{BA} =-e(V_{A} -V_{B} )<0 $$
+
+The electron was released from rest, therefore the change in kinetic energy is 
+
+$$\Delta K_{BA} \equiv K_{A} -K_{B} =\frac{1}{2} m_{e} v_{A}^{2} -\frac{1}{2} m_{e} v_{B}^{2} =\frac{1}{2} m_{e} v_{A}^{2}  $$
+ 
+
+From conservation of energy, 
+
+$$0=\Delta K_{BA} +\Delta U_{BA} =\frac{1}{2} m_{e} v_{A}^{2} -e(V_{A} -V_{B} ) $$
+
+So the magnitude of the velocity of the electron when it reaches the
+surface of $A$
+is, 
+
+$$v_{A} =\sqrt{\frac{2e(V_{A} -V_{B} )}{m_{e} } }  $$
+
+b.)
+
+The proton has $q_{p} =e $ \textbf{, }and mass\textbf{ $m_{p}  $ }. The change 
+in potential energy $\Delta U_{AB} =U_{B} -U_{A}  $  when the proton is moved from 
+the initial position   to the final position  is, 
+
+$$\Delta U_{AB} =q_{p} \Delta V_{AB} =e(V_{B} -V_{A} )<0 $$
+
+The proton was released from rest, therefore the change in kinetic energy is 
+
+$$\Delta K_{AB} \equiv K_{B} -K_{A} =\frac{1}{2} m_{p} v_{B}^{2} -\frac{1}{2} m_{p} v_{A}^{2} =\frac{1}{2} m_{p} v_{B}^{2}  $$
+ 
+
+From conservation of energy, 
+
+$$0=\Delta K_{AB} +\Delta U_{AB} =\frac{1}{2} m_{p} v_{B}^{2} +e(V_{B} -V_{A} ) $$
+
+So the magnitude of the velocity of the proton when it reaches the
+surface of sphere $B$
+is, 
+
+$$v_{B} =\sqrt{-\frac{2e(V_{B} -V_{A} )}{m_{p} } }  $$
+
+c.) Using our results above we have that
+
+$$\frac{v_{A} }{v_{B} } =\frac{\sqrt{\frac{2e(V_{A} -V_{B} )}{m_{e} } } }{\sqrt{-\frac{2e(V_{B} -V_{A} )}{m_{p} } } } =\sqrt{\frac{m_{p} }{m_{e} } }  $$
+
+
+The ratio is independent of the potential difference.
+\end{edXsolution}
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{edXsequential}
+\end{edXchapter}
+\end{edXcourse}
+
+\end{document}

@@ -1,0 +1,54 @@
+%
+% File:   example2.tex
+% Date:   17-Jul-12
+% Author: I. Chuang <ichuang@mit.edu>
+%
+% Example latex source file for a single edX problem.
+
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl}	% edX
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{edXproblem}{Latex Example Problem 2}{40}
+
+\section{Example of symbolic response problem}  
+ 
+This is a sample problem, which is worth 40 points.  What is the number made famous by
+Hitchhiker's guide to the galaxy?
+
+\edXabox{type='symbolic' size='90' expect='42' }
+
+~\\~\\
+
+Here is the $\LaTeX$ code for the problem:
+
+\begin{verbatim}
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl}	% edX
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{edXproblem}{Latex Example Problem 2}{40}
+
+\section{Example of symbolic response problem}  
+ 
+This is a sample problem, which is worth 40 points.  What is the number made famous by
+Hitchhiker's guide to the galaxy?
+
+\edXabox{type='symbolic' size='90' expect='42' }
+
+\end{edXproblem}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
+\end{verbatim}
+
+\end{edXproblem}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

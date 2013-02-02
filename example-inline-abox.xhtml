@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="content-type" />
+</head>
+<document>
+
+
+<div class="navigation">
+
+
+
+</div>
+
+<div><p>
+<course number="edx4edx" name="edx4edx"><chapter name="Author tools"><section name="Sample problems generated from LaTeX"><p>
+<sequential><p>
+<problem name="Example inline textinput answer box" points="40" type="lecture" showanswer="attempted"><text><p>
+<h1>Inline Answer Box Test</h1> </p><script type="text/python" system_path="python_lib">
+
+def dumtest(expect,ans):
+    return True
+
+</script><p>
+Clifford gates and measurements are not the only components of quantum circuits. In fact, if they were, quantum computers not be more powerful than classical ones! Here we consider some unitary and non-unitary operations that take quantum states to other valid states. </p><p>
+<h2>Rotations</h2> </p><p>
+Recall the Bloch vector [mathjaxinline][a,b,c][/mathjaxinline] for a single qubit state [mathjaxinline]\rho[/mathjaxinline] is defined so that </p><table id="a0000000002" class="equation" width="100%" cellspacing="0" cellpadding="7">
+<tr>
+    <td class="equation">[mathjax]\rho = \frac12(I+aX+bY+cZ)[/mathjax]</td>
+</tr>
+</table><p>
+ where [mathjaxinline]I[/mathjaxinline] is the [mathjaxinline]2\times 2[/mathjaxinline] identity matrix and [mathjaxinline]X,Y,[/mathjaxinline] and [mathjaxinline]Z[/mathjaxinline] are the Pauli matrices. The purity of state [mathjaxinline]\tau[/mathjaxinline] for [mathjaxinline]n[/mathjaxinline]-qubits is the trace of [mathjaxinline]\tau ^2[/mathjaxinline], a quantity which is always between [mathjaxinline]1/2^ n[/mathjaxinline] and [mathjaxinline]1[/mathjaxinline], with [mathjaxinline]1[/mathjaxinline] being pure and [mathjaxinline]1/2^ n[/mathjaxinline] being completely mixed. What is the condition on [mathjaxinline]a,b,[/mathjaxinline] and [mathjaxinline]c[/mathjaxinline] such that [mathjaxinline]\rho[/mathjaxinline] is a pure state? Enter you answer as a single expression that will be 0 if (and only if) [mathjaxinline]\rho[/mathjaxinline] is pure. For example, [mathjaxinline](4-a+b+c^4)[/mathjaxinline] is syntactically correct but [mathjaxinline](4-a+b+c^4)=0[/mathjaxinline] is not. </p><p>
+<p style="display:inline">[mathjaxinline]\rho[/mathjaxinline] is pure iff [mathjaxinline]0=[/mathjaxinline] </p> <customresponse cfn="dumtest" expect="a^2 + b^2 + c^2 - 1">
+  <textline correct_answer="a^2 + b^2 + c^2 - 1" inline="1"/>
+</customresponse> </p><p>
+All single qubit unitary operations can be expressed, up to a global phase, as a rotation about an axis in Bloch sphere space. If the axis is [mathjaxinline]\hat n=[n_ x,n_ y,n_ z][/mathjaxinline] (a unit vector) and the rotation angle is [mathjaxinline]\theta[/mathjaxinline], then the rotation may be written in terms of the Pauli matrices as </p><table id="a0000000003" class="equation" width="100%" cellspacing="0" cellpadding="7">
+<tr>
+    <td class="equation">[mathjax]U=e^{i\theta \left(n_ x X+n_ y Y+n_ z Z\right)}.[/mathjax]</td>
+</tr>
+</table></text></problem> </p></sequential> </p></section> </chapter> </course> </p></div>
+
+
+
+
+
+<div class="navigation">
+
+
+
+</div>
+
+</document></html>

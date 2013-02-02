@@ -1,0 +1,102 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="content-type" />
+</head>
+<document>
+
+
+<div class="navigation">
+
+
+
+</div>
+
+<div><p>
+<course number="1.00x" name="1.00x Fall 2012"><chapter name="Unit 1"><section name="Introduction"><p>
+<sequential><p>
+<problem name="Problem 1" points="40" type="lecture" showanswer="attempted"><text><p>
+<h1>Example of symbolic response</h1> </p><p>
+This is a sample problem, which is worth 40 points. What is the number made famous by Hitchhiker's guide to the galaxy? </p><p>
+<symbolicresponse expect="42">
+  <textline size="90" correct_answer="42" math="1"/>
+</symbolicresponse> </p></text></problem> </p><p>
+<problem name="Problem 2" points="10" type="lecture" showanswer="attempted"><text><p>
+<h1>Example of option response</h1> </p><p>
+This is a sample problem, which is worth 10 points. </p><p>
+Give the correct python <tt class="tt">type</tt> for the following expressions. Select <tt class="tt">noneType</tt> if the expression is illegal. </p><ul class="itemize">
+
+<li><p>
+<tt class="tt">3</tt> <optionresponse>
+  <optioninput options="('noneType','int','float')" correct="int"/>
+</optionresponse> </p></li>
+<li><p>
+<tt class="tt">5.2</tt> <optionresponse>
+  <optioninput options="('noneType','int','float')" correct="float"/>
+</optionresponse> </p></li>
+<li><p>
+<tt class="tt">3/2</tt> <optionresponse>
+  <optioninput options="('noneType','int','float')" correct="int"/>
+</optionresponse> </p></li>
+<li><p>
+<tt class="tt">1+[]</tt> <optionresponse>
+  <optioninput options="('noneType','int','float')" correct="noneType"/>
+</optionresponse> </p></li>
+</ul></text></problem> </p><p>
+<problem name="Problem 3" points="10" type="lecture" showanswer="attempted"><text><p>
+<h1>Example of string response</h1> </p><p>
+What state is Detroit in? </p><p>
+<stringresponse answer="Michigan">
+  <textline/>
+</stringresponse> </p></text></problem> </p><p>
+<problem name="Problem 3.5" points="10" type="lecture" showanswer="attempted"><text><p>
+<h1>Example of numerical response</h1> </p><p>
+What is the numerical value of [mathjaxinline]pi[/mathjaxinline]? </p><p>
+<numericalresponse answer="3.14159">
+  <textline>
+    <responseparam description="Numerical Tolerance" type="tolerance" default="0.01" name="tol"/>
+  </textline>
+</numericalresponse> </p></text></problem> </p><p>
+<problem name="Problem 4" points="10" type="lecture" showanswer="attempted"><text><p>
+<h1>Example of custom response</h1> </p><p>
+This problem demonstrates the use of a custom python script used for checking the answer. </p><script type="text/python" system_path="python_lib">
+def sumtest(expect,ans):
+    (a1,a2) = map(float,eval(ans))
+    return (a1+a2)==10
+</script><p>
+Enter a python list of two numbers which sum to 10: </p><p>
+<customresponse cfn="sumtest" expect="[1,9]">
+  <textline correct_answer="[1,9]"/>
+</customresponse> </p></text></problem> </p><p>
+<problem name="Problem 4" points="10" type="lecture" showanswer="attempted"><text><p>
+<h1>Example of external response (coding problem)</h1> </p><p>
+This problem demonstrates a python coding problem. </p><script type="text/python" system_path="python_lib">
+initial_display = ""
+answer = """
+print "hello world"
+"""
+preamble = """ 
+code = '''
+"""
+test_program = """
+'''
+code = code.replace('print ','print &gt;&gt; LOG_OUTPUT, ')
+exec(code)
+"""
+</script><p>
+Write python code which prints out “hello world" </p><p>
+<externalresponse tests="1">
+  <textbox/>
+</externalresponse> </p></text></problem> </p></sequential> </p></section> </chapter> </course> </p></div>
+
+
+
+
+
+<div class="navigation">
+
+
+
+</div>
+
+</document></html>

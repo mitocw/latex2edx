@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<problem showanswer="closed" rerandomize="never" display_name="p1">
+  <text>
+    <p>
+      <h2>Question 2</h2>
+    </p>
+    <p>
+Look up the "Triboelectric Series". Suppose you want to charge silicone rubber and you want to get as much charge on it as possible. Would you rub it with rabbit fur or wool or silk or nylon? </p>
+    <p>
+      <multiplechoiceresponse>
+        <choicegroup direction="vertical">
+          <choice correct="false" name="1">
+            <text> silk</text>
+          </choice>
+          <choice correct="true" name="2">
+            <text> rabbit fur</text>
+          </choice>
+          <choice correct="false" name="3">
+            <text> wool</text>
+          </choice>
+          <choice correct="false" name="4">
+            <text> nylon</text>
+          </choice>
+        </choicegroup>
+      </multiplechoiceresponse>
+    </p>
+    <p>
+Were the rubber balloons positively or negatively charged? </p>
+    <p>
+      <multiplechoiceresponse>
+        <choicegroup direction="vertical">
+          <choice correct="false" name="1">
+            <text> positively</text>
+          </choice>
+          <choice correct="true" name="2">
+            <text> negatively</text>
+          </choice>
+        </choicegroup>
+      </multiplechoiceresponse>
+    </p>
+  </text>
+</problem>

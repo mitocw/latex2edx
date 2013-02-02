@@ -1,0 +1,31 @@
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl}	% edX
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{edXproblem}{p1}{display_name="Example formularesponse problem written in latex"}
+
+\section{Question 2}
+
+What is Einstein's equation for the relativistic energy of a mass $m$?
+
+%        <abox type="formula" expect="m*c^2" samples="m,c@1,2:3,4#10" type="cs" size="40" math="1" tolerance="0.01" />
+
+%        format of samples:  <variables>@<lower_bounds>:<upper_bound>#<num_samples
+%
+%        * variables    - a set of variables that are allowed as student input
+%        * lower_bounds - for every variable defined in variables, a lower
+%                         bound on the numerical tests to use for that variable
+%        * upper_bounds - for every variable defined in variables, an upper
+%                         bound on the numerical tests to use for that variable
+
+\edXabox{type="formula" expect="m*c^2" math="1" samples="m,c@1,-10:100,10#32" math="1" }
+
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
