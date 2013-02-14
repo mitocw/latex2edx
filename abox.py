@@ -85,7 +85,7 @@ class AnswerBox(object):
           </checkboxgroup>
         </choiceresponse>
         -----------------------------------------------------------------------------
-        <abox type="formula" expect="m*c^2" samples="m,c@1,2:3,4#10" type="cs" size="40" math="1" tolerance="0.01" />
+        <abox type="formula" expect="m*c^2" samples="m,c@1,2:3,4#10" intype="cs" size="40" math="1" tolerance="0.01" />
 
         format of samples:  <variables>@<lower_bounds>:<upper_bound>#<num_samples
 
@@ -285,7 +285,10 @@ class AnswerBox(object):
         elif abtype=='formularesponse':
             self.require_args(['expect','samples'])
             self.copy_attrib(abargs,'inline',abxml)
-            self.copy_attrib(abargs,'type',abxml)
+
+            intype = self.stripquotes(abargs.get('intype','cs'))
+            abxml.set('type',intype)
+
             self.copy_attrib(abargs,'samples',abxml)
             tl = etree.Element('textline')
             self.copy_attrib(abargs,'size',tl)
