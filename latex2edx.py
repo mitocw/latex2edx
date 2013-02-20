@@ -515,7 +515,7 @@ def fix_div(tree):
     latex minipages turn into things like <div style="width:216.81pt" class="minipage">...</div>
     but inline math inside does not render properly.  So change div to text.
     '''
-    for div in tree.findall('.//div'):
+    for div in tree.findall('.//div[@class="minipage"]'):
         div.tag = 'text'
 
 def process_showhide(tree):
