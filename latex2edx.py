@@ -248,9 +248,6 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
     nprob = etree.Element(tagname)	
     nprob.set('url_name',pfn)
     content.attrib.pop('url_name')       	# remove url_name from our own tag
-    
-    # set display_name
-    content.set('display_name',pname)
 
     #open('%s/%s.xml' % (pdir,pfn),'w').write(etree.tostring(content,pretty_print=True))
     if single:
