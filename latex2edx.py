@@ -227,6 +227,9 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
     if tagname=='problem':
         content.set('showanswer','closed')
         content.set('rerandomize','never')
+
+    # set display_name (will be overwritten below if it is specified in attrib_string)
+    content.set('display_name',pname)    
     
     #extract attributes from attrib_string 
     attrib_string = content.get('attrib_string','')
