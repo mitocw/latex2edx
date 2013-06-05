@@ -227,6 +227,9 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
     if tagname=='problem':
         content.set('showanswer','closed')
         content.set('rerandomize','never')
+
+    # set display_name (will be overwritten below if it is specified in attrib_string)
+    content.set('display_name',pname)    
     
     #extract attributes from attrib_string 
     attrib_string = content.get('attrib_string','')
@@ -248,9 +251,6 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
     nprob = etree.Element(tagname)	
     nprob.set('url_name',pfn)
     content.attrib.pop('url_name')       	# remove url_name from our own tag
-    
-    # set display_name
-    content.set('display_name',pname)
 
     #open('%s/%s.xml' % (pdir,pfn),'w').write(etree.tostring(content,pretty_print=True))
     if single:
@@ -515,7 +515,7 @@ def fix_div(tree):
     latex minipages turn into things like <div style="width:216.81pt" class="minipage">...</div>
     but inline math inside does not render properly.  So change div to text.
     '''
-    for div in tree.findall('.//div'):
+    for div in tree.findall('.//div[@class="minipage"]'):
         div.tag = 'text'
 
 def process_showhide(tree):
