@@ -1,1 +1,0 @@
-python latex2edx.py -single test1.xml test1.tex

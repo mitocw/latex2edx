@@ -1,2 +1,0 @@
-python latex2edx.py -single test1.xml test1.tex
-python latex2edx.py -prefix "49_" test3.tex
