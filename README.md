@@ -32,3 +32,20 @@ should produce this content for 1.00x/course.xml:
 
 For images, make sure the directory path "static/html" exists.
 
+Here is how the process of getting from LaTeX to edXxml proceeds, in block diagram form:
+
+            edXpsl.py
+            render/*.zpts
+                 |
+                 |
+                 \/
+            ______________                      ____________
+           |              |                    |            |
+ .tex ---->|    plasTeX   |-----> .xhtml ----->|  latex2edx |------> .xml (edX)
+           |______________|                    |____________|
+                                                 [images,            [images (bitmap)]
+                                                  chapters,
+                                                  math]
+
+PlasTeX uses edXpsl.py and the contents of the render folder to process your LaTeX source into the xhtml format.  The latex2edx.py script then processes the xhtml, operating on the images, chapters, sections, and math to produce the xml course files in the edX format.  It is intended to also convert and place the image files in the right locations to be served up properly by edX.
+
