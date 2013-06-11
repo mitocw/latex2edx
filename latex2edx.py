@@ -227,6 +227,9 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
     if tagname=='problem':
         content.set('showanswer','closed')
         content.set('rerandomize','never')
+
+    # set display_name (will be overwritten below if it is specified in attrib_string)
+    content.set('display_name',pname)    
     
     #extract attributes from attrib_string 
     attrib_string = content.get('attrib_string','')
@@ -248,9 +251,6 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
     nprob = etree.Element(tagname)	
     nprob.set('url_name',pfn)
     content.attrib.pop('url_name')       	# remove url_name from our own tag
-    
-    # set display_name
-    content.set('display_name',pname)
 
     #open('%s/%s.xml' % (pdir,pfn),'w').write(etree.tostring(content,pretty_print=True))
     if single:
@@ -322,15 +322,16 @@ def cleanup_xml(xml):
     if FLAG_convert_section_to_sequential:
         # 23jan13 - convert <section> (which is no longer used) to <sequential>
         # and turn url_name into display_name
-        secnum = 1   # (added counter here to make unique url names for sequences 06/04/13 16:26 Chad Lieberman)
+        # 11jun13 - added section counter to allow for multiple chapters with 
+        # the same section heading; creates url_name attribute with appended number
+        secnum = 1
         for sec in xml.findall('.//section'):
             sec.tag = 'sequential'
             un = sec.get('url_name','')
             if un:
                 sec.set('display_name',un)
-                # sec.attrib.pop('url_name')   # (commented 06/04/13 16:26 Chad Lieberman)
-                sec.set('url_name',make_urlname(un+str(secnum)))  # (added counter here to make unique url names for sequences 06/04/13 16:26 Chad Lieberman)
-            secnum = secnum + 1  # (added counter here to make unique url names for sequences 06/04/13 16:26 Chad Lieberman)
+                sec.set('url_name',make_urlname(un+str(secnum)))
+            secnum = secnum + 1
 
     # move contents of video elements into attrib
     for video in xml.findall('.//video'):
@@ -518,7 +519,7 @@ def fix_div(tree):
     latex minipages turn into things like <div style="width:216.81pt" class="minipage">...</div>
     but inline math inside does not render properly.  So change div to text.
     '''
-    for div in tree.findall('.//div'):
+    for div in tree.findall('.//div[@class="minipage"]'):
         div.tag = 'text'
 
 def process_showhide(tree):
@@ -722,5 +723,3 @@ else:
 
     for html in xml.findall('.//html'):
         html_to_file(html, default_dir)
-    
-    
