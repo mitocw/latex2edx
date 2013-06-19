@@ -18,6 +18,9 @@ class edXvertical(Base.Environment):
 class edXabox(Base.Command):
     args = 'self'
 
+class edXinlinevideo(Base.Command):
+    args = 'self'
+
 class edXinline(Base.Command):
     args = 'self'
 
@@ -70,4 +73,7 @@ class section(Base.Command):
     args = 'self'
 
 class subsection(Base.Command):
+    args = 'self'
+
+class ref(Base.Command):
     args = 'self'

@@ -69,3 +69,6 @@ name: subsection
 
 name: ref
 <a tal:content='self'></a>
+
+name: label
+<label tal:content='self'></label>
