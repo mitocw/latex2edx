@@ -91,7 +91,7 @@ class MyRenderer(XHTML.Renderer):
                 if width==0:
                     width = 400
             else:
-                width = 400
+                width = 900
 
             def make_image_html(fn,k):
                 self.imfnset.append(fn+k)
@@ -145,6 +145,8 @@ class MyRenderer(XHTML.Renderer):
             print 'Cannot find image file %s' % fn
             return '<img src="NOTFOUND-%s">' % fn
 
+        # processFileContents STARTS HERE
+
         ucfixset = { u'\u201d': '"',
                      u'\u2014': '-',
                      u'\u2013': '-',
@@ -160,6 +162,30 @@ class MyRenderer(XHTML.Renderer):
         def do_abox(m):
             return AnswerBox(m.group(1)).xmlstr
 
+        def do_iframe(m):
+            print "inside iframe"
+            print m
+            print m.group(0)
+            attributes = re.findall('\>(.*?)\<',m.group(0),re.S)
+            print attributes[0].encode("utf-8")
+            print "<iframe %s></iframe>" % attributes[0].encode("utf-8")
+            return "<iframe %s></iframe>" % attributes[0].encode("utf-8")
+
+        def do_figure_ref(m):
+            print "inside figure_ref"
+            print m
+            print m.group(0)
+            # raw_input("Press Enter to continue...")
+            figure_name = re.findall('fig:(.*?)\"',m.group(0),re.S)
+            figure_name = figure_name[0].encode("utf-8")
+            figure_number = re.findall('\>(.*?)\<',m.group(0),re.S)
+            figure_number = figure_number[0].encode("utf-8")
+            print figure_name
+            print figure_number
+            new_window_command = "<a href=\"/static/content-mit-16101x/html/%s.png\" onClick=\"window.open(this.href,\'16.101x\',\'toolbar=1\'); return false;\">%s</a>" % (figure_name,figure_number)
+            print new_window_command
+            return new_window_command
+
         try:
             s = re.sub('(?s)<math>\$(.*?)\$</math>',fix_math,s)
             s = re.sub(r'(?s)<math>\\begin{equation}(.*?)\\end{equation}</math>',fix_displaymath,s)
@@ -168,6 +194,8 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub(r'(?s)<abox>(.*?)</abox>',do_abox,s)
             s = re.sub('<includegraphics style="(.*?)">(.*?)</includegraphics>',do_image,s)	# includegraphics
             s = re.sub('(?s)<edxxml>\\\\edXxml{(.*?)}</edxxml>','\\1',s)
+            s = re.sub(r'(?s)<iframe>(.*?)</iframe>',do_iframe,s)  # edXinlinevideo
+            s = re.sub(r'(?s)<customresponse(.*?)cfn="defaultsoln"(.*?)</customresponse>','<customresponse cfn="defaultsoln" expect=""><textbox rows="5" correct_answer=""/></customresponse>',s)
 
         except Exception, err:
             print "Error in MyRenderer.processFileContent: ",err
@@ -279,7 +307,7 @@ def cleanup_xml(xml):
 
     # clean up course tree so it has nothing but allowed tags
 
-    psltags = ['course', 'chapter', 'section', 'sequential', 'vertical', 'problem', 'html', 'video']
+    psltags = ['course', 'chapter', 'section', 'sequential', 'vertical', 'problem', 'html', 'video', 'iframe']
     def walk_tree(tree):
         nchildren = [walk_tree(x) for x in tree]
         while None in nchildren: nchildren.remove(None)
@@ -335,6 +363,7 @@ def cleanup_xml(xml):
 
     # move contents of video elements into attrib
     for video in xml.findall('.//video'):
+        print "*** video.text = %s" % video.text
         try:
             chk = etree.XML('<video %s/>' % video.text)
         except Exception, err:
@@ -343,6 +372,18 @@ def cleanup_xml(xml):
         video.addprevious(chk)
         video.getparent().remove(video)
         print "  video element: %s" % etree.tostring(chk)
+
+#    # move contents of iframe elements into attrib
+#    for iframe in xml.findall('.//iframe'):
+#        print "*** iframe.text = %s" % iframe.text
+#        try:
+#            chk = etree.XML('<iframe %s/>' % iframe.text)
+#        except Exception, err:
+#            print "[latex2edx] Oops, badly formatted iframe tag attributes: '%s'" % iframe.text
+#            sys.exit(-1)
+#        iframe.addprevious(chk)
+#        iframe.getparent().remove(iframe)
+#        print "  iframe element: %s" % etree.tostring(chk)
 
     return xml
 
@@ -412,6 +453,11 @@ def update_chapter(chapter,cdir):
 def extract_problems(tree,pdir,fnprefix=''):
     # extract problems and put those in separate files
     for problem in tree.findall('.//problem'):
+        # CL: attempt to insert a javascript tag at the top of the page
+        jselement = etree.Element("script")
+        jselement.set('src',"/static/latex2edx.js")
+        jselement.set('type',"text/javascript")
+        problem.insert(0,jselement)
         problem.set('source_file',INPUT_TEX_FILENAME)
         pfn, nprob = problem_to_file(problem,pdir,fnprefix=fnprefix)	# write problem to file
         # remove all attributes, put in url_name, source_file into the <problem> tag in course.xml
@@ -428,6 +474,11 @@ def extract_problems(tree,pdir,fnprefix=''):
 def extract_html(tree,pdir,fnprefix=''):
     # extract html segments and put those in separate files
     for html in tree.findall('.//html'):
+        # CL: attempt to insert a javascript tag at the top of the page
+        jselement = etree.Element("script")
+        jselement.set('src',"/static/latex2edx.js")
+        jselement.set('type',"text/javascript")
+        html.insert(0,jselement)
         html.set('source_file',INPUT_TEX_FILENAME)
         pfn, nprob = html_to_file(html,pdir,fnprefix=fnprefix)
         # nprob.set('filename',pfn)
@@ -504,15 +555,150 @@ def unbundle(cdir, xml):
 def process_edXmacros(tree):
     fix_div(tree)
     fix_table(tree)
+    fix_center(tree)
+    handle_equation_labels_and_refs(tree)
+    fix_figure_refs(tree)
+    add_figure_padding(tree)
     process_include(tree)
     process_showhide(tree)
+    fix_boxed_equations(tree)  # note this should come after fix_table always
+
+def fix_boxed_equations(tree):
+    '''
+    Fix boxed equations: move boxed command outside of mathjax and instead modify the style of the cell containing the equation
+    '''
+    boxedFlag = False
+    for table in tree.findall('.//table'):
+        for tr in table.findall('.//tr'):
+            for td in tr.findall('.//td'):
+                boxedflag = False
+                if td.get('class') == "equation":
+                    if re.search(r'\\boxed',td.text,re.S) is not None:
+                        boxedFlag = True
+                        tr.set('style',"border: 1px solid #000000 !important")
+                        innertext = td.text
+                        innertext = innertext.replace(r'\boxed','')
+                        td.text = innertext
+                        table.set('style',"table-layout:auto")
+                        td.set('style',"border-right-style:hidden")
+                if boxedFlag and td.get('class') == "eqnnum":
+                    td.set('style',"width:20%;vertical-align:middle;text-align:left;border-left-style:hidden")
+                    boxedFlag = False
+
+def fix_figure_refs(tree):
+    ''' 
+    Fix figure references
+    '''
+    modulenum = 0
+    for chapter in tree.findall('.//chapter'):
+        modulenum = modulenum + 1
+        for div in tree.findall('.//div'):
+            if div.get('class') == "figure":
+                figlabel = div.get('id')
+                # get fignum
+                for b in div.findall('.//b'):
+                    if re.search(r'Figure [0-9]+$',b.text,re.S) is not None:
+                        splitres = b.text.split()
+                        fignum = int(splitres[1])
+                        b.text = "Figure %d.%d" % (modulenum,fignum)
+
+                # look for references and put the right code
+                for a in tree.findall('.//a'):
+                    # print "looking for the reference..."
+                    if a.text == figlabel:
+                        # change this ref element
+                        a.text = "%d.%d" % (modulenum,fignum)
+                        figure_info = figlabel.split(":")
+                        figure_name = figure_info[1]
+                        href = "/static/content-mit-16101x/html/%s.png" % figure_name
+                        onClick = "window.open(this.href,\'16.101x\',\'toolbar=1\'); return false;"
+                        a.set('href',href)
+                        a.set('onClick',onClick)
+
+
+def handle_equation_labels_and_refs(tree):
+    ''' 
+    Add equation numbers to all equation and eqnarray and modify equation references to give correct numbers and also link that opens pop-up with equation on it
+    '''
+    modulenum = 0
+    for chapter in tree.findall('.//chapter'):
+        modulenum = modulenum + 1
+        eqnnum = 1  # counter for equation numbering
+        for table in tree.findall('.//table'):
+            if table.get('class') == 'equation':  # handle equation
+                for tr in table.findall('.//tr'):
+                    for td in tr.findall('.//td'):
+                        if td.get('class') == 'equation':
+                            eqncontent = td.text   #equation content
+                    # tr is this element's parent
+                    tr.clear()     
+                    # add the necessary subelements to get desired behavior
+                    eqncell = etree.SubElement(tr,"td",attrib={'style':"width:80%;vertical-align:middle;text-align:center;border-style:hidden",'class':"equation"})
+                    eqncell.text = eqncontent
+                    eqnnumcell = etree.SubElement(tr,"td",attrib={'style':"width:20%;vertical-align:middle;text-align:left;border-style:hidden",'class':"eqnnum"})
+                    eqnnumcell.text = "(%d.%d)" % (modulenum,eqnnum)
+                                       
+                    # now find all references to this equation and modify it to make number and link
+                    # identify equation tag
+                    if re.search(r'\\label\{(.*?)\}',eqncontent) is not None:  # equation has a label so it is probably referenced somewhere       
+                        eqnlabelfind = re.findall(r'\\label\{(.*?)\}',eqncontent,re.S)   
+                        eqnlabel = eqnlabelfind[0].encode("utf-8")   
+                        eqnlabel = "".join(eqnlabel.split())
+                        for a in tree.findall('.//a'):
+                            # print "looking for the reference..."
+                            if a.text == eqnlabel:
+                                # change this ref element
+                                a.text = "%d.%d" % (modulenum,eqnnum)
+                                a.set('href',"#")
+                                tablestr = etree.tostring(table,encoding="US-ASCII",method="html")
+                                #htmlstr = "<html><head></head><body>%s<script type=\"text/javascript\" src=\"https://edx-static.s3.amazonaws.com/mathjax-MathJax-07669ac/MathJax.js?config=TeX-MML-AM_HTMLorMML-full\"></script></body></html>" % tablestr
+                                htmlstr = "<html><head></head><body><h1>Hello</h1></body></html>"
+                                onClick = "return newWindow(%s)" % htmlstr
+                                a.set('onClick',onClick)
+
+                    eqnnum = eqnnum + 1 # iterate equation number          
+
+            if table.get('class') == 'eqnarray':  # handle eqnarray
+                for tr in table.findall('.//tr'):
+                    for td in tr.findall('.//td'):
+                        if td.get('class') == "eqnnum":
+                            eqnnumcell = td
+                       
+                        if td.text is not None and re.search(r'\\label\{(.*?)\}',td.text,re.S) is not None:
+                            eqnlabelfind = re.findall(r'\\label\{(.*?)\}',td.text,re.S)   
+                            eqnlabel = eqnlabelfind[0].encode("utf-8")   
+                            eqnlabel = "".join(eqnlabel.split())
+                            for a in tree.findall('.//a'):
+                                # print "looking for the reference..."
+                                if a.text == eqnlabel:
+                                    # change this ref element
+                                    a.text = "%d.%d" % (modulenum,eqnnum)
+                                    a.set('href',"#")
+                                    tablestr = etree.tostring(table,encoding="US-ASCII",method="html")
+                                    htmlstr = "<html><head></head><body>%s<script type=\"text/javascript\" src=\"https://edx-static.s3.amazonaws.com/mathjax-MathJax-07669ac/MathJax.js?config=TeX-MML-AM_HTMLorMML-full\"></script></body></html>" % tablestr
+                                    onClick = "return newWindow(%s)" % htmlstr
+                                    a.set('onClick',onClick)
+                    tr.remove(eqnnumcell)
+                    eqnnumcell = etree.SubElement(tr,"td",attrib=eqnnumcell.attrib)
+                    eqnnumcell.text = "(%d.%d)" % (modulenum,eqnnum)
+                    eqnnum = eqnnum + 1  # have to iterate inside of eqnarray as well
 
 def fix_table(tree):
     '''
-    Force tables to have table-layout: auto 
+    Force tables to have table-layout: auto and hidden border lines
     '''
     for table in tree.findall('.//table'):
-        table.set('style','table-layout:auto')
+        table.set('style','table-layout:auto;border-style:hidden')
+    '''
+    Force cells to have hidden border lines
+    '''
+    for td in tree.findall('.//td'):
+        current_style = td.get('style')
+        if current_style is not None:
+            new_style = current_style + ';border-style:hidden'
+        else:
+            new_style = 'border-style;hidden'
+        td.set('style',new_style)
 
 def fix_div(tree):
     '''
@@ -521,6 +707,22 @@ def fix_div(tree):
     '''
     for div in tree.findall('.//div[@class="minipage"]'):
         div.tag = 'text'
+
+def fix_center(tree):
+    '''
+    Force <center> to have border-style:hidden for figures within edXproblems
+    '''
+    for center in tree.findall('.//center'):
+        center.set('style','border-style:hidden')
+
+def add_figure_padding(tree):
+    '''
+    Force figures to have top and bottom padding to separate from text
+    '''
+    for div in tree.findall('.//div'):
+        if div.get('class') == 'figure':
+            padding_settings = 'padding-top:%dpx;padding-bottom:%dpx' %(5,15)
+            div.set('style',padding_settings)
 
 def process_showhide(tree):
     for showhide in tree.findall('.//edxshowhide'):
