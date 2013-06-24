@@ -21,7 +21,7 @@
 # 22-Jan-13: use new XML format
 # 23-Jan-13: add video tag handling, unbundle course to course/*.xml if url_name acceptable
 
-import os, sys, string, re, urllib
+import os, sys, string, re, urllib, fnmatch
 import glob
 from plasTeX.TeX import TeX
 from plasTeX.Renderers import XHTML
@@ -33,6 +33,8 @@ import csv
 import codecs
 import copy
 from abox import AnswerBox, split_args_with_quoted_strings
+from PIL import Image
+import math
 
 # set the zpts templates path
 zptspath = os.path.abspath('render')
@@ -91,13 +93,26 @@ class MyRenderer(XHTML.Renderer):
                 if width==0:
                     width = 400
             else:
-                width = 50  # using this as percentage for width and height below
+                # CL: 16.101x -- find image size and make percentage be multiple of width in pixels
+                #print "Image m:", m
+                #print "   m.group(0):", m.group(0)
+                #print "   m.group(1):", m.group(1)
+                #print "   m.group(2):", m.group(2)
+                path_to_image = m.group(2)
+                img = Image.open(path_to_image + ".png")
+                w, h = img.size
+                #print "w =", w
+                #print "h =", h
+                width = w/18  # using this as percentage for width and height below
 
             def make_image_html(fn,k):
                 self.imfnset.append(fn+k)
                 # if file doesn't exist in edX web directory, copy it there
                 fnbase = os.path.basename(fn)+k
                 wwwfn = '%s/%s' % (self.imdir,fnbase)
+                #print "wwwfn =", wwwfn
+                #wwwfn = re.sub(r'(?s).png(?s)','.svg',wwwfn)
+                #print "wwwfn =", wwwfn
                 #if not os.path.exists('/home/WWW' + wwwfn):
                 if 1:
                     cmd = 'cp %s %s' % (fn+k,wwwfn)
@@ -610,8 +625,27 @@ def fix_figure_refs(tree):
                         a.text = "%d.%d" % (modulenum,fignum)
                         figure_info = figlabel.split(":")
                         figure_name = figure_info[1]
+                        # find the image within directory of modules.tex (the tex file this is being run on)
+                        ##print INPUT_TEX_FILENAME
+                        latexfolder = os.getcwd()
+                        imgpath = ""
+                        for path, dirs, files in os.walk(latexfolder):
+                            for filename in fnmatch.filter(files,figure_name+".png"):
+                                imgpath = os.path.join(path, filename)
+                                if imgpath.find('figs') != -1:
+                                    print "FOUND figs IN PATH"
+                                    fullimgpath = imgpath
+                        print fullimgpath
+                        img = Image.open(fullimgpath)
+                        w, h = img.size
+                        print "w =", w
+                        ws = 0.50
+                        wp = (int)(w*ws)
+                        #wp = w
+                        #hp = h
+                        hp = (int)(h*ws)
                         href = "/static/content-mit-16101x/html/%s.png" % figure_name
-                        onClick = "window.open(this.href,\'16.101x\',\'toolbar=1\'); return false;"
+                        onClick = "window.open(this.href,\'16.101x\',\'width=%s,height=%s\',\'toolbar=1\'); return false;" % (wp,hp)
                         a.set('href',href)
                         a.set('onClick',onClick)
 
