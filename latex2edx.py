@@ -91,7 +91,7 @@ class MyRenderer(XHTML.Renderer):
                 if width==0:
                     width = 400
             else:
-                width = 900
+                width = 50  # using this as percentage for width and height below
 
             def make_image_html(fn,k):
                 self.imfnset.append(fn+k)
@@ -104,7 +104,7 @@ class MyRenderer(XHTML.Renderer):
                     os.system(cmd)
                     print cmd
                     os.system('chmod og+r %s' % wwwfn)
-                return '<img src="/static/%s/%s" width="%d" />' % (imurl,fnbase,width)
+                return '<img src="/static/%s/%s" width="%d%%" height="%d%%"/>' % (imurl,fnbase,width,width)  # specifying width and height percentage now
 
             fnset = [m.group(2)]
             fnsuftab = ['','.png','.pdf','.png','.jpg']
@@ -651,17 +651,10 @@ def handle_equation_labels_and_refs(tree):
                                 a.text = "%d.%d" % (modulenum,eqnnum)
                                 #a.set('href',"#")
                                 tablestr = etree.tostring(table,encoding="utf-8",method="html")
-                                #htmlstr = "\'<html><head></head><body>%s</body></html>\'" % tablestr
-                                #print tablestr
                                 tablestr_find = re.search(r'\[mathjax\](.*?)\[/mathjax\]',tablestr,re.S)
                                 tablestr = "<p>$$" + re.escape(tablestr_find.group(1).encode("US-ASCII")) + "$$</p>"
                                 mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
-                                #mathjax = "<script type=\"text/javascript\" src=\"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
-                                #mathjax = "(function () { var script = document.createElement(\"script\"); script.type = \"text/javascript\"; script.src  = \"http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML-full\"; var config = 'MathJax.Hub.Startup.onload();'; if (window.opera) {script.innerHTML = config} else {script.text = config} document.getElementsByTagName(\"head\")[0].appendChild(script); })();"
                                 htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr)
-                                print htmlstr  
-                                #raw_input("Press ENTER")
-                                
                                 onClick = "return newWindow(%s)" % htmlstr
                                 a.set('onClick',onClick)
 
