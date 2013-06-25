@@ -80,6 +80,10 @@ class MyRenderer(XHTML.Renderer):
 
         def do_image(m):
             #print "[do_image] m=%s" % repr(m.groups())
+            print "DO IMAGE:"
+            print "   m.group(0)=", m.group(0)
+            print "   m.group(1)=", m.group(1)
+            print "   m.group(2)=", m.group(2)
             style = m.group(1)
             sm = re.search('width=([0-9\.]+)(.*)',style)
             if sm:
@@ -101,8 +105,9 @@ class MyRenderer(XHTML.Renderer):
                 path_to_image = m.group(2)
                 img = Image.open(path_to_image + ".png")
                 w, h = img.size
-                #print "w =", w
-                #print "h =", h
+                print path_to_image
+                print "w =", w
+                print "h =", h
                 width = w/18  # using this as percentage for width and height below
 
             def make_image_html(fn,k):
@@ -686,10 +691,17 @@ def handle_equation_labels_and_refs(tree):
                                 #a.set('href',"#")
                                 tablestr = etree.tostring(table,encoding="utf-8",method="html")
                                 tablestr_find = re.search(r'\[mathjax\](.*?)\[/mathjax\]',tablestr,re.S)
-                                tablestr = "<p>$$" + re.escape(tablestr_find.group(1).encode("US-ASCII")) + "$$</p>"
+
+
+                                tablestr = "$$" + re.escape(tablestr_find.group(1).encode("US-ASCII")) + "$$"
+
+                                if re.search(r'\\boxed',tablestr,re.S) is not None:
+                                    tablestr = tablestr.replace(r'\boxed','')
+                                eqnstr = "\'Equation (%d.%d)\'" % (modulenum,eqnnum)
+                                print "tablestr =", tablestr
                                 mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
                                 htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr)
-                                onClick = "return newWindow(%s)" % htmlstr
+                                onClick = "return newWindow(%s,%s)" % (htmlstr,eqnstr)
                                 a.set('onClick',onClick)
 
                     eqnnum = eqnnum + 1 # iterate equation number          
