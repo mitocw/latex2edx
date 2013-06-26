@@ -688,20 +688,21 @@ def handle_equation_labels_and_refs(tree):
                             if a.text == eqnlabel:
                                 # change this ref element
                                 a.text = "%d.%d" % (modulenum,eqnnum)
-                                #a.set('href',"#")
-                                tablestr = etree.tostring(table,encoding="utf-8",method="html")
-                                tablestr_find = re.search(r'\[mathjax\](.*?)\[/mathjax\]',tablestr,re.S)
-
-
-                                tablestr = "$$" + re.escape(tablestr_find.group(1).encode("US-ASCII")) + "$$"
+                                a.set('href',"javascript: void(0)")
+                                eqnstr = "\'Equation (%d.%d)\'" % (modulenum,eqnnum)
+                                tablestr_etree = (etree.tostring(table,encoding="utf-8",method="html")).rstrip()
+                                print "etree to string =", tablestr_etree
+                                tablestr_find = re.search(r'\[mathjax\](.*?)\[/mathjax\]',tablestr_etree,re.S)
+                                tablestr = re.escape('$$' + tablestr_find.group(1).encode("US-ASCII") + '$$') 
 
                                 if re.search(r'\\boxed',tablestr,re.S) is not None:
                                     tablestr = tablestr.replace(r'\boxed','')
-                                eqnstr = "\'Equation (%d.%d)\'" % (modulenum,eqnnum)
-                                print "tablestr =", tablestr
+        
+                                tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,modulenum,eqnnum)                  
+                                print "tablestr_etree =", tablestr_etree
                                 mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
-                                htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr)
-                                onClick = "return newWindow(%s,%s)" % (htmlstr,eqnstr)
+                                htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
+                                onClick = "return newWindow(%s,%s);" % (htmlstr,eqnstr)
                                 a.set('onClick',onClick)
 
                     eqnnum = eqnnum + 1 # iterate equation number          
@@ -720,11 +721,27 @@ def handle_equation_labels_and_refs(tree):
                                 # print "looking for the reference..."
                                 if a.text == eqnlabel:
                                     # change this ref element
+                                    # change this ref element
                                     a.text = "%d.%d" % (modulenum,eqnnum)
-                                    a.set('href',"#")
-                                    tablestr = etree.tostring(table,encoding="US-ASCII",method="html")
-                                    htmlstr = "<html><head></head><body>%s<script type=\"text/javascript\" src=\"https://edx-static.s3.amazonaws.com/mathjax-MathJax-07669ac/MathJax.js?config=TeX-MML-AM_HTMLorMML-full\"></script></body></html>" % tablestr
-                                    onClick = "return newWindow(%s)" % htmlstr
+                                    a.set('href',"javascript: void(0)")
+                                    eqnstr = "\'Equation (%d.%d)\'" % (modulenum,eqnnum)
+                                    tablestr_etree = (etree.tostring(tr,encoding="utf-8",method="html")).rstrip()
+                                    print "etree to string =", tablestr_etree
+                                    tablestr_find = re.findall(r'\[mathjaxinline\](.*?)\[/mathjaxinline\]',tablestr_etree,re.S)
+                                    print tablestr_find
+                                    #print "group 0:", tablestr_find.group(0)
+                                    #print "group 1:", tablestr_find.group(1)
+                                    #print "group 2:", tablestr_find.group(2)
+                                    tablestr = re.escape('$$' + tablestr_find[0] + tablestr_find[1] + tablestr_find[2] + '$$') 
+                                    print tablestr
+                                    if re.search(r'\\boxed',tablestr,re.S) is not None:
+                                        tablestr = tablestr.replace(r'\boxed','')
+                                    tablestr = tablestr.replace(r',','')
+                                    tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,modulenum,eqnnum)                  
+                                    print "tablestr_etree =", tablestr_etree
+                                    mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
+                                    htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
+                                    onClick = "return newWindow(%s,%s);" % (htmlstr,eqnstr)
                                     a.set('onClick',onClick)
                     tr.remove(eqnnumcell)
                     eqnnumcell = etree.SubElement(tr,"td",attrib=eqnnumcell.attrib)
