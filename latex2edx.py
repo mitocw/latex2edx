@@ -80,10 +80,10 @@ class MyRenderer(XHTML.Renderer):
 
         def do_image(m):
             #print "[do_image] m=%s" % repr(m.groups())
-            print "DO IMAGE:"
-            print "   m.group(0)=", m.group(0)
-            print "   m.group(1)=", m.group(1)
-            print "   m.group(2)=", m.group(2)
+            #print "DO IMAGE:"
+            #print "   m.group(0)=", m.group(0)
+            #print "   m.group(1)=", m.group(1)
+            #print "   m.group(2)=", m.group(2)
             style = m.group(1)
             sm = re.search('width=([0-9\.]+)(.*)',style)
             if sm:
@@ -105,9 +105,9 @@ class MyRenderer(XHTML.Renderer):
                 path_to_image = m.group(2)
                 img = Image.open(path_to_image + ".png")
                 w, h = img.size
-                print path_to_image
-                print "w =", w
-                print "h =", h
+                #print path_to_image
+                #print "w =", w
+                #print "h =", h
                 width = w/18  # using this as percentage for width and height below
 
             def make_image_html(fn,k):
@@ -582,6 +582,152 @@ def process_edXmacros(tree):
     process_include(tree)
     process_showhide(tree)
     fix_boxed_equations(tree)  # note this should come after fix_table always
+    handle_section_refs(tree)
+
+def handle_section_refs(tree):
+    '''
+    Process references to sections of content -- create section numbering and the reference should be a link that opens in a new tab to the desired component
+    '''
+    # For the purposes of this function, I will think of "chapter" (e.g., Differential Forms of Compressible Flow Equations) --- what we call Modules --- and then "section" (e.g., Kinematics of a Fluid Element), followed by "subsection" to refer to the component level (e.g., Normal Strain)
+    pathtocourseware = "/courses/MITx/16.101x/2013_SOND"
+    chapternum = 0
+    for chapter in tree.findall('.//chapter'):
+        chapternum = chapternum + 1
+        # look for chapter label
+        chaplabel = ""
+        for p in chapter.findall('.//p'):
+            if not any(p==chapterchild for chapterchild in list(chapter)):
+                continue
+            if re.search(r'(?s)sec:(.*?)(?s)',p.text) is not None: # found label sec:?
+                tmp = (re.search(r'sec:(.*?) ',p.text))
+                chaplabel = (tmp.group(0)).rstrip()
+                print chaplabel
+                chapter.remove(p)
+                chapname = chapter.get('display_name')
+                chapnamewithunderscores = re.sub(r' ',r'_',chapname)
+                for section in chapter.findall('.//section'):
+                    firstsectioninchap = section
+                    firstsectionurlname = section.get('url_name')
+                    break #only the first one needed
+                globalsecnum = 0
+                for section2 in tree.findall('.//section'):
+                    globalsecnum = globalsecnum + 1
+                    if section2 is firstsectioninchap:
+                        break
+                break  # chapter is only permitted to have one label so don't keep going through other paragraphs
+        # end look for chapter label
+        # now find and replace this everywhere else with the correct number (and make it a link)
+        if chaplabel != "":
+            for a in tree.findall('.//a'):
+                if a.text == chaplabel:
+                    a.text = '%d' % chapternum
+                    # chapters actually don't contain any content themselves (clicking chapter in the menu just changes display --- no url)
+                    # instead, take the user to the first section and first subsection of the chapter
+                    href = "%s/courseware/%s" % (pathtocourseware,chapnamewithunderscores)
+                    # href = "%s/courseware/%s/%s%d" % (pathtocourseware,chapnamewithunderscores,firstsectionurlname,globalsecnum)
+                    print "href =",href
+                    # raw_input("Press ENTER")
+                    a.set('href',href)
+                    a.set('target',"_blank")
+            # end look for chapter references            
+        sectionnum = 0
+        for section in chapter.findall('.//section'):
+            sectionnum = sectionnum + 1
+            # look for section label
+            seclabel = ""
+            for p in section.findall('.//p'):
+                if not any(p==sectionchild for sectionchild in list(section)):
+                    continue
+                if re.search(r'(?s)sec:(.*?)(?s)',p.text) is not None: # found label sec:?
+                    tmp = (re.search(r'sec:(.*?) ',p.text))
+                    seclabel = (tmp.group(0)).rstrip()
+                    print seclabel
+                    print list(section)
+                    print p
+                    # WORKING HERE
+                    section.remove(p)
+                    chapname = chapter.get('display_name')
+                    chapnamewithunderscores = re.sub(r' ',r'_',chapname)
+                    sectionurlname = section.get('url_name')
+                    globalsecnum = 0
+                    for section2 in tree.findall('.//section'):
+                        globalsecnum = globalsecnum + 1
+                        if section2 is section:
+                            break
+                    break  # section is only permitted to have one label so don't keep going through other paragraphs
+            # end look for section label
+            # now find and replace this everywhere else with the correct number (and make it a link)
+            if seclabel != "":
+                for a in tree.findall('.//a'):
+                    if a.text == seclabel:
+                        a.text = '%d.%d' % (chapternum,sectionnum)
+                        # chapters actually don't contain any content themselves (clicking chapter in the menu just changes display --- no url)
+                        # instead, take the user to the first section and first subsection of the chapter
+                        sectionurlname = re.sub(r' ',r'_',sectionurlname)
+                        href = "%s/courseware/%s/%s%d/1/" % (pathtocourseware,chapnamewithunderscores,sectionurlname,globalsecnum)
+                        # href = "%s/courseware/%s/%s%d" % (pathtocourseware,chapnamewithunderscores,firstsectionurlname,globalsecnum)
+                        print "href =",href
+                        # raw_input("Press ENTER")
+                        a.set('href',href)
+                        a.set('target',"_blank")
+                # end look for section references  
+            subsectionnum = 0
+           
+            #for subsection in section.findall('.//problem'):
+            #for subsection in section.findall('.//html' or './/problem'):  # here we do list (go through children) because children are either of 'html' or 'problem' type
+            for subsection in section.findall(".//"):
+                # debugging...
+                #print "section type=",section.tag
+                #print "section name=",section.get('url_name')
+                #print "subsection type=",subsection.tag       
+                if (subsection.tag == "problem" or subsection.tag == "html") and subsection.get('url_name') is not None:
+                    print "PROBLEM OR HTML COMPONENT TYPE!!!"         
+                    subsectionnum = subsectionnum + 1
+                    # raw_input("Press ENTER")
+                    # look for subsection label
+                    subseclabel = ""
+                    for p in subsection.findall('.//'):
+                        #if not any(p==subsectionchild for subsectionchild in list(subsection)):
+                        #    continue
+                        if p.tag == "p" and re.search(r'(?s)sec:(.*?)(?s)',p.text) is not None: # found label sec:?
+                            print "section type=",section.tag
+                            print "section name=",section.get('url_name')
+                            print "subsection type=",subsection.tag   
+                            print "subsection name=",subsection.get('url_name')
+                            print "P TEXT =", p.text
+                            tmp = (re.search(r'sec:(.*?) ',p.text))
+                            subseclabel = (tmp.group(0)).rstrip()
+                            print subseclabel
+                            pparent = p.getparent()
+                            pparent.remove(p)
+                            chapname = chapter.get('display_name')
+                            chapnamewithunderscores = re.sub(r' ',r'_',chapname)
+                            sectionurlname = section.get('url_name')
+                            globalsecnum = 0
+                            for section2 in tree.findall('.//section'):
+                                globalsecnum = globalsecnum + 1
+                                if section2 is section:
+                                    break
+                            break  # subsection is only permitted to have one label so don't keep going through other paragraphs
+
+                        # end look for subsection label
+                        # now find and replace this everywhere else with the correct number (and make it a link)
+                    print "HERE: subseclabel =",subseclabel
+                    if subseclabel != "":
+                        for a in tree.findall('.//a'):
+                            if a.text == subseclabel:
+                                a.text = '%d.%d.%d' % (chapternum,sectionnum,subsectionnum)
+                                # chapters actually don't contain any content themselves (clicking chapter in the menu just changes display --- no url)
+                                # instead, take the user to the first section and first subsection of the chapter
+                                sectionurlname = re.sub(r' ',r'_',sectionurlname)
+                                href = "%s/courseware/%s/%s%d/%d/" % (pathtocourseware,chapnamewithunderscores,sectionurlname,globalsecnum,subsectionnum)
+                                # href = "%s/courseware/%s/%s%d" % (pathtocourseware,chapnamewithunderscores,firstsectionurlname,globalsecnum)
+                                print "href =",href
+                                # raw_input("Press ENTER")
+                                a.set('href',href)
+                                a.set('target',"_blank")
+                            # end look for subsection references 
+                
 
 def fix_boxed_equations(tree):
     '''
@@ -638,12 +784,12 @@ def fix_figure_refs(tree):
                             for filename in fnmatch.filter(files,figure_name+".png"):
                                 imgpath = os.path.join(path, filename)
                                 if imgpath.find('figs') != -1:
-                                    print "FOUND figs IN PATH"
+                                    #print "FOUND figs IN PATH"
                                     fullimgpath = imgpath
-                        print fullimgpath
+                        #print fullimgpath
                         img = Image.open(fullimgpath)
                         w, h = img.size
-                        print "w =", w
+                        #print "w =", w
                         ws = 0.50
                         wp = (int)(w*ws)
                         #wp = w
@@ -691,7 +837,7 @@ def handle_equation_labels_and_refs(tree):
                                 a.set('href',"javascript: void(0)")
                                 eqnstr = "\'Equation (%d.%d)\'" % (modulenum,eqnnum)
                                 tablestr_etree = (etree.tostring(table,encoding="utf-8",method="html")).rstrip()
-                                print "etree to string =", tablestr_etree
+                                #print "etree to string =", tablestr_etree
                                 tablestr_find = re.search(r'\[mathjax\](.*?)\[/mathjax\]',tablestr_etree,re.S)
                                 tablestr = re.escape('$$' + tablestr_find.group(1).encode("US-ASCII") + '$$') 
 
@@ -699,7 +845,7 @@ def handle_equation_labels_and_refs(tree):
                                     tablestr = tablestr.replace(r'\boxed','')
         
                                 tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,modulenum,eqnnum)                  
-                                print "tablestr_etree =", tablestr_etree
+                                #print "tablestr_etree =", tablestr_etree
                                 mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
                                 htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
                                 onClick = "return newWindow(%s,%s);" % (htmlstr,eqnstr)
@@ -726,19 +872,19 @@ def handle_equation_labels_and_refs(tree):
                                     a.set('href',"javascript: void(0)")
                                     eqnstr = "\'Equation (%d.%d)\'" % (modulenum,eqnnum)
                                     tablestr_etree = (etree.tostring(tr,encoding="utf-8",method="html")).rstrip()
-                                    print "etree to string =", tablestr_etree
+                                    #print "etree to string =", tablestr_etree
                                     tablestr_find = re.findall(r'\[mathjaxinline\](.*?)\[/mathjaxinline\]',tablestr_etree,re.S)
-                                    print tablestr_find
+                                    #print tablestr_find
                                     #print "group 0:", tablestr_find.group(0)
                                     #print "group 1:", tablestr_find.group(1)
                                     #print "group 2:", tablestr_find.group(2)
                                     tablestr = re.escape('$$' + tablestr_find[0] + tablestr_find[1] + tablestr_find[2] + '$$') 
-                                    print tablestr
+                                    #print tablestr
                                     if re.search(r'\\boxed',tablestr,re.S) is not None:
                                         tablestr = tablestr.replace(r'\boxed','')
                                     tablestr = tablestr.replace(r',','')
                                     tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,modulenum,eqnnum)                  
-                                    print "tablestr_etree =", tablestr_etree
+                                    #print "tablestr_etree =", tablestr_etree
                                     mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
                                     htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
                                     onClick = "return newWindow(%s,%s);" % (htmlstr,eqnstr)
