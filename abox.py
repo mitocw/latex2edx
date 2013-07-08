@@ -127,7 +127,8 @@ class AnswerBox(object):
                           'shortanswer' : 'shortanswerresponse',
                           'string': 'stringresponse',
                           'symbolic': 'symbolicresponse',
-                          'image': 'imageresponse'
+                          'image': 'imageresponse',
+                          'draganddrop': 'customresponse'
                           }
 
         if 'type' in abargs and abargs['type'] in type2response:
@@ -142,6 +143,43 @@ class AnswerBox(object):
             abtype = 'symbolicresponse'	# default
         
         abxml = etree.Element(abtype)
+
+        if abargs['type']=='draganddrop':
+            self.require_args(['backgroundimg'])
+            dndinput = etree.SubElement(abxml,'drag_and_drop_input')
+            dndinput.set('img',abargs['backgroundimg'])     
+            draggablestr, draggables = self.get_draggables(abargs)
+            cnt = 0       
+            for ds in draggables:
+                cnt += 1
+                draggable = etree.SubElement(dndinput,'draggable')
+                draggable.set('id',"fig%d" % cnt)
+                draggable.set('icon',ds)
+                draggable.set('can_reuse',"false")
+               
+            targetstr, targets = self.get_targets(abargs)
+            cnt = 0
+            for ts in targets:
+                cnt += 1
+                target = etree.SubElement(dndinput,'target')
+                target.set('id',"target%d" % cnt)
+                print "ts=",ts
+                quadruplet = re.sub(r'\(',r'',ts)
+                quadruplet = re.sub(r'\)',r'',quadruplet)
+                x,y,w,h = quadruplet.split(r',')
+                target.set('x', x)
+                target.set('y', y)
+                target.set('w', w)
+                target.set('h', h)     
+            answer = etree.SubElement(abxml,'answer')
+            answer.set('type',"loncapa/python")       
+            anstext = "\ncorrect_answer = [\n"
+            for ii in range(1,cnt+1):
+                anstext = anstext + "\t{\n\t\t'draggables': ['fig%d'],\n\t\t'targets': ['target%d'],\n\t\t'rule': 'anyof'\n\t}" % (ii,ii)  
+                if ii!=cnt:
+                    anstext = anstext + ",\n"       
+            anstext = anstext + "\n]\nif draganddrop.grade(submission[0], correct_answer):\n\tcorrect = ['correct']\nelse:\n\tcorrect = ['incorrect']\n"
+            answer.text = anstext
 
         if abtype=='optionresponse':
             self.require_args(['expect'])
@@ -210,7 +248,7 @@ class AnswerBox(object):
             self.copy_attrib(abargs,'inline',tl)
             self.copy_attrib(abargs,'inline',abxml)
 
-        elif abtype=='customresponse':
+        elif abtype=='customresponse' and abargs['type']!='draganddrop':
             self.require_args(['expect','cfn'])
             abxml.set('cfn',self.stripquotes(abargs['cfn']))
             self.copy_attrib(abargs,'inline',abxml)
@@ -352,6 +390,28 @@ class AnswerBox(object):
         optionstr = ','.join(["'%s'" % x for x in options])	# string of single quoted strings
         optionstr = "(%s)" % optionstr				# enclose in parens
         return optionstr, options
+
+    def get_draggables(self,abargs,arg='draggables'):
+        dragstr = abargs[arg]			# should be double quoted strings, comma delimited
+        #options = [c for c in csv.reader([optstr])][0]	# turn into list of strings
+        draggables = split_args_with_quoted_strings(dragstr, lambda(x): x==',')		# turn into list of strings
+        draggables = map(self.stripquotes, draggables)
+        draggables = [x.strip() for x in draggables]		# strip strings
+        if "" in draggables: draggables.remove("")
+        draggablestr = ','.join(["'%s'" % x for x in draggables])	# string of single quoted strings
+        draggablestr = "(%s)" % draggablestr				# enclose in parens
+        return draggablestr, draggables
+
+    def get_targets(self,abargs,arg='targets'):
+        targetstr = abargs[arg]			# should be double quoted strings, comma delimited
+        #options = [c for c in csv.reader([optstr])][0]	# turn into list of strings
+        targets = split_args_with_quoted_strings(targetstr, lambda(x): x==',')		# turn into list of strings
+        targets = map(self.stripquotes, targets)
+        targets = [x.strip() for x in targets]		# strip strings
+        if "" in targets: targets.remove("")
+        targetstr = ','.join(["'%s'" % x for x in targets])	# string of single quoted strings
+        targetstr = "(%s)" % targetstr				# enclose in parens
+        return targetstr, targets
     
     def require_args(self,argnames):
         for argname in argnames:

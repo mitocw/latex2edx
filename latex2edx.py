@@ -728,6 +728,12 @@ def handle_section_refs(tree):
                                 a.set('target',"_blank")
                             # end look for subsection references 
                 
+    # once all of the labels have been found... need to go through and do something about the references that do not have associated labels
+    # issue warning that requires user to press enter to continue
+    for a in tree.findall('.//a'):
+        if re.search(r'(?s)sec:(.*?)(?s)',a.text) is not None:
+            print "WARNING: There is a reference to non-existent label %s" % a.text
+            raw_input("Press ENTER to continue")
 
 def fix_boxed_equations(tree):
     '''
