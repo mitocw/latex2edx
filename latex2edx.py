@@ -577,12 +577,88 @@ def process_edXmacros(tree):
     fix_table(tree)
     fix_center(tree)
     handle_equation_labels_and_refs(tree)
+    handle_measurable_outcomes(tree)
     fix_figure_refs(tree)
     add_figure_padding(tree)
     process_include(tree)
     process_showhide(tree)
     fix_boxed_equations(tree)  # note this should come after fix_table always
     handle_section_refs(tree)
+
+def handle_measurable_outcomes(tree):
+    '''
+    Process the labels and references to measurable outcomes, placing 'tags' at the bottom of the vertical that have mouseovers revealing the measurable outcome
+    '''
+    chapternum = 0
+    for chapter in tree.findall('.//chapter'):
+        chapternum += 1
+        for section in chapter.findall('.//section'):
+            if section.get('url_name')=="Overview":
+                for html in section.findall('.//html'):
+                    if html.get('url_name')=="Measurable outcomes":
+                        for ol in html.findall('.//ol'): # ordered list of measurable outcomes
+                            ol.tag = 'ul'
+                            monum = 0
+                            for li in ol.findall('.//li'): # items
+                                monum += 1
+                                for p in li.findall('.//p'): # paragraph
+                                    m = re.search('\(label-mo:(.*?)\)',p.text)
+                                    tag = m.group(1)
+                                    oldtext = p.text
+                                    oldtext = re.sub(r'\(label-mo:(.*?)\)',r'',oldtext)
+                                    newtext = "MO%d.%d: " % (chapternum,monum) + oldtext
+                                    p.text = newtext
+                                    # find the references to this everywhere else (will be in html or problem)
+                                    for html in tree.findall('.//html'): #look in html
+                                        for p in html.findall('.//p'):
+                                            for a in p.findall('.//a'):
+                                                if a.text=="mo:"+tag:
+                                                    p.remove(a)
+                                                    # put tag at the bottom of the html section
+                                                    # determine if a taglist paragraph exists yet
+                                                    taglist_exists = False
+                                                    for ul in html.findall('.//ul'):
+                                                        if ul.get('id')=="taglist":
+                                                            taglist_exists = True
+                                                    if not taglist_exists: # tag list element doesn't exist yet
+                                                        taglist = etree.SubElement(html,"ul",{'id':"taglist",'display':"block",'list-style':"none",'overflow':"hidden"})
+                                                    else: # taglist element already exists
+                                                        # find it and get it by the name taglist
+                                                        for ul in html.findall('.//ul'):
+                                                            if ul.get('id')=="taglist":
+                                                                taglist = ul
+                                                                break
+                                                    link = etree.SubElement(taglist,"li",{'display':"block",'color':"blue",'background-color':"gray",'padding':"5px 10px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)  
+
+                                    for problem in tree.findall('.//problem'): #look in problem
+                                        for p in problem.findall('.//p'):
+                                            for a in p.findall('.//a'):
+                                                if a.text=="mo:"+tag:
+                                                    # add measurable outcome attribute to the xml tag
+                                                    problem.set('measurable_outcomes',tag)
+                                                    p.remove(a)
+                                                    # put tag at the bottom of the html section
+                                                    # determine if a taglist paragraph exists yet
+                                                    taglist_exists = False
+                                                    for ul in problem.findall('.//ul'):
+                                                        if ul.get('id')=="taglist":
+                                                            taglist_exists = True
+                                                    if not taglist_exists: # tag list element doesn't exist yet
+                                                        taglist = etree.SubElement(problem,"ul",{'id':"taglist"})
+                                                    else: # taglist element already exists
+                                                        # find it and get it by the name taglist
+                                                        for ul in problem.findall('.//ul'):
+                                                            if ul.get('id')=="taglist":
+                                                                taglist = ul
+                                                                break
+                                                    link = etree.SubElement(taglist,"li",{'display':"block",'color':"blue",'background-color':"gray",'padding':"5px 10px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)
+                                                    
+                                        
+        # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
+        # look through the rest of the document for references to that measurable outcome
+        # where there is a reference to the MO, make a tag at the bottom of that vertical that says "MO1.2" or whatever, but that permits a hover that brings up the full-length description of the measurable outcome
 
 def handle_section_refs(tree):
     '''
@@ -689,7 +765,8 @@ def handle_section_refs(tree):
                     for p in subsection.findall('.//'):
                         #if not any(p==subsectionchild for subsectionchild in list(subsection)):
                         #    continue
-                        if p.tag == "p" and re.search(r'(?s)sec:(.*?)(?s)',p.text) is not None: # found label sec:?
+                        print "p text =", p.text
+                        if p.text is not None and p.tag == "p" and re.search(r'(?s)sec:(.*?)(?s)',p.text) is not None: # found label sec:?
                             print "section type=",section.tag
                             print "section name=",section.get('url_name')
                             print "subsection type=",subsection.tag   
@@ -1075,6 +1152,26 @@ if 1:
     print "Converting latex to XHTML using PlasTeX with custom edX macros"
     print "Source file: %s" % INPUT_TEX_FILENAME
     print "============================================================================="
+
+    # open all tex files that are sub to the main file and replace \item\label{mo:*}
+    fpath = os.path.abspath(fn)
+    dir = os.path.dirname(fpath)
+    for path, subdirs, files in os.walk(dir):
+        for name in files:
+            if name.endswith('.tex'):
+                print os.path.join(path, name)
+                # open the file
+                f = open(os.path.join(path, name),'r')
+                fsrc = f.read()
+                # do the replace
+                print fsrc[1:1500]
+                fsrc = re.sub(r'(\\item\\label\{mo:)(.*)(\})',r'\item (label-mo:\2)',fsrc)
+                print fsrc[1:1500]
+                f.close()
+                # write the file
+                f = open(os.path.join(path, name),'w')
+                f.write(fsrc)
+                f.close()    
 
     # get the input latex file
     # latex_str = open(fn).read()
