@@ -630,12 +630,14 @@ def handle_measurable_outcomes(tree):
                                                                 break
                                                     link = etree.SubElement(taglist,"li",{'display':"block",'color':"blue",'background-color':"gray",'padding':"5px 10px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
-
+                                                    link.set('id',tag)
                                     for problem in tree.findall('.//problem'): #look in problem
                                         for p in problem.findall('.//p'):
                                             for a in p.findall('.//a'):
                                                 if a.text=="mo:"+tag:
                                                     # add measurable outcome attribute to the xml tag
+                                                    if problem.get('measurable_outcomes') is not None:
+                                                        print "WARNING: Overwriting measurable_outcome attribute for problem: %s" % problem.get('url_name')
                                                     problem.set('measurable_outcomes',tag)
                                                     p.remove(a)
                                                     # put tag at the bottom of the html section
@@ -654,6 +656,7 @@ def handle_measurable_outcomes(tree):
                                                                 break
                                                     link = etree.SubElement(taglist,"li",{'display':"block",'color':"blue",'background-color':"gray",'padding':"5px 10px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)
+                                                    link.set('id',tag)
                                                     
                                         
         # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
