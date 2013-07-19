@@ -507,6 +507,63 @@ def extract_html(tree,pdir,fnprefix=''):
         parent.remove(html)
 
 #-----------------------------------------------------------------------------
+# create a partial policy file for easier policy generation
+
+def generate_partial_policy_file(course,pdir): 
+    '''
+    This function is intended to generate a partial policy file (the part pertaining to edX problems) with default information so that setting point values for the problems is much easier, but without interfering with the content (in LaTeX source) itself.  The output goes to /partial_policy.json, where / refers to the latex directory in content repo.
+    '''
+
+    # little function for getting the display_name attribute from already saved separate problem files
+    def get_problem_display_name(url_name,pdir):
+        pfile = open(os.path.join(pdir, url_name + ".xml"),'r')
+        topline = pfile.readline()
+        topline = pfile.readline() # the info we need is on the second line of the file
+        print topline
+        # get the display_name attribute from there
+        m = re.search('display_name=\"(.+?)\"',topline)
+        if m:
+            display_name = m.group(1)
+        else:
+            display_name = ""
+        pfile.close()
+        print display_name
+        return display_name
+
+    print "\n\nENTERED GENERATE_PARTIAL_POLICY_FILE\n"
+    fpath = os.path.abspath(fn)
+    dir = os.path.dirname(fpath)
+    f = open(os.path.join(dir, "partial_policy.json"),'w')
+    for chapter in course.findall('.//chapter'):
+        name = chapter.get('display_name')
+        print name
+        for sequential in chapter.findall('.//sequential'):
+            seqwritten = False
+            for problem in sequential.findall('.//problem'):
+                if not seqwritten:
+                    problem_format = ""
+                    if sequential.get('display_name')=="Homework Problems":
+                        problem_format = "Homework"
+                    else:
+                        problem_format = "Concept Questions"
+                    f.write('\t\"sequential/%s\": {\n' % sequential.get('url_name'))
+                    f.write('\t\t\"graded\": true,\n')
+                    f.write('\t\t\"due\": \"August 20\"\n')
+                    f.write('\t},\n')
+                    seqwritten = True
+                f.write('\t\"problem/%s\": {\n' % problem.get('url_name'))
+                # because of the order things are done, it is necessary to go dig up the problem display name
+                # from the already saved problem file
+                problem_display_name = get_problem_display_name(problem.get('url_name'),pdir)
+                f.write('\t\t\"display_name\": \"%s\",\n' % problem_display_name)
+                f.write('\t\t\"graded\": true,\n')
+                f.write('\t\t\"format\": \"%s\",\n' % problem_format)
+                f.write('\t\t\"weight\": 5\n')
+                f.write('\t},\n')
+    f.close()
+
+
+#-----------------------------------------------------------------------------
 # output course into XML file
 
 def course_to_files(course, update_mode, default_dir, fnprefix=''):
@@ -536,7 +593,10 @@ def course_to_files(course, update_mode, default_dir, fnprefix=''):
     extract_problems(course,pdir,fnprefix)
     extract_html(course,hdir,fnprefix)
     cleanup_xml(course)
-    
+
+    # write partial policy file
+    generate_partial_policy_file(course,pdir)
+
     # if the url_name given is in reasonable format, eg 2013_Fall (no spaces), then write
     # contents of <course> to that filename in the course subdir, ie unbundle it
     if not ' ' in course.get('url_name',''):
@@ -1229,6 +1289,7 @@ chapters = xml.findall('.//chapter')	# get all chapters
 
 if course is not None:
     course_to_files(course, UPDATE_MODE, default_dir, fnprefix=fnprefix)
+    
 
 elif chapters and UPDATE_MODE:
     for chapter in chapters:
@@ -1242,3 +1303,4 @@ else:
 
     for html in xml.findall('.//html'):
         html_to_file(html, default_dir)
+
