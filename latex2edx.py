@@ -904,14 +904,16 @@ def fix_figure_refs(tree):
     modulenum = 0
     for chapter in tree.findall('.//chapter'):
         modulenum = modulenum + 1
-        for div in tree.findall('.//div'):
+        fignum = 0
+        for div in chapter.findall('.//div'):
             if div.get('class') == "figure":
                 figlabel = div.get('id')
                 # get fignum
                 for b in div.findall('.//b'):
                     if re.search(r'Figure [0-9]+$',b.text,re.S) is not None:
                         splitres = b.text.split()
-                        fignum = int(splitres[1])
+                        #fignum = int(splitres[1])
+                        fignum += 1
                         b.text = "Figure %d.%d" % (modulenum,fignum)
 
                 # look for references and put the right code
