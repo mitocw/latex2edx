@@ -519,16 +519,21 @@ def generate_partial_policy_file(course,pdir):
         pfile = open(os.path.join(pdir, url_name + ".xml"),'r')
         topline = pfile.readline()
         topline = pfile.readline() # the info we need is on the second line of the file
-        print topline
+        # print topline
         # get the display_name attribute from there
         m = re.search('display_name=\"(.+?)\"',topline)
         if m:
             display_name = m.group(1)
         else:
             display_name = ""
+        m = re.search('weight=\"(.+?)\"',topline)
+        if m:
+            weight = m.group(1)
+        else:
+            weight = 0
         pfile.close()
-        print display_name
-        return display_name
+        # print display_name
+        return display_name, weight
 
     print "\n\nENTERED GENERATE_PARTIAL_POLICY_FILE\n"
     fpath = os.path.abspath(fn)
@@ -536,30 +541,54 @@ def generate_partial_policy_file(course,pdir):
     f = open(os.path.join(dir, "partial_policy.json"),'w')
     for chapter in course.findall('.//chapter'):
         name = chapter.get('display_name')
+        modtotCQweight = 0
+        modtotHWweight = 0
         print name
         for sequential in chapter.findall('.//sequential'):
             seqwritten = False
             for problem in sequential.findall('.//problem'):
+                # because of the order things are done, it is necessary to go dig up the problem display name
+                # from the already saved problem file
+                problem_display_name, problem_weight = get_problem_display_name(problem.get('url_name'),pdir)
+                print problem_display_name
+                print "weight =", problem_weight
                 if not seqwritten:
-                    problem_format = ""
-                    if sequential.get('display_name')=="Homework Problems":
-                        problem_format = "Homework"
-                    else:
-                        problem_format = "Concept Questions"
                     f.write('\t\"sequential/%s\": {\n' % sequential.get('url_name'))
                     f.write('\t\t\"graded\": true,\n')
                     f.write('\t\t\"due\": \"August 20\"\n')
                     f.write('\t},\n')
                     seqwritten = True
+                problem_format = ""
+                if sequential.get('display_name')=="Homework Problems":
+                    print "homework problem\n"
+                    problem_format = "%s Homework Problems" % name
+                    problem_attempts = str(2)
+                    problem_graded = "true"
+                    modtotHWweight += int(problem_weight)
+                elif sequential.get('display_name')=="Sample Problems":
+                    print "sample problem\n"
+                    problem_format = "%s Sample Problems" % name
+                    problem_attempts = "0"
+                    problem_graded = "false"
+                else:
+                    print "concept question\n"
+                    problem_format = "%s Concept Questions" % name
+                    problem_attempts = ""
+                    problem_graded = "true"
+                    modtotCQweight += int(problem_weight)
+
                 f.write('\t\"problem/%s\": {\n' % problem.get('url_name'))
-                # because of the order things are done, it is necessary to go dig up the problem display name
-                # from the already saved problem file
-                problem_display_name = get_problem_display_name(problem.get('url_name'),pdir)
                 f.write('\t\t\"display_name\": \"%s\",\n' % problem_display_name)
-                f.write('\t\t\"graded\": true,\n')
+                f.write('\t\t\"graded\": %s,\n' % problem_graded)
                 f.write('\t\t\"format\": \"%s\",\n' % problem_format)
-                f.write('\t\t\"weight\": 5\n')
+                f.write('\t\t\"attempts\": \"%s\"\n' % problem_attempts) 
                 f.write('\t},\n')
+        if modtotCQweight != 50:
+            print "\n *** WARNING *** Module: %s, Concept Question weights sum to %d != 50!!!\n" % (name, modtotCQweight)
+            raw_input("Press ENTER to continue")
+        if modtotHWweight != 50:
+            print "\n *** WARNING *** Module: %s, Homework Question weights sum to %d != 50!!!\n" % (name, modtotHWweight)
+            raw_input("Press ENTER to continue")
     f.close()
 
 
@@ -644,6 +673,19 @@ def process_edXmacros(tree):
     process_showhide(tree)
     fix_boxed_equations(tree)  # note this should come after fix_table always
     handle_section_refs(tree)
+    add_titles_to_edxtext(tree)
+
+def add_titles_to_edxtext(tree):
+    '''
+    Add the titles as <h2 class="problem-header">?</h2> elements to each edXtext section
+    '''
+    for html in tree.findall('.//html'):
+        disp_name = html.get('url_name')
+        # print disp_name
+        header_sub_element = etree.Element('h2',{'class':"problem-header"})
+        header_sub_element.text = disp_name
+        html.insert(0, header_sub_element)
+        # raw_input("Press ENTER")
 
 def handle_measurable_outcomes(tree):
     '''
