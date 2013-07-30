@@ -554,8 +554,11 @@ def generate_partial_policy_file(course,pdir):
                 print "weight =", problem_weight
                 if not seqwritten:
                     f.write('\t\"sequential/%s\": {\n' % sequential.get('url_name'))
-                    f.write('\t\t\"graded\": true,\n')
-                    f.write('\t\t\"due\": \"August 20\"\n')
+                    if sequential.get('display_name')=="Sample Problems":
+                        f.write('\t\t\"graded\": false\n')
+                    else:
+                        f.write('\t\t\"graded\": true,\n')
+                        f.write('\t\t\"due\": \"2013-08-06T03:59\"\n')
                     f.write('\t},\n')
                     seqwritten = True
                 problem_format = ""
@@ -564,23 +567,27 @@ def generate_partial_policy_file(course,pdir):
                     problem_format = "%s Homework Problems" % name
                     problem_attempts = str(2)
                     problem_graded = "true"
+                    problem_showanswer = "past_due"
                     modtotHWweight += int(problem_weight)
                 elif sequential.get('display_name')=="Sample Problems":
                     print "sample problem\n"
                     problem_format = "%s Sample Problems" % name
                     problem_attempts = "0"
                     problem_graded = "false"
+                    problem_showanswer = "always"
                 else:
                     print "concept question\n"
                     problem_format = "%s Concept Questions" % name
-                    problem_attempts = ""
+                    problem_attempts = "10"
                     problem_graded = "true"
+                    problem_showanswer = "closed"
                     modtotCQweight += int(problem_weight)
 
                 f.write('\t\"problem/%s\": {\n' % problem.get('url_name'))
                 f.write('\t\t\"display_name\": \"%s\",\n' % problem_display_name)
                 f.write('\t\t\"graded\": %s,\n' % problem_graded)
                 f.write('\t\t\"format\": \"%s\",\n' % problem_format)
+                f.write('\t\t\"showanswer\": \"%s\",\n' % problem_showanswer)
                 f.write('\t\t\"attempts\": \"%s\"\n' % problem_attempts) 
                 f.write('\t},\n')
         if modtotCQweight != 50:
@@ -710,7 +717,7 @@ def handle_measurable_outcomes(tree):
                                     oldtext = re.sub(r'\(label-mo:(.*?)\)',r'',oldtext)
                                     newtext = "MO%d.%d: " % (chapternum,monum) + oldtext
                                     p.text = newtext
-                                    # find the references to this everywhere else (will be in html or problem)
+                                    # find the references to this everywhere else (will be in html or problem OR vertical)
                                     for html in tree.findall('.//html'): #look in html
                                         for p in html.findall('.//p'):
                                             for a in p.findall('.//a'):
@@ -719,18 +726,20 @@ def handle_measurable_outcomes(tree):
                                                     # put tag at the bottom of the html section
                                                     # determine if a taglist paragraph exists yet
                                                     taglist_exists = False
-                                                    for ul in html.findall('.//ul'):
-                                                        if ul.get('id')=="taglist":
+                                                    for p in html.findall('.//p'):
+                                                        if p.get('id')=="taglist":
                                                             taglist_exists = True
                                                     if not taglist_exists: # tag list element doesn't exist yet
-                                                        taglist = etree.SubElement(html,"ul",{'id':"taglist",'display':"block",'list-style':"none",'overflow':"hidden"})
+                                                        taglist = etree.Element("p",{'id':"taglist"})
+                                                        html.insert(0,taglist)
+                                                        # taglist = etree.SubElement(html,"ul",{'id':"taglist",'display':"block",'list-style':"none",'overflow':"hidden"})
                                                     else: # taglist element already exists
                                                         # find it and get it by the name taglist
-                                                        for ul in html.findall('.//ul'):
-                                                            if ul.get('id')=="taglist":
-                                                                taglist = ul
+                                                        for p in html.findall('.//p'):
+                                                            if p.get('id')=="taglist":
+                                                                taglist = p
                                                                 break
-                                                    link = etree.SubElement(taglist,"li",{'display':"block",'color':"blue",'background-color':"gray",'padding':"5px 10px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'style':"height:10px; width:20px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
                                     for problem in tree.findall('.//problem'): #look in problem
@@ -739,27 +748,63 @@ def handle_measurable_outcomes(tree):
                                                 if a.text=="mo:"+tag:
                                                     # add measurable outcome attribute to the xml tag
                                                     if problem.get('measurable_outcomes') is not None:
-                                                        print "WARNING: Overwriting measurable_outcome attribute for problem: %s" % problem.get('url_name')
+                                                        print "\n***WARNING***: Overwriting measurable_outcome attribute for problem: %s" % problem.get('url_name')
+                                                        raw_input("Press ENTER to continue")
                                                     problem.set('measurable_outcomes',tag)
                                                     p.remove(a)
                                                     # put tag at the bottom of the html section
                                                     # determine if a taglist paragraph exists yet
                                                     taglist_exists = False
-                                                    for ul in problem.findall('.//ul'):
-                                                        if ul.get('id')=="taglist":
+                                                    for p in problem.findall('.//p'):
+                                                        if p.get('id')=="taglist":
                                                             taglist_exists = True
                                                     if not taglist_exists: # tag list element doesn't exist yet
-                                                        taglist = etree.SubElement(problem,"ul",{'id':"taglist"})
+                                                        taglist = etree.Element("p",{'id':"taglist"})
+                                                        problem.insert(0,taglist)
                                                     else: # taglist element already exists
                                                         # find it and get it by the name taglist
-                                                        for ul in problem.findall('.//ul'):
-                                                            if ul.get('id')=="taglist":
-                                                                taglist = ul
+                                                        for p in problem.findall('.//p'):
+                                                            if p.get('id')=="taglist":
+                                                                taglist = p
                                                                 break
-                                                    link = etree.SubElement(taglist,"li",{'display':"block",'color':"blue",'background-color':"gray",'padding':"5px 10px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
-                                                    link.text = "MO%d.%d" % (chapternum,monum)
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'style':"height:10px; width:20px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
-                                                    
+                                    for vertical in tree.findall('.//vertical'): # look in vertical
+                                        for p in vertical.findall('.//p'):
+                                            for a in p.findall('.//a'): 
+                                                if a.text=="mo:"+tag:
+                                                # found MO tag in vertical.
+                                                    # need to put these tags in the measurable_outcomes attribute of problems in this vertical (for Cole's reporting tool)
+                                                    # assume here that verticals encapsulate only problems !!!
+                                                    # get first problem
+                                                    for problem in vertical.findall('.//problem'):
+                                                        firstproblem = problem
+                                                        break
+                                                    # set measurable_outcome attribute for all problems
+                                                    for problem in vertical.findall('.//problem'):
+                                                        if problem.get('measurable_outcomes') is not None:
+                                                            print "\n***WARNING***: Overwriting measurable_outcome attribute for problem: %s" % problem.get('url_name')
+                                                            raw_input("Press ENTER to continue")
+                                                        problem.set('measurable_outcomes',tag)
+                                                    p.remove(a)
+                                                    taglist_exists = False
+                                                    for pt in firstproblem.findall('.//p'):
+                                                        if pt.get('id')=="taglist":
+                                                            taglist_exists = True
+                                                    if not taglist_exists: # tag list element doesn't exist yet
+                                                        taglist = etree.Element("p",{'id':"taglist"})
+                                                        firstproblem.insert(0,taglist)
+                                                    else: # taglist element already exists
+                                                        # find it and get it by the name taglist
+                                                        for pt in firstproblem.findall('.//p'):
+                                                            if pt.get('id')=="taglist":
+                                                                taglist = pt
+                                                                break
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'style':"height:10px; width:20px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)  
+                                                    link.set('id',tag)
+                                                    vertical.remove(p)
                                         
         # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
         # look through the rest of the document for references to that measurable outcome
