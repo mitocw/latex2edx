@@ -541,6 +541,10 @@ def generate_partial_policy_file(course,pdir):
     f = open(os.path.join(dir, "partial_policy.json"),'w')
     for chapter in course.findall('.//chapter'):
         name = chapter.get('display_name')
+        #print name
+        #raw_input("Press enter yo")
+        if name=="Overview of 16.101x":
+            continue
         modtotCQweight = 0
         modtotHWweight = 0
         print name
@@ -748,9 +752,12 @@ def handle_measurable_outcomes(tree):
                                                 if a.text=="mo:"+tag:
                                                     # add measurable outcome attribute to the xml tag
                                                     if problem.get('measurable_outcomes') is not None:
-                                                        print "\n***WARNING***: Overwriting measurable_outcome attribute for problem: %s" % problem.get('url_name')
-                                                        raw_input("Press ENTER to continue")
-                                                    problem.set('measurable_outcomes',tag)
+                                                        # add it and reset (comma-separated list, no space per P. Pinch)
+                                                        currmo = problem.get('measurable_outcomes') 
+                                                        newmo = currmo + ",%s" % tag
+                                                        problem.set('measurable_outcomes',newmo)
+                                                    else:
+                                                        problem.set('measurable_outcomes',tag)
                                                     p.remove(a)
                                                     # put tag at the bottom of the html section
                                                     # determine if a taglist paragraph exists yet
@@ -771,23 +778,42 @@ def handle_measurable_outcomes(tree):
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
                                     for vertical in tree.findall('.//vertical'): # look in vertical
+                                        print "\nVERTICAL %s" % vertical.get('display_name')
                                         for p in vertical.findall('.//p'):
-                                            for a in p.findall('.//a'): 
+                                            # print "p.text=",p.text
+                                            for a in p.findall('.//a'):
+                                                #print "a.text =",a.text 
                                                 if a.text=="mo:"+tag:
                                                 # found MO tag in vertical.
                                                     # need to put these tags in the measurable_outcomes attribute of problems in this vertical (for Cole's reporting tool)
                                                     # assume here that verticals encapsulate only problems !!!
                                                     # get first problem
+                                                    
+                                                    #print "\nPROCESSING TAG mo:%s\n" % tag
+                                                    #raw_input("Press ENTER")
                                                     for problem in vertical.findall('.//problem'):
                                                         firstproblem = problem
                                                         break
                                                     # set measurable_outcome attribute for all problems
                                                     for problem in vertical.findall('.//problem'):
+                                                        # add measurable outcome attribute to the xml tag
                                                         if problem.get('measurable_outcomes') is not None:
-                                                            print "\n***WARNING***: Overwriting measurable_outcome attribute for problem: %s" % problem.get('url_name')
-                                                            raw_input("Press ENTER to continue")
-                                                        problem.set('measurable_outcomes',tag)
+                                                            # add it and reset (comma-separated list, no space per P. Pinch)
+                                                            currmo = problem.get('measurable_outcomes') 
+                                                            newmo = currmo + ",%s" % tag
+                                                            problem.set('measurable_outcomes',newmo)
+                                                        else:
+                                                            problem.set('measurable_outcomes',tag)
                                                     p.remove(a)
+                                                    # check if this p should be removed (the last a was just taken out)
+                                                    totalaswithmos = 0
+                                                    for a in p.findall('.//a'):
+                                                        print "a.text =",a.text
+                                                        if a.text.find('mo:')!=-1:
+                                                            totalaswithmos += 1
+                                                    print "TOTAL MOs remaining in this <p> =", totalaswithmos
+                                                    if totalaswithmos==0:
+                                                        vertical.remove(p)
                                                     taglist_exists = False
                                                     for pt in firstproblem.findall('.//p'):
                                                         if pt.get('id')=="taglist":
@@ -804,7 +830,6 @@ def handle_measurable_outcomes(tree):
                                                     link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'style':"height:10px; width:20px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
-                                                    vertical.remove(p)
                                         
         # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
         # look through the rest of the document for references to that measurable outcome
@@ -870,6 +895,7 @@ def handle_section_refs(tree):
                     print seclabel
                     print list(section)
                     print p
+                    # raw_input("Press ENTER")
                     # WORKING HERE
                     section.remove(p)
                     chapname = chapter.get('display_name')
@@ -925,6 +951,7 @@ def handle_section_refs(tree):
                             tmp = (re.search(r'sec:(.*?) ',p.text))
                             subseclabel = (tmp.group(0)).rstrip()
                             print subseclabel
+                            #raw_input("SUBSECTION LABEL")
                             pparent = p.getparent()
                             pparent.remove(p)
                             chapname = chapter.get('display_name')
@@ -953,6 +980,7 @@ def handle_section_refs(tree):
                                 # raw_input("Press ENTER")
                                 a.set('href',href)
                                 a.set('target',"_blank")
+                                #raw_input("FOUND REFERENCE TO %s" % subseclabel)
                             # end look for subsection references 
                 
     # once all of the labels have been found... need to go through and do something about the references that do not have associated labels
@@ -1002,39 +1030,58 @@ def fix_figure_refs(tree):
                         #fignum = int(splitres[1])
                         fignum += 1
                         b.text = "Figure %d.%d" % (modulenum,fignum)
-
+                # for multi-image figures, i need to collect all the image names
+                image_names = []
+                for img in div.findall('.//img'):
+                    img_src = img.get('src')
+                    print img_src
+                    m = re.search(r'/static/html/(.*?).png',img_src,re.S)
+                    this_name = m.group(1)
+                    image_names.append(this_name)
+                    #print "\n\nadded %s.png to image_names list" % this_name
+                    #raw_input("Press ENTER")
                 # look for references and put the right code
                 for a in tree.findall('.//a'):
                     # print "looking for the reference..."
                     if a.text == figlabel:
                         # change this ref element
                         a.text = "%d.%d" % (modulenum,fignum)
-                        figure_info = figlabel.split(":")
-                        figure_name = figure_info[1]
-                        # find the image within directory of modules.tex (the tex file this is being run on)
-                        ##print INPUT_TEX_FILENAME
-                        latexfolder = os.getcwd()
-                        imgpath = ""
-                        for path, dirs, files in os.walk(latexfolder):
-                            for filename in fnmatch.filter(files,figure_name+".png"):
-                                imgpath = os.path.join(path, filename)
-                                if imgpath.find('figs') != -1:
-                                    #print "FOUND figs IN PATH"
-                                    fullimgpath = imgpath
-                        #print fullimgpath
-                        img = Image.open(fullimgpath)
-                        w, h = img.size
-                        #print "w =", w
-                        ws = 0.50
-                        wp = (int)(w*ws)
-                        #wp = w
-                        #hp = h
-                        hp = (int)(h*ws)
-                        href = "/static/content-mit-16101x/html/%s.png" % figure_name
-                        onClick = "window.open(this.href,\'16.101x\',\'width=%s,height=%s\',\'toolbar=1\'); return false;" % (wp,hp)
-                        a.set('href',href)
-                        a.set('onClick',onClick)
-
+                        if len(image_names)==1:  # single image figure
+                            figure_info = figlabel.split(":")
+                            figure_name = figure_info[1]
+                            # find the image within directory of modules.tex (the tex file this is being run on)
+                            ##print INPUT_TEX_FILENAME
+                            latexfolder = os.getcwd()
+                            imgpath = ""
+                            for path, dirs, files in os.walk(latexfolder):
+                                for filename in fnmatch.filter(files,figure_name+".png"):
+                                    imgpath = os.path.join(path, filename)
+                                    if imgpath.find('figs') != -1:
+                                        #print "FOUND figs IN PATH"
+                                        fullimgpath = imgpath
+                            #print fullimgpath
+                            img = Image.open(fullimgpath)
+                            w, h = img.size
+                            #print "w =", w
+                            ws = 0.50
+                            wp = (int)(w*ws)
+                            #wp = w
+                            #hp = h
+                            hp = (int)(h*ws)
+                            href = "/static/content-mit-16101x/html/%s.png" % figure_name
+                            onClick = "window.open(this.href,\'16.101x\',\'width=%s,height=%s\',\'toolbar=1\'); return false;" % (wp,hp)
+                            a.set('href',href)
+                            a.set('onClick',onClick)
+                        else: # multi-image figure
+                            htmlbodycontent = ""
+                            for figure_name in image_names:
+                                htmlbodycontent += "<img src=\"/static/content-mit-16101x/html/%s.png\" width=\"400\" height=\"200\">" % figure_name
+                            htmlstr = "\'<html><head></head><body>%s</body></html>\'" % htmlbodycontent
+                            print htmlstr
+                            #raw_input("CHECK OUT THIS HTML STRING")
+                            onClick = "return newWindow(%s,'Figure %d.%d');" % (htmlstr,modulenum,fignum)
+                            a.set('href',"javascript: void(0)")
+                            a.set('onClick',onClick)
 
 def handle_equation_labels_and_refs(tree):
     ''' 
