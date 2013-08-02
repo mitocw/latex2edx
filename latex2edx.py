@@ -206,6 +206,25 @@ class MyRenderer(XHTML.Renderer):
             print new_window_command
             return new_window_command
 
+        def do_imageresponse(m):
+            imgsrc = m.group(1)
+            width = m.group(2)
+            height = m.group(3)
+            rectangle = m.group(4)
+            print "inside of do_imageresponse"
+            self.imfnset.append(imgsrc)
+            fnbase = os.path.basename(imgsrc)
+            wwwfn = '%s/%s' % (self.imdir,fnbase)
+            if 1:
+                cmd = 'cp %s %s' % (imgsrc,wwwfn)
+                os.system(cmd)
+                print cmd
+                os.system('chmod og+r %s' % wwwfn)
+            #imgtext = '<imageinput src="/static/%s/%s" width="%s" height="%s" rectangle="%s"/>' % (imurl,fnbase,width,height,rectangle)
+            #print "imgtext=",imgtext
+            #raw_input("Press ENTER")
+            return '<imageinput src="/static/%s/%s" width="%s" height="%s" rectangle="%s"/>' % (imurl,fnbase,width,height,rectangle)
+
         try:
             s = re.sub('(?s)<math>\$(.*?)\$</math>',fix_math,s)
             s = re.sub(r'(?s)<math>\\begin{equation}(.*?)\\end{equation}</math>',fix_displaymath,s)
@@ -216,6 +235,7 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub('(?s)<edxxml>\\\\edXxml{(.*?)}</edxxml>','\\1',s)
             s = re.sub(r'(?s)<iframe>(.*?)</iframe>',do_iframe,s)  # edXinlinevideo
             s = re.sub(r'(?s)<customresponse(.*?)cfn="defaultsoln"(.*?)</customresponse>','<customresponse cfn="defaultsoln" expect=""><textbox rows="5" correct_answer=""/></customresponse>',s)
+            s = re.sub(r'(?s)<imageinput src="(.*?)" width="(.*?)" height="(.*?)" rectangle="(.*?)"/>',do_imageresponse,s)
 
         except Exception, err:
             print "Error in MyRenderer.processFileContent: ",err
@@ -543,7 +563,7 @@ def generate_partial_policy_file(course,pdir):
         name = chapter.get('display_name')
         #print name
         #raw_input("Press enter yo")
-        if name=="Overview of 16.101x":
+        if name=="Overview of 16.101x" or name=="Test":
             continue
         modtotCQweight = 0
         modtotHWweight = 0
