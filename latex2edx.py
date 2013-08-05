@@ -705,6 +705,44 @@ def process_edXmacros(tree):
     fix_boxed_equations(tree)  # note this should come after fix_table always
     handle_section_refs(tree)
     add_titles_to_edxtext(tree)
+    fix_edXvideos_in_solutions(tree)
+
+def fix_edXvideos_in_solutions(tree):
+    '''
+    The edXvideos placed inside solutions within problem need to be reformatted
+    '''
+    for problem in tree.findall('.//problem'):
+        for text in problem.findall('.//text'):
+            for p1 in text.findall('.//p'):
+                for solution in p1.findall('.//solution'):
+                    for font in solution.findall('.//font'):
+                        for p2 in font.findall('.//p'):
+                            for video in p2.findall('.//video'):
+                                video_inner_text = video.text
+                                m = re.search('display_name=\"(.+?)\"',video_inner_text)
+                                if m:
+                                    viddn = m.group(1)
+                                else:
+                                    viddn = ""
+                                m = re.search('youtube=\"(.+?)\"',video_inner_text)
+                                if m:
+                                    vidyt = m.group(1)
+                                else:
+                                    print "\n\n"
+                                    print video_inner_text
+                                    print "\n*** WARNING *** Youtube code not specified for video in solution"
+                                    raw_input("Press ENTER to continue...")
+                                print solution
+                                print solution.text
+                                print p2.text
+                                solution_text = etree.XML('<video display_name="%s" youtube="%s"/>' % (viddn,vidyt))
+                                soltextelem = solution.insert(0,solution_text)
+                                #solution.text = r'<video display_name="%s" youtube="%s"/>' % (viddn,vidyt)
+                                #solution.text = solution.text.replace("&lt;", "<")
+                                #solution.text = solution.text.replace("&gt;", ">")
+                                print "solution text = ", solution.text
+                        solution.remove(font);
+
 
 def add_titles_to_edxtext(tree):
     '''
@@ -763,7 +801,7 @@ def handle_measurable_outcomes(tree):
                                                             if p.get('id')=="taglist":
                                                                 taglist = p
                                                                 break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'style':"height:10px; width:20px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button"}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
                                     for problem in tree.findall('.//problem'): #look in problem
@@ -794,7 +832,7 @@ def handle_measurable_outcomes(tree):
                                                             if p.get('id')=="taglist":
                                                                 taglist = p
                                                                 break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'style':"height:10px; width:20px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button"}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
                                     for vertical in tree.findall('.//vertical'): # look in vertical
@@ -847,7 +885,7 @@ def handle_measurable_outcomes(tree):
                                                             if pt.get('id')=="taglist":
                                                                 taglist = pt
                                                                 break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'style':"height:10px; width:20px",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer"}) # add the link inside
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button"}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
                                         
