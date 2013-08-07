@@ -183,13 +183,15 @@ class MyRenderer(XHTML.Renderer):
             return AnswerBox(m.group(1)).xmlstr
 
         def do_iframe(m):
-            print "inside iframe"
-            print m
-            print m.group(0)
-            attributes = re.findall('\>(.*?)\<',m.group(0),re.S)
-            print attributes[0].encode("utf-8")
-            print "<iframe %s></iframe>" % attributes[0].encode("utf-8")
-            return "<iframe %s></iframe>" % attributes[0].encode("utf-8")
+            #print "inside iframe"
+            #print m
+            #print m.group(0)
+            #attributes = re.findall('\>(.*?)\<',m.group(0),re.S)
+            #print attributes[0].encode("utf-8")
+            #print "<iframe %s></iframe>" % attributes[0].encode("utf-8")
+            print m.group(0).encode("utf-8")
+            #raw_input("Press ENTER inside do_iframe")
+            return m.group(0).encode("utf-8")
 
         def do_figure_ref(m):
             print "inside figure_ref"
@@ -233,7 +235,7 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub(r'(?s)<abox>(.*?)</abox>',do_abox,s)
             s = re.sub('<includegraphics style="(.*?)">(.*?)</includegraphics>',do_image,s)	# includegraphics
             s = re.sub('(?s)<edxxml>\\\\edXxml{(.*?)}</edxxml>','\\1',s)
-            s = re.sub(r'(?s)<iframe>(.*?)</iframe>',do_iframe,s)  # edXinlinevideo
+            s = re.sub(r'(?s)<iframe(.*?)></iframe>',do_iframe,s)  # edXinlinevideo
             s = re.sub(r'(?s)<customresponse(.*?)cfn="defaultsoln"(.*?)</customresponse>','<customresponse cfn="defaultsoln" expect=""><textbox rows="5" correct_answer=""/></customresponse>',s)
             s = re.sub(r'(?s)<imageinput src="(.*?)" width="(.*?)" height="(.*?)" rectangle="(.*?)"/>',do_imageresponse,s)
 
@@ -705,7 +707,7 @@ def process_edXmacros(tree):
     fix_boxed_equations(tree)  # note this should come after fix_table always
     handle_section_refs(tree)
     add_titles_to_edxtext(tree)
-    fix_edXvideos_in_solutions(tree)
+    #fix_edXvideos_in_solutions(tree)   # this line currently breaks the normal video handling --- only bring back if we will be able to use <video> tags in solutions and replace all the iframe videos
 
 def fix_edXvideos_in_solutions(tree):
     '''
