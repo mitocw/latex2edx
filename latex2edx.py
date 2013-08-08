@@ -236,7 +236,7 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub('<includegraphics style="(.*?)">(.*?)</includegraphics>',do_image,s)	# includegraphics
             s = re.sub('(?s)<edxxml>\\\\edXxml{(.*?)}</edxxml>','\\1',s)
             s = re.sub(r'(?s)<iframe(.*?)></iframe>',do_iframe,s)  # edXinlinevideo
-            s = re.sub(r'(?s)<customresponse(.*?)cfn="defaultsoln"(.*?)</customresponse>','<customresponse cfn="defaultsoln" expect=""><textbox rows="5" correct_answer=""/></customresponse>',s)
+            s = re.sub(r'(?s)<customresponse(.*?)cfn="defaultsoln"(.*?)</customresponse>','<customresponse cfn="defaultsoln" expect=""><textline size="90" correct_answer=""/></customresponse>',s)
             s = re.sub(r'(?s)<imageinput src="(.*?)" width="(.*?)" height="(.*?)" rectangle="(.*?)"/>',do_imageresponse,s)
 
         except Exception, err:
