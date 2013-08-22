@@ -179,8 +179,14 @@ class MyRenderer(XHTML.Renderer):
             except Exception, err:
                 print "Error in MyRenderer.processFileContent (fix unicode): ",err
 
-        def do_abox(m):
-            return AnswerBox(m.group(1)).xmlstr
+        def do_abox(m): 
+            print "\nDOING abox!!\n"
+            if m.group(1).find('type="justification"') >= 0: # justification response
+                print m.group(1)
+                print "Justification response box being processed..."
+                return '</p><p><textarea rows="5" style="width:600px;height:100px"></textarea>'
+            else: # handle like normal abox
+                return AnswerBox(m.group(1)).xmlstr
 
         def do_iframe(m):
             #print "inside iframe"
@@ -204,7 +210,7 @@ class MyRenderer(XHTML.Renderer):
             figure_number = figure_number[0].encode("utf-8")
             print figure_name
             print figure_number
-            new_window_command = "<a href=\"/static/content-mit-16101x/html/%s.png\" onClick=\"window.open(this.href,\'16.101x\',\'toolbar=1\'); return false;\">%s</a>" % (figure_name,figure_number)
+            new_window_command = "<a href=\"/static/html/%s.png\" onClick=\"window.open(this.href,\'16.101x\',\'toolbar=1\'); return false;\">%s</a>" % (figure_name,figure_number)
             print new_window_command
             return new_window_command
 
@@ -275,6 +281,7 @@ def make_urlname(s):
            ',/().;=+ ': '_',
            '/': '__',
            '&': 'and',
+            '?': '',
            }
     for m,v in map.items():
         for ch in m:
@@ -698,9 +705,10 @@ def process_edXmacros(tree):
     fix_div(tree)
     fix_table(tree)
     fix_center(tree)
+    fix_figure_refs(tree)
+    add_chapter_url_names(tree)
     handle_equation_labels_and_refs(tree)
     handle_measurable_outcomes(tree)
-    fix_figure_refs(tree)
     add_figure_padding(tree)
     process_include(tree)
     process_showhide(tree)
@@ -708,6 +716,15 @@ def process_edXmacros(tree):
     handle_section_refs(tree)
     add_titles_to_edxtext(tree)
     #fix_edXvideos_in_solutions(tree)   # this line currently breaks the normal video handling --- only bring back if we will be able to use <video> tags in solutions and replace all the iframe videos
+
+def add_chapter_url_names(tree):
+    '''
+    Add chapter url_name so we can reference them in policy file
+    '''
+    for chapter in tree.findall('.//chapter'):
+        display_name = chapter.get('display_name')
+        url_name = make_urlname(display_name)
+        chapter.set('url_name',url_name)
 
 def fix_edXvideos_in_solutions(tree):
     '''
@@ -760,15 +777,18 @@ def add_titles_to_edxtext(tree):
 
 def handle_measurable_outcomes(tree):
     '''
-    Process the labels and references to measurable outcomes, placing 'tags' at the bottom of the vertical that have mouseovers revealing the measurable outcome
+    Process the labels and references to measurable outcomes, placing 'tags' at the top of the vertical that have mouseovers revealing the measurable outcome
     '''
     chapternum = 0
+    print "inside HANDLE_MEASURABLE_OUTCOMES"
+    #raw_input("Press ENTER")
     for chapter in tree.findall('.//chapter'):
         chapternum += 1
         for section in chapter.findall('.//section'):
             if section.get('url_name')=="Overview":
                 for html in section.findall('.//html'):
                     if html.get('url_name')=="Measurable outcomes":
+                        print "Found MEASURABLE OUTCOMES section"
                         for ol in html.findall('.//ol'): # ordered list of measurable outcomes
                             ol.tag = 'ul'
                             monum = 0
@@ -782,10 +802,22 @@ def handle_measurable_outcomes(tree):
                                     newtext = "MO%d.%d: " % (chapternum,monum) + oldtext
                                     p.text = newtext
                                     # find the references to this everywhere else (will be in html or problem OR vertical)
+                                    print "Finding reference to " + newtext + "..."
+                                    #raw_input("Press ENTER")
                                     for html in tree.findall('.//html'): #look in html
                                         for p in html.findall('.//p'):
                                             for a in p.findall('.//a'):
                                                 if a.text=="mo:"+tag:
+                                                    print "a.text =", a.text
+                                                    print "Found an <a> with mo: tag"
+                                                    #raw_input("Press ENTER")
+                                                    # we need to distinguish here between relmo calls and places where the outcome is referenced in the text (look for the word "outcome", any case) in the preceding text  
+                                                    print "\n", p.text
+                                                    if p.text.lower().find(r'outcome')>0 and p.text.find(r'<a>mo'):
+                                                        p.text = p.text + "%d.%d" % (chapternum,monum)
+                                                        print p.text
+                                                        p.remove(a)
+                                                        continue # i.e. don't go below to where we do the tagging
                                                     p.remove(a)
                                                     # put tag at the bottom of the html section
                                                     # determine if a taglist paragraph exists yet
@@ -794,6 +826,8 @@ def handle_measurable_outcomes(tree):
                                                         if p.get('id')=="taglist":
                                                             taglist_exists = True
                                                     if not taglist_exists: # tag list element doesn't exist yet
+                                                        print "Taglist being created..."
+                                                        #raw_input("Press ENTER")
                                                         taglist = etree.Element("p",{'id':"taglist"})
                                                         html.insert(0,taglist)
                                                         # taglist = etree.SubElement(html,"ul",{'id':"taglist",'display':"block",'list-style':"none",'overflow':"hidden"})
@@ -1046,6 +1080,9 @@ def handle_section_refs(tree):
     # once all of the labels have been found... need to go through and do something about the references that do not have associated labels
     # issue warning that requires user to press enter to continue
     for a in tree.findall('.//a'):
+        print "\na.text =", a.text
+        if a.text is None:
+            break
         if re.search(r'(?s)sec:(.*?)(?s)',a.text) is not None:
             print "WARNING: There is a reference to non-existent label %s" % a.text
             raw_input("Press ENTER to continue")
@@ -1081,8 +1118,24 @@ def fix_figure_refs(tree):
         modulenum = modulenum + 1
         fignum = 0
         for div in chapter.findall('.//div'):
+            print "CHAPTER: %s" % chapter.get('display_name')
+            print "div information:"
+            print "  div class: %s" % div.get('class')
+            print "  div id: %s" % div.get('id')
+            #raw_input("Press ENTER")
             if div.get('class') == "figure":
+                print "\n\n"
                 figlabel = div.get('id')
+                if figlabel == "fig:aeroforces":
+                    print "FOUND AEROFORCES FIG"
+                    print figlabel
+                    #raw_input("Press ENTER")
+                if figlabel is None:
+                    print "No label for this figure."
+                    #raw_input("Press ENTER to continue.")
+                    continue
+                print figlabel
+                #raw_input("Press ENTER")
                 # get fignum
                 for b in div.findall('.//b'):
                     if re.search(r'Figure [0-9]+$',b.text,re.S) is not None:
@@ -1102,11 +1155,15 @@ def fix_figure_refs(tree):
                     #raw_input("Press ENTER")
                 # look for references and put the right code
                 for a in tree.findall('.//a'):
-                    # print "looking for the reference..."
+                    print "looking for the reference %s ..." % figlabel
+                    print "a.text =", a.text
                     if a.text == figlabel:
+                        print "found reference"
+                        #raw_input("Press ENTER")
                         # change this ref element
                         a.text = "%d.%d" % (modulenum,fignum)
                         if len(image_names)==1:  # single image figure
+                            print "\nfiglabel =", figlabel
                             figure_info = figlabel.split(":")
                             figure_name = figure_info[1]
                             # find the image within directory of modules.tex (the tex file this is being run on)
@@ -1128,14 +1185,14 @@ def fix_figure_refs(tree):
                             #wp = w
                             #hp = h
                             hp = (int)(h*ws)
-                            href = "/static/content-mit-16101x/html/%s.png" % figure_name
+                            href = "/static/html/%s.png" % figure_name
                             onClick = "window.open(this.href,\'16.101x\',\'width=%s,height=%s\',\'toolbar=1\'); return false;" % (wp,hp)
                             a.set('href',href)
                             a.set('onClick',onClick)
                         else: # multi-image figure
                             htmlbodycontent = ""
                             for figure_name in image_names:
-                                htmlbodycontent += "<img src=\"/static/content-mit-16101x/html/%s.png\" width=\"400\" height=\"200\">" % figure_name
+                                htmlbodycontent += "<img src=\"/static/html/%s.png\" width=\"400\" height=\"200\">" % figure_name
                             htmlstr = "\'<html><head></head><body>%s</body></html>\'" % htmlbodycontent
                             print htmlstr
                             #raw_input("CHECK OUT THIS HTML STRING")
@@ -1430,7 +1487,7 @@ if 1:
                 # write the file
                 f = open(os.path.join(path, name),'w')
                 f.write(fsrc)
-                f.close()    
+                f.close()   
 
     # get the input latex file
     # latex_str = open(fn).read()
