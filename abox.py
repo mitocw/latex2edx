@@ -300,11 +300,12 @@ class AnswerBox(object):
         elif abtype=='numericalresponse':
             self.require_args(['expect'])
             self.copy_attrib(abargs,'inline',abxml)
-            tl = etree.Element('textline')
-            self.copy_attrib(abargs,'size',tl)
-            self.copy_attrib(abargs,'inline',tl)
-            self.copy_attrib(abargs,'math',tl)
-            abxml.append(tl)
+            # # CL: textline was deprecated by edX 08-23-2013
+            # tl = etree.Element('textline')
+            # self.copy_attrib(abargs,'size',tl)
+            # self.copy_attrib(abargs,'inline',tl)
+            # self.copy_attrib(abargs,'math',tl)
+            # abxml.append(tl)
             self.copy_attrib(abargs,'options',abxml)
             answer = self.stripquotes(abargs['expect'])
             try:
@@ -314,12 +315,14 @@ class AnswerBox(object):
                     print "Error - numericalresponse expects numerical expect value, for %s" % s
                     raise
             abxml.set('answer',answer)
-            rp = etree.SubElement(tl,"responseparam")
+            rp = etree.SubElement(abxml,"responseparam")
             #rp.attrib['description'] = "Numerical Tolerance" #not needed
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
             #rp.attrib['name'] = "tol" #not needed
-        
+            # # CL: because of textline deprecation, need to add <formulaequationinput /> below <responseparam ... />
+            fei = etree.SubElement(abxml,"formulaequationinput")        
+
         elif abtype=='formularesponse':
             self.require_args(['expect','samples'])
             self.copy_attrib(abargs,'inline',abxml)
