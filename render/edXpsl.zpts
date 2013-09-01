@@ -47,7 +47,7 @@ name: edXmath
 <displaymath tal:content='self/source'></displaymath>
 
 name: edXinlinevideo
-<iframe width="600" height="400" tal:attributes="src string:http://www.youtube.com/embed/${self}?rel=0"></iframe>
+<iframe width="600" height="400" tal:attributes="src string:https://www.youtube.com/embed/${self}?rel=0"></iframe>
 
 name: edXxml
 <edxxml tal:content='self/source'></edxxml>
