@@ -60,6 +60,9 @@ class edXmath(Base.Environment):
 class edXxml(Base.Command):
     args = 'self'
 
+class edXhref(Base.Environment):
+    args = '{ link_src } self'
+
 class edXproblem(Base.Environment):
     args = '{ url_name } { attrib_string } self'
 

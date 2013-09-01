@@ -1277,6 +1277,7 @@ def handle_equation_labels_and_refs(tree):
                                     #print "group 0:", tablestr_find.group(0)
                                     #print "group 1:", tablestr_find.group(1)
                                     #print "group 2:", tablestr_find.group(2)
+                                    print "tablestr_find =", tablestr_find
                                     tablestr = re.escape('$$' + tablestr_find[0] + tablestr_find[1] + tablestr_find[2] + '$$') 
                                     #print tablestr
                                     if re.search(r'\\boxed',tablestr,re.S) is not None:
