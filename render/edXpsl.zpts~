@@ -16,9 +16,6 @@ name: edXsequential
 name: edXproblem
 <problem tal:attributes='url_name self/attributes/url_name; attrib_string self/attributes/attrib_string'><text tal:content='self'></text></problem>
 
-name: edXdraganddrop
-<draganddrop tal:content='self'></draganddrop>
-
 name: edXtext
 <html tal:attributes='url_name self/attributes/url_name' tal:content='self'></html>
 
@@ -54,6 +51,9 @@ name: edXinlinevideo
 
 name: edXxml
 <edxxml tal:content='self/source'></edxxml>
+
+name: edXhref
+<a tal:attributes='link_src self/attributes/link_src' tal:content='self'></a>
 
 name: edXvideo
 <video tal:content='self'></video>

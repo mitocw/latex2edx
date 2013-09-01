@@ -52,6 +52,9 @@ name: edXinlinevideo
 name: edXxml
 <edxxml tal:content='self/source'></edxxml>
 
+name: edXhref
+<a tal:attributes='link_src self/attributes/link_src' tal:content='self'></a>
+
 name: edXvideo
 <video tal:content='self'></video>
 

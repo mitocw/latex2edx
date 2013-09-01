@@ -143,7 +143,8 @@ class AnswerBox(object):
             abtype = 'symbolicresponse'	# default
         
         abxml = etree.Element(abtype)
-
+        
+        print "abargs =", abargs
         if abargs['type']=='draganddrop':
             self.require_args(['backgroundimg'])
             dndinput = etree.SubElement(abxml,'drag_and_drop_input')
