@@ -150,7 +150,8 @@ class AnswerBox(object):
             oi.set('options',optionstr)
             oi.set('correct',self.stripquotes(abargs['expect']))
             abxml.append(oi)
-            self.copy_attrib(abargs,'inline',abxml)
+            self.copy_attrib(abargs,'inline', abxml)
+            self.copy_attrib(abargs,'inline', oi)
             
         if abtype=='multiplechoiceresponse':
             self.require_args(['expect','options'])

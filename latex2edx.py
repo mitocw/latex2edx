@@ -28,7 +28,7 @@ from plasTeX.Renderers import XHTML
 from plasTeX.Renderers.PageTemplate import Renderer as _Renderer
 from xml.sax.saxutils import escape, unescape
 from lxml import etree
-from lxml.html.soupparser import fromstring as fsbs
+# from lxml.html.soupparser import fromstring as fsbs
 import csv
 import codecs
 import copy
@@ -38,9 +38,23 @@ from abox import AnswerBox, split_args_with_quoted_strings
 zptspath = os.path.abspath('render')
 os.environ['XHTMLTEMPLATES'] = zptspath
 
-INPUT_TEX_FILENAME = ''
+#-----------------------------------------------------------------------------
+
+config = {
+    'problem_default_attributes': {
+        'showanswer': 'closed',
+        'rerandomize': 'never',
+     }
+}
+
+# load local configuration file if available
+if os.path.exists('latex2edx_config.py'):
+    from latex2edx_config import local_config
+    config.update(local_config)
 
 #-----------------------------------------------------------------------------
+
+INPUT_TEX_FILENAME = ''
 
 class MyRenderer(XHTML.Renderer):
     '''
@@ -50,34 +64,32 @@ class MyRenderer(XHTML.Renderer):
     def processFileContent(self, document, s):
         s = XHTML.Renderer.processFileContent(self,document,s)
 
-        def fix_math(m):
+        def fix_math_common(m):
             x = m.group(1).strip()
             x = x.replace(u'\u2019',"'")
             x = x.decode('ascii','ignore')
-            if len(x)==0:
-                return "&nbsp;"
-            if x=="\displaystyle":
-                return "&nbsp;"
-            
-            #return '{%% math eq="%s" %%}' % urllib.quote(x,safe="")            
+            x = x.replace('\\ensuremath','')
+            x = x.replace('{^\\circ','{}^\\circ')	# workaround plasTeX bug
             x = x.replace('\n','')
             x = escape(x)
+            #if 'ensuremath' in m.group(1):
+            #    print "ensuremath should be fixed: %s" % x
+            return x
+
+        def fix_math(m):
+            x = fix_math_common(m)
+            if len(x)==0 or x=="\displaystyle":
+                return "&nbsp;"
             return '[mathjaxinline]%s[/mathjaxinline]' % x
 
         def fix_displaymath(m):
-            x = m.group(1).strip()
-            x = x.replace(u'\u2019',"'")
-            x = x.decode('ascii','ignore')
-            if len(x)==0:
+            x = fix_math_common(m)
+            if len(x)==0 or x=="\displaystyle":
                 return "&nbsp;"
-            if x=="\displaystyle":
-                return "&nbsp;"
-            x = x.replace('\n','')
-            x = escape(x)
             return '[mathjax]%s[/mathjax]' % x
 
         def do_image(m):
-            #print "[do_image] m=%s" % repr(m.groups())
+            print "[do_image] m=%s" % repr(m.groups())
             style = m.group(1)
             sm = re.search('width=([0-9\.]+)(.*)',style)
             if sm:
@@ -143,7 +155,7 @@ class MyRenderer(XHTML.Renderer):
                     
             fn = fnset[0]
             print 'Cannot find image file %s' % fn
-            return '<img src="NOTFOUND-%s">' % fn
+            return '<img src="NOTFOUND-%s" />' % fn
 
         ucfixset = { u'\u201d': '"',
                      u'\u2014': '-',
@@ -162,6 +174,7 @@ class MyRenderer(XHTML.Renderer):
 
         try:
             s = re.sub('(?s)<math>\$(.*?)\$</math>',fix_math,s)
+            s = re.sub('(?s)<math>\\\\ensuremath{(.*?)}</math>',fix_math,s)
             s = re.sub(r'(?s)<math>\\begin{equation}(.*?)\\end{equation}</math>',fix_displaymath,s)
             s = re.sub(r'(?s)<displaymath>\\begin{edXmath}(.*?)\\end{edXmath}</displaymath>',fix_displaymath,s)
             s = re.sub(r'(?s)<math>\\\[(.*?)\\\]</math>',fix_displaymath,s)
@@ -205,6 +218,8 @@ def make_urlname(s):
            ',/().;=+ ': '_',
            '/': '__',
            '&': 'and',
+           '[': 'LB_',
+           ']': '_RB',
            }
     for m,v in map.items():
         for ch in m:
@@ -225,8 +240,8 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
 
     #set default attributes for problems
     if tagname=='problem':
-        content.set('showanswer','closed')
-        content.set('rerandomize','never')
+        for k, v in config['problem_default_attributes'].iteritems():
+            content.set(k, v)
 
     # set display_name (will be overwritten below if it is specified in attrib_string)
     content.set('display_name',pname)    
@@ -322,12 +337,20 @@ def cleanup_xml(xml):
     if FLAG_convert_section_to_sequential:
         # 23jan13 - convert <section> (which is no longer used) to <sequential>
         # and turn url_name into display_name
+        # 11jun13 - added section counter to allow for multiple chapters with 
+        # the same section heading; creates url_name attribute with appended number
+        secnum = 1
         for sec in xml.findall('.//section'):
             sec.tag = 'sequential'
             un = sec.get('url_name','')
             if un:
                 sec.set('display_name',un)
-                sec.attrib.pop('url_name')
+                #sec.set('url_name',make_urlname(un+str(secnum)))
+                sec.set('url_name',make_urlname(un))	# make_urlname takes care of uniqueness
+            secnum = secnum + 1
+        for ch in xml.findall('.//chapter'):
+            dn = ch.get('display_name','')
+            ch.set('url_name', make_urlname(dn))	# make url_name from display_name for chapters
 
     # move contents of video elements into attrib
     for video in xml.findall('.//video'):
@@ -719,5 +742,3 @@ else:
 
     for html in xml.findall('.//html'):
         html_to_file(html, default_dir)
-    
-    

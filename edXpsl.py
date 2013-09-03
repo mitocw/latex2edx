@@ -1,4 +1,10 @@
+import codecs
+from plasTeX import Command, Environment, CountCommand
+from plasTeX.Logging import getLogger
 from plasTeX import Base
+
+log = getLogger()
+status = getLogger('status')
 
 class edXcourse(Base.Environment):
     args = '{ number } { url_name } self'
@@ -19,6 +25,9 @@ class edXabox(Base.Command):
     args = 'self'
 
 class edXinline(Base.Command):
+    args = 'self'
+
+class edXbr(Base.Command):
     args = 'self'
 
 class edXvideo(Base.Command):
@@ -65,9 +74,37 @@ class edXtext(Base.Environment):	# indicates HTML file to be included (ie <html.
 
 class edXsolution(Base.Environment):
     args = 'self'
+    # note: cannot have \[ immediately after \begin{edXsolution}
 
 class section(Base.Command):
     args = 'self'
 
 class subsection(Base.Command):
     args = 'self'
+
+class input(Command):
+    """ verbose version of \\input
+    """
+    args = 'name:str'
+    def invoke(self, tex):
+        a = self.parse(tex)
+        # print "myinput a=%s, tex=%s" % (a,tex)
+        try: 
+            path = tex.kpsewhich(a['name'])
+        except Exception, msg:
+            # print "myinput kpsewhich error=%s" % msg
+            path = a['name']
+            if not path.endswith('.tex'):
+                path += '.tex'
+            
+        try:
+            print "\n----------------------------------------------------------------------------- Input [%s]" % path
+            status.info(' ( %s ' % path)
+            encoding = self.config['files']['input-encoding']
+            tex.input(codecs.open(path, 'r', encoding, 'replace'))
+            status.info(' ) ')
+
+        except (OSError, IOError), msg:
+            print "myinput error=%s" % msg
+            log.warning(msg)
+            status.info(' ) ')

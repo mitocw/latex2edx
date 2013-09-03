@@ -22,6 +22,9 @@ name: edXtext
 name: edXinline
 <p style="display:inline" tal:content='self'></p>
 
+name: edXbr
+<br />
+
 name: edXshowhide
 <edxshowhide tal:attributes='id self/attributes/id; description self/attributes/description' tal:content='self'></edxshowhide>
 
