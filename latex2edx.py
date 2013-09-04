@@ -238,11 +238,27 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub(r'(?s)<math>\\begin{equation}(.*?)\\end{equation}</math>',fix_displaymath,s)
             s = re.sub(r'(?s)<displaymath>\\begin{edXmath}(.*?)\\end{edXmath}</displaymath>',fix_displaymath,s)
             s = re.sub(r'(?s)<math>\\\[(.*?)\\\]</math>',fix_displaymath,s)
-            s = re.sub(r'(?s)<abox>(.*?)</abox>',do_abox,s)
             s = re.sub('<includegraphics style="(.*?)">(.*?)</includegraphics>',do_image,s)	# includegraphics
+            
             s = re.sub('(?s)<edxxml>\\\\edXxml{(.*?)}</edxxml>','\\1',s)
             s = re.sub(r'(?s)<iframe(.*?)></iframe>',do_iframe,s)  # edXinlinevideo
+
+            # check 1
+            fff = open('check1.txt','w')
+            fff.write(s.encode('utf-8'))
+            fff.close()
+            # still good here
+
             s = re.sub(r'(?s)<customresponse(.*?)cfn="defaultsoln"(.*?)</customresponse>','<customresponse cfn="defaultsoln" expect=""><textline size="90" correct_answer=""/></customresponse>',s)
+
+            s = re.sub(r'(?s)<abox>(.*?)</abox>',do_abox,s) # THIS MUST COME AFTER CUSTOMRESPONSE HANDLING!!!
+
+            # MISSING CONTENT!
+            # check 2
+            fff = open('check2.txt','w')
+            fff.write(s.encode('utf-8'))
+            fff.close()
+
             s = re.sub(r'(?s)<imageinput src="(.*?)" width="(.*?)" height="(.*?)" rectangle="(.*?)"/>',do_imageresponse,s)
 
         except Exception, err:
@@ -263,6 +279,8 @@ class MyRenderer(XHTML.Renderer):
 <document>
 """
         XML_TRAILER = """</document></html>"""
+
+
 
         return XML_HEADER + s + XML_TRAILER
 
@@ -702,11 +720,11 @@ def unbundle(cdir, xml):
 # process edX macros like edXshowhide and edXinclude, which are not handled by plasTeX
 
 def process_edXmacros(tree):
+    add_chapter_url_names(tree)
     fix_div(tree)
     fix_table(tree)
     fix_center(tree)
     fix_figure_refs(tree)
-    add_chapter_url_names(tree)
     handle_equation_labels_and_refs(tree)
     handle_measurable_outcomes(tree)
     add_figure_padding(tree)
@@ -715,7 +733,20 @@ def process_edXmacros(tree):
     fix_boxed_equations(tree)  # note this should come after fix_table always
     handle_section_refs(tree)
     add_titles_to_edxtext(tree)
+    #ensure_https_for_youtube_embeds(tree)
     #fix_edXvideos_in_solutions(tree)   # this line currently breaks the normal video handling --- only bring back if we will be able to use <video> tags in solutions and replace all the iframe videos
+
+def ensure_https_for_youtube_embeds(tree):
+    '''
+    Make sure links for youtube embeds are https, not http
+    '''
+    for iframe in tree.findall('.//iframe'):
+        print "found iframe"
+        iframe_src = iframe.get('src')
+        if iframe_src[:5] != "https":
+            iframe_src = iframe_src[:4] + "s" + iframe_src[4:]
+        print "iframe_src: ", iframe_src
+        iframe.set('src',iframe_src)
 
 def add_chapter_url_names(tree):
     '''
@@ -725,6 +756,8 @@ def add_chapter_url_names(tree):
         display_name = chapter.get('display_name')
         url_name = make_urlname(display_name)
         chapter.set('url_name',url_name)
+        print "\n\n CHAPTER URL: %s \n" % url_name
+        raw_input('Press ENTER')
 
 def fix_edXvideos_in_solutions(tree):
     '''
@@ -795,6 +828,7 @@ def handle_measurable_outcomes(tree):
                             for li in ol.findall('.//li'): # items
                                 monum += 1
                                 for p in li.findall('.//p'): # paragraph
+                                    print "p.text =", p.text
                                     m = re.search('\(label-mo:(.*?)\)',p.text)
                                     tag = m.group(1)
                                     oldtext = p.text
@@ -1277,8 +1311,12 @@ def handle_equation_labels_and_refs(tree):
                                     #print "group 0:", tablestr_find.group(0)
                                     #print "group 1:", tablestr_find.group(1)
                                     #print "group 2:", tablestr_find.group(2)
-                                    print "tablestr_find =", tablestr_find
-                                    tablestr = re.escape('$$' + tablestr_find[0] + tablestr_find[1] + tablestr_find[2] + '$$') 
+                                    print "\n\ntablestr_find =", tablestr_find
+                                    tstr = ""
+                                    nn = len(tablestr_find)
+                                    for ii in range(nn):
+                                        tstr = tstr + tablestr_find[ii]
+                                    tablestr = re.escape('$$' + tstr + '$$') 
                                     #print tablestr
                                     if re.search(r'\\boxed',tablestr,re.S) is not None:
                                         tablestr = tablestr.replace(r'\boxed','')
@@ -1495,6 +1533,9 @@ if 1:
     latex_str = codecs.open(fn).read()
     latex_str = latex_str.replace('\r','\n')	# convert from mac format for EOL
     
+    print latex_str[-500:]
+    raw_input('Press ENTER')
+
     # Instantiate a TeX processor and parse the input text
     tex = TeX()
     tex.ownerDocument.config['files']['split-level'] = -100
@@ -1525,7 +1566,7 @@ if UPDATE_MODE:
     print "--> updating course.xml file instead of creating it from scratch"
 print "============================================================================="
 
-xml = etree.parse(ofn)
+xml = etree.parse(ofn)  # already broken by the time it gets here
 
 process_edXmacros(xml.getroot())
 
