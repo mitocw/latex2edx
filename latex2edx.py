@@ -252,6 +252,8 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub(r'(?s)<customresponse(.*?)cfn="defaultsoln"(.*?)</customresponse>','<customresponse cfn="defaultsoln" expect=""><textline size="90" correct_answer=""/></customresponse>',s)
 
             s = re.sub(r'(?s)<abox>(.*?)</abox>',do_abox,s) # THIS MUST COME AFTER CUSTOMRESPONSE HANDLING!!!
+            
+            s = re.sub(r'(?s)<textline correct_answer=""/>','<textline size="90" correct_answer=""/>',s)
 
             # MISSING CONTENT!
             # check 2
