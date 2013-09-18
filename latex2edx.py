@@ -190,14 +190,35 @@ class MyRenderer(XHTML.Renderer):
 
         def do_iframe(m):
             #print "inside iframe"
-            #print m
-            #print m.group(0)
-            #attributes = re.findall('\>(.*?)\<',m.group(0),re.S)
-            #print attributes[0].encode("utf-8")
-            #print "<iframe %s></iframe>" % attributes[0].encode("utf-8")
             print m.group(0).encode("utf-8")
-            #raw_input("Press ENTER inside do_iframe")
-            return m.group(0).encode("utf-8")
+            code = m.group(0).encode("utf-8")
+            # add code to put download link, by processing the video_master_list.csv file
+            # 1.load csv file
+            # print "cwd =", os.getcwd()
+            with open('video_master_list.csv', 'rb') as csvfile:
+            # 2.for each row
+                videoreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+                for row in videoreader:
+            # 3.    grab the youtube embed code string (#7 position)
+                    edXyoutubeembedcode = row[6].strip()
+                    MITxyoutubeembedcode = row[4].strip()
+                    #print "Looking for embedcode %s..." % code
+                    #print "row MITembedcode = %s" % MITxyoutubeembedcode
+                    #print "row edXembedcode = %s" % edXyoutubeembedcode
+                    # raw_input("Press ENTER")
+            # 4.    if this iframe call uses that string
+                    if MITxyoutubeembedcode!="" and edXyoutubeembedcode!="" and (code.find(MITxyoutubeembedcode)>=0 or code.find(edXyoutubeembedcode)>=0):
+                        if (code.find(MITxyoutubeembedcode)>=0): # MITx youtube code in there still
+                            code = re.sub(MITxyoutubeembedcode,edXyoutubeembedcode,code) # switch it to edX code
+                        #print "\nFound the row!"
+                        #print "".join(row[:])
+                        # raw_input("Press ENTER to CONTINUE")
+            # 5.        grab the download url from this row
+                        dlurl = row[7]
+            # 6.        create the extra code to append to make download link
+                        code += '<p><a href="%s">Download this video</a></p>' % dlurl
+                        # print code
+            return code
 
         def do_figure_ref(m):
             print "inside figure_ref"
@@ -1250,13 +1271,24 @@ def handle_equation_labels_and_refs(tree):
                     for td in tr.findall('.//td'):
                         if td.get('class') == 'equation':
                             eqncontent = td.text   #equation content
+                            nolabel = False
+                            if eqncontent.find("NOLABEL")>=0:
+                                print "eqncontent =", eqncontent
+                                print "found NOLABEL!"
+                                raw_input("Press ENTER")
+                                eqncontent = re.sub('NOLABEL','',eqncontent)
+                                print "eqncontent (after) =", eqncontent
+                                nolabel = True
                     # tr is this element's parent
                     tr.clear()     
                     # add the necessary subelements to get desired behavior
                     eqncell = etree.SubElement(tr,"td",attrib={'style':"width:80%;vertical-align:middle;text-align:center;border-style:hidden",'class':"equation"})
                     eqncell.text = eqncontent
                     eqnnumcell = etree.SubElement(tr,"td",attrib={'style':"width:20%;vertical-align:middle;text-align:left;border-style:hidden",'class':"eqnnum"})
-                    eqnnumcell.text = "(%d.%d)" % (modulenum,eqnnum)
+                    if not nolabel:
+                        eqnnumcell.text = "(%d.%d)" % (modulenum,eqnnum)
+                    else:
+                        eqnnumcell.text = ""
                                        
                     # now find all references to this equation and modify it to make number and link
                     # identify equation tag
