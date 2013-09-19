@@ -1249,7 +1249,7 @@ def fix_figure_refs(tree):
                         else: # multi-image figure
                             htmlbodycontent = ""
                             for figure_name in image_names:
-                                htmlbodycontent += "<img src=\"/static/html/%s.png\" width=\"400\" height=\"200\">" % figure_name
+                                htmlbodycontent += "<img src=\"/static/content-mit-16101x~2013_SOND/html/%s.png\" width=\"400\" height=\"200\">" % figure_name  # this fix is edX dependent
                             htmlstr = "\'<html><head></head><body>%s</body></html>\'" % htmlbodycontent
                             print htmlstr
                             #raw_input("CHECK OUT THIS HTML STRING")
