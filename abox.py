@@ -146,6 +146,8 @@ class AnswerBox(object):
         
         print "abargs =", abargs
         if abargs['type']=='draganddrop':
+            #print "Doing DRAG-N-DROP problem in abox.py"
+            #raw_input("Press ENTER")
             self.require_args(['backgroundimg'])
             dndinput = etree.SubElement(abxml,'drag_and_drop_input')
             dndinput.set('img',abargs['backgroundimg'])     
