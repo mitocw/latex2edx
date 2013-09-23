@@ -839,6 +839,9 @@ def handle_measurable_outcomes(tree):
     print "inside HANDLE_MEASURABLE_OUTCOMES"
     #raw_input("Press ENTER")
     for chapter in tree.findall('.//chapter'):
+        # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
+        if "Survey" in chapter.get('display_name'):
+            continue
         chapternum += 1
         for section in chapter.findall('.//section'):
             if section.get('url_name')=="Overview":
@@ -994,6 +997,9 @@ def handle_section_refs(tree):
     pathtocourseware = "/courses/MITx/16.101x/2013_SOND"
     chapternum = 0
     for chapter in tree.findall('.//chapter'):
+        # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
+        if "Survey" in chapter.get('display_name'):
+            continue
         chapternum = chapternum + 1
         # look for chapter label
         chaplabel = ""
@@ -1172,6 +1178,9 @@ def fix_figure_refs(tree):
     '''
     modulenum = 0
     for chapter in tree.findall('.//chapter'):
+        # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
+        if "Survey" in chapter.get('display_name'):
+            continue
         modulenum = modulenum + 1
         fignum = 0
         for div in chapter.findall('.//div'):
@@ -1263,6 +1272,9 @@ def handle_equation_labels_and_refs(tree):
     '''
     modulenum = 0
     for chapter in tree.findall('.//chapter'):
+        # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
+        if "Survey" in chapter.get('display_name'):
+            continue
         modulenum = modulenum + 1
         eqnnum = 1  # counter for equation numbering
         for table in chapter.findall('.//table'):
