@@ -1,0 +1,6 @@
+include latex2edx/*.py
+include latex2edx/plastexpy/*.py
+include latex2edx/render/*
+include latex2edx/test/*.py
+include latex2edx/testtex/*
+

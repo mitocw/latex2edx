@@ -7,19 +7,20 @@ log = getLogger()
 status = getLogger('status')
 
 class edXcourse(Base.Environment):
-    args = '{ number } { url_name } self'
+    args = '{ number } { display_name } [ attrib_string:str ] self'
 
 class edXchapter(Base.Environment):
-    args = '{ display_name } self'
+    args = '{ display_name } [ attrib_string:str ] self'
 
 class edXsection(Base.Environment):
-    args = '{ url_name } self'
+    # turns into edXsequential
+    args = '{ display_name } [ attrib_string:str ] self'
 
 class edXsequential(Base.Environment):
-    args = 'self'
+    args = '{ display_name } [ attrib_string:str ] self'
 
 class edXvertical(Base.Environment):
-    args = '{ display_name } self'
+    args = '{ display_name } [ attrib_string:str ] self'
 
 class edXabox(Base.Command):
     args = 'self'
@@ -67,10 +68,10 @@ class edXxml(Base.Command):
     args = 'self'
 
 class edXproblem(Base.Environment):
-    args = '{ url_name } { attrib_string } self'
+    args = '{ display_name } { attrib_string } self'
 
 class edXtext(Base.Environment):	# indicates HTML file to be included (ie <html...> in course.xml)
-    args = '{ url_name } self'
+    args = '{ display_name } [ attrib_string:str ] self'
 
 class edXsolution(Base.Environment):
     args = 'self'

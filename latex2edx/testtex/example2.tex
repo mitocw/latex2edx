@@ -1,0 +1,38 @@
+%
+% File:   example1.tex
+% 
+
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl}	% edX
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{edXcourse}{1.00x}{1.00x Fall 2013}[url_name=2013_Fall]
+
+\begin{edXchapter}{Unit 2}[start="2013-11-22"]
+
+\begin{edXsection}{A second section}[due="2013-11-22"]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{edXproblem}{Problem 1}{attempts=40 url_name="p1"}
+
+\section{Another Example of symbolic response}  
+ 
+This is a another sample problem, which is worth 40 points.  What is the number made famous by
+Hitchhiker's guide to the galaxy?
+
+\edXabox{type='symbolic' size='90' expect='42' }
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{edXsection}
+\end{edXchapter}
+\end{edXcourse}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
