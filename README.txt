@@ -23,3 +23,8 @@ Options:
   -c CONFIG_FILE, --config-file=CONFIG_FILE
                         configuration file to load
   -m, --merge-chapters  merge chapters into existing course directory
+
+History
+=======
+
+* v1.0: python package; unit tests; xbundle and modular code
