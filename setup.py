@@ -11,7 +11,7 @@ data_files = [
     ('share/plastexpy', findfiles('plastexpy/*.py')),
     ]
 
-print "data_files = %s" % data_files
+# print "data_files = %s" % data_files
 
 setup(
     name='latex2edx',
@@ -32,7 +32,7 @@ setup(
         },
     install_requires=['lxml',
                       'path.py',
-                      'http://downloads.sourceforge.net/project/plastex/plastex/rel-0-9-2/plastex-0.9.2.tgz',
+                      'plastex',
                       ],
     dependency_links = [
         'http://downloads.sourceforge.net/project/plastex/plastex/rel-0-9-2/plastex-0.9.2.tgz',
