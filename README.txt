@@ -6,6 +6,11 @@ Converts latex to edX XML format.
 
 Uses plasTeX
 
+Installation
+============
+
+    pip install -e git+https://github.com/mitocw/latex2edx.git#egg=latex2edx
+
 Usage
 =====
 
