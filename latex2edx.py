@@ -337,6 +337,8 @@ def make_urlname(s):
 
 def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''):
     pname = content.get('url_name','noname')
+    if pname=="noname":
+        pname = content.get('display_name')
     pfn = make_urlname(pname)
     pfn = fnprefix + pfn
     print "  %s '%s' --> %s/%s.%s" % (tagname,pname,pdir,pfn,fnsuffix)
@@ -882,6 +884,169 @@ def handle_measurable_outcomes(tree):
                                                     # put tag at the bottom of the html section
                                                     # determine if a taglist paragraph exists yet
                                                     taglist_exists = False
+                                                    for div in html.findall('.//div'):
+                                                        if div.get('id')=="taglist":
+                                                            taglist_exists = True
+                                                    if not taglist_exists: # tag list element doesn't exist yet
+                                                        print "Taglist being created..."
+                                                        #raw_input("Press ENTER")
+                                                        taglist = etree.Element("div",{'id':"taglist"})
+                                                        html.insert(0,taglist)
+                                                        # taglist = etree.SubElement(html,"ul",{'id':"taglist",'display':"block",'list-style':"none",'overflow':"hidden"})
+                                                    else: # taglist element already exists
+                                                        # find it and get it by the name taglist
+                                                        for div in html.findall('.//div'):
+                                                            if div.get('id')=="taglist":
+                                                                taglist = div
+                                                                break
+                                                    # need to put the following in the div:
+#<table class="wikitable collapsible collapsed"><tbody><tr><th> MO TAG [<a href="javascript:$('#sh1').toggle()" id="sh1l">show</a>]</th></tr><tr id="sh1" style="display:none"><td><p>MO DESCRIPTION </p></td></tr></tbody></table>
+                                                    link = etree.SubElement(taglist,"table",{'class',"wikitable collapsible collapsed"})
+                                                    link.text = '<tbody><tr><th> MO%d.%d [<a href="javascript:$(\'#mo%d%d\').toggle()" id="mo%d%dl">show</a>]</th></tr><tr id="mo%d%d" style="display:none"><td><p> %s </p></td></tr></tbody>' % (chapternum,monum,chapternum,monum,chapternum,monum,chapternum,monum)
+                                                    
+'''
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button"}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)  
+                                                    link.set('id',tag)
+'''
+                                    for problem in tree.findall('.//problem'): #look in problem
+                                        for p in problem.findall('.//p'):
+                                            for a in p.findall('.//a'):
+                                                if a.text=="mo:"+tag:
+                                                    # add measurable outcome attribute to the xml tag
+                                                    if problem.get('measurable_outcomes') is not None:
+                                                        # add it and reset (comma-separated list, no space per P. Pinch)
+                                                        currmo = problem.get('measurable_outcomes') 
+                                                        newmo = currmo + ",%s" % tag
+                                                        problem.set('measurable_outcomes',newmo)
+                                                    else:
+                                                        problem.set('measurable_outcomes',tag)
+                                                    p.remove(a)
+                                                    # put tag at the bottom of the html section
+                                                    # determine if a taglist paragraph exists yet
+                                                    taglist_exists = False
+                                                    for p in problem.findall('.//p'):
+                                                        if p.get('id')=="taglist":
+                                                            taglist_exists = True
+                                                    if not taglist_exists: # tag list element doesn't exist yet
+                                                        taglist = etree.Element("p",{'id':"taglist"})
+                                                        problem.insert(0,taglist)
+                                                    else: # taglist element already exists
+                                                        # find it and get it by the name taglist
+                                                        for p in problem.findall('.//p'):
+                                                            if p.get('id')=="taglist":
+                                                                taglist = p
+                                                                break
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button"}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)  
+                                                    link.set('id',tag)
+                                    for vertical in tree.findall('.//vertical'): # look in vertical
+                                        print "\nVERTICAL %s" % vertical.get('display_name')
+                                        for p in vertical.findall('.//p'):
+                                            # print "p.text=",p.text
+                                            for a in p.findall('.//a'):
+                                                #print "a.text =",a.text 
+                                                if a.text=="mo:"+tag:
+                                                # found MO tag in vertical.
+                                                    # need to put these tags in the measurable_outcomes attribute of problems in this vertical (for Cole's reporting tool)
+                                                    # assume here that verticals encapsulate only problems !!!
+                                                    # get first problem
+                                                    
+                                                    #print "\nPROCESSING TAG mo:%s\n" % tag
+                                                    #raw_input("Press ENTER")
+                                                    for problem in vertical.findall('.//problem'):
+                                                        firstproblem = problem
+                                                        break
+                                                    # set measurable_outcome attribute for all problems
+                                                    for problem in vertical.findall('.//problem'):
+                                                        # add measurable outcome attribute to the xml tag
+                                                        if problem.get('measurable_outcomes') is not None:
+                                                            # add it and reset (comma-separated list, no space per P. Pinch)
+                                                            currmo = problem.get('measurable_outcomes') 
+                                                            newmo = currmo + ",%s" % tag
+                                                            problem.set('measurable_outcomes',newmo)
+                                                        else:
+                                                            problem.set('measurable_outcomes',tag)
+                                                    p.remove(a)
+                                                    # check if this p should be removed (the last a was just taken out)
+                                                    totalaswithmos = 0
+                                                    for a in p.findall('.//a'):
+                                                        print "a.text =",a.text
+                                                        if a.text.find('mo:')!=-1:
+                                                            totalaswithmos += 1
+                                                    print "TOTAL MOs remaining in this <p> =", totalaswithmos
+                                                    if totalaswithmos==0:
+                                                        vertical.remove(p)
+                                                    taglist_exists = False
+                                                    for pt in firstproblem.findall('.//p'):
+                                                        if pt.get('id')=="taglist":
+                                                            taglist_exists = True
+                                                    if not taglist_exists: # tag list element doesn't exist yet
+                                                        taglist = etree.Element("p",{'id':"taglist"})
+                                                        firstproblem.insert(0,taglist)
+                                                    else: # taglist element already exists
+                                                        # find it and get it by the name taglist
+                                                        for pt in firstproblem.findall('.//p'):
+                                                            if pt.get('id')=="taglist":
+                                                                taglist = pt
+                                                                break
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'disabled':"disabled",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button"}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)  
+                                                    link.set('id',tag)
+                                        
+        # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
+        # look through the rest of the document for references to that measurable outcome
+        # where there is a reference to the MO, make a tag at the bottom of that vertical that says "MO1.2" or whatever, but that permits a hover that brings up the full-length description of the measurable outcome
+
+'''
+def handle_measurable_outcomes(tree):
+    ''
+    Process the labels and references to measurable outcomes, placing 'tags' at the top of the vertical that have mouseovers revealing the measurable outcome
+    ''
+    chapternum = 0
+    print "inside HANDLE_MEASURABLE_OUTCOMES"
+    #raw_input("Press ENTER")
+    for chapter in tree.findall('.//chapter'):
+        chapternum += 1
+        for section in chapter.findall('.//section'):
+            if section.get('url_name')=="Overview":
+                for html in section.findall('.//html'):
+                    if html.get('url_name')=="Measurable outcomes":
+                        print "Found MEASURABLE OUTCOMES section"
+                        for ol in html.findall('.//ol'): # ordered list of measurable outcomes
+                            ol.tag = 'ul'
+                            monum = 0
+                            for li in ol.findall('.//li'): # items
+                                monum += 1
+                                for p in li.findall('.//p'): # paragraph
+                                    print "p.text =", p.text
+                                    m = re.search('\(label-mo:(.*?)\)',p.text)
+                                    tag = m.group(1)
+                                    oldtext = p.text
+                                    oldtext = re.sub(r'\(label-mo:(.*?)\)',r'',oldtext)
+                                    newtext = "MO%d.%d: " % (chapternum,monum) + oldtext
+                                    p.text = newtext
+                                    # find the references to this everywhere else (will be in html or problem OR vertical)
+                                    print "Finding reference to " + newtext + "..."
+                                    #raw_input("Press ENTER")
+                                    for html in tree.findall('.//html'): #look in html
+                                        for p in html.findall('.//p'):
+                                            for a in p.findall('.//a'):
+                                                if a.text=="mo:"+tag:
+                                                    print "a.text =", a.text
+                                                    print "Found an <a> with mo: tag"
+                                                    #raw_input("Press ENTER")
+                                                    # we need to distinguish here between relmo calls and places where the outcome is referenced in the text (look for the word "outcome", any case) in the preceding text  
+                                                    print "\n", p.text
+                                                    if p.text.lower().find(r'outcome')>0 and p.text.find(r'<a>mo'):
+                                                        p.text = p.text + "%d.%d" % (chapternum,monum)
+                                                        print p.text
+                                                        p.remove(a)
+                                                        continue # i.e. don't go below to where we do the tagging
+                                                    p.remove(a)
+                                                    # put tag at the bottom of the html section
+                                                    # determine if a taglist paragraph exists yet
+                                                    taglist_exists = False
                                                     for p in html.findall('.//p'):
                                                         if p.get('id')=="taglist":
                                                             taglist_exists = True
@@ -988,6 +1153,7 @@ def handle_measurable_outcomes(tree):
         # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
         # look through the rest of the document for references to that measurable outcome
         # where there is a reference to the MO, make a tag at the bottom of that vertical that says "MO1.2" or whatever, but that permits a hover that brings up the full-length description of the measurable outcome
+'''
 
 def handle_section_refs(tree):
     '''
