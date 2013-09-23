@@ -33,6 +33,7 @@ setup(
     install_requires=['lxml',
                       'path.py',
                       'plastex',
+                      'beautifulsoup',
                       ],
     dependency_links = [
         'http://downloads.sourceforge.net/project/plastex/plastex/rel-0-9-2/plastex-0.9.2.tgz',
