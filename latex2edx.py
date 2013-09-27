@@ -326,7 +326,7 @@ class MyRenderer(XHTML.Renderer):
 
 URLNAMES = []
 
-def make_urlname(s):
+def make_urlname(s,checkbool=False):
     map = {'"\':<>': '',
            ',/().;=+ ': '_',
            '/': '__',
@@ -336,9 +336,11 @@ def make_urlname(s):
     for m,v in map.items():
         for ch in m:
             s = s.replace(ch,v)
-    if s in URLNAMES:
+    if s in URLNAMES and checkbool:
         print "urlname =", s
-        #raw_input("***WARNING*** YOU MAY HAVE A REPEATED URLNAME ***WARNING***")
+        print "***WARNING*** YOU MAY HAVE A REPEATED URLNAME ***WARNING***" 
+        print "SHUTTING DOWN CONVERTER..."
+        sys.exit(-1)
     URLNAMES.append(s)
     return s
 
@@ -349,12 +351,11 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
     pname = content.get('url_name','noname')
     if pname=="noname":
         pname = content.get('display_name')
-    pfn = make_urlname(pname)
+    pfn = make_urlname(pname,True)
     pfn = fnprefix + pfn
     if (pfn.find("Measurable_outcomes")>=0 or pfn.find("Pre-requisite_material")>=0):
         pfn = pfn + content.get('chapnum')
         print "pfn =", pfn
-        raw_input("PFN YO")
     print "  %s '%s' --> %s/%s.%s" % (tagname,pname,pdir,pfn,fnsuffix)
 
     #set default attributes for problems
@@ -781,7 +782,7 @@ def process_edXmacros(tree):
     fix_figure_refs(tree)
     handle_equation_labels_and_refs(tree)
     handle_measurable_outcomes(tree)
-    add_links_to_mo_index(tree)
+    # add_links_to_mo_index(tree)
     add_figure_padding(tree)
     process_include(tree)
     process_showhide(tree)
@@ -1086,7 +1087,7 @@ def handle_measurable_outcomes(tree):
                                     p.text = newtext
                                     # find the references to this everywhere else (will be in html or problem OR vertical)
                                     print "Finding reference to " + newtext + "..."
-                                    moindexhtml += "<table class=\"wikitable collapsible collapsed\" itemscope itemprop=\"measurable_outcome\" id=\"%s\"><tbody><tr><th><a href=\"javascript:$('#indmo%d%d').toggle()\" id=\"indmo%d%dl\"><b itemprop=\"name\">MO%d.%d</b></a><span itemprop=\"description\">%s</span></th></tr><tr id=\"indmo%d%d\" style=\"display:none\"><td>" % (tag,chapternum,monum,chapternum,monum,chapternum,monum,oldtext,chapternum,monum)
+                                    moindexhtml += "<a name=\"anchorMO%d%d\"></a><table class=\"wikitable collapsible collapsed\" itemscope itemtype=\"measurable_outcome\" id=\"%s\"><tbody><tr><th><a href=\"javascript:$('#indmo%d%d').toggle()\" id=\"indmo%d%dl\" name=\"indmo%d%dl\"><strong itemprop=\"name\">MO%d.%d</strong></a><span itemprop=\"description\">%s</span></th></tr><tr id=\"indmo%d%d\" style=\"display:none\"><td>" % (chapternum,monum,tag,chapternum,monum,chapternum,monum,chapternum,monum,chapternum,monum,oldtext,chapternum,monum)
                                     #raw_input("Press ENTER")
                                     moindexhtml += "<h3>Learn</h3><ul class=\"MOlearn\">"
                                     for html in tree.findall('.//html'): #look in html
@@ -1123,11 +1124,11 @@ def handle_measurable_outcomes(tree):
                                                             if p.get('id')=="taglist":
                                                                 taglist = p
                                                                 break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button"}) # add the link inside
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.101x/2013_SOND/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
                                                     # add it to moindexhtml
-                                                    moindexhtml += "<li>%s</li>" % (html.get('url_name'))
+                                                    moindexhtml += "<li><a itemtype=\"html\" href=\"/jump_to_id/16101x_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(html.get('url_name')), html.get('url_name'))
                                     moindexhtml += "</ul>"
 
                                     moindexhtml += "<h3>Assess</h3><ul class=\"MOassess\">"
@@ -1159,10 +1160,10 @@ def handle_measurable_outcomes(tree):
                                                             if p.get('id')=="taglist":
                                                                 taglist = p
                                                                 break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button"}) # add the link inside
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.101x/2013_SOND/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
-                                                    moindexhtml += "<li>%s</li>" % (problem.get('url_name'))
+                                                    moindexhtml += "<li><a itemtype=\"problem\" href=\"/jump_to_id/16101x_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(problem.get('url_name')), problem.get('url_name'))
                                                         
     
                                     for vertical in tree.findall('.//vertical'): # look in vertical
@@ -1215,10 +1216,10 @@ def handle_measurable_outcomes(tree):
                                                             if pt.get('id')=="taglist":
                                                                 taglist = pt
                                                                 break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button"}) # add the link inside
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.101x/2013_SOND/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
                                                     link.text = "MO%d.%d" % (chapternum,monum)  
                                                     link.set('id',tag)
-                                                    moindexhtml += "<li>%s</li>" % (firstproblem.get('url_name'))
+                                                    moindexhtml += "<li><a itemtype=\"problem\" href=\"/jump_to_id/16101x_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(firstproblem.get('url_name')), firstproblem.get('url_name'))
                                     moindexhtml += "</ul>"
         # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
         # look through the rest of the document for references to that measurable outcome
