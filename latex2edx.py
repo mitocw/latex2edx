@@ -326,7 +326,7 @@ class MyRenderer(XHTML.Renderer):
 
 URLNAMES = []
 
-def make_urlname(s,checkbool=False):
+def make_urlname(s):
     map = {'"\':<>': '',
            ',/().;=+ ': '_',
            '/': '__',
@@ -336,11 +336,6 @@ def make_urlname(s,checkbool=False):
     for m,v in map.items():
         for ch in m:
             s = s.replace(ch,v)
-    if s in URLNAMES and checkbool:
-        print "urlname =", s
-        print "***WARNING*** YOU MAY HAVE A REPEATED URLNAME ***WARNING***" 
-        print "SHUTTING DOWN CONVERTER..."
-        sys.exit(-1)
     URLNAMES.append(s)
     return s
 
@@ -351,7 +346,7 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
     pname = content.get('url_name','noname')
     if pname=="noname":
         pname = content.get('display_name')
-    pfn = make_urlname(pname,True)
+    pfn = make_urlname(pname)
     pfn = fnprefix + pfn
     if (pfn.find("Measurable_outcomes")>=0 or pfn.find("Pre-requisite_material")>=0):
         pfn = pfn + content.get('chapnum')
@@ -541,6 +536,9 @@ def update_chapter(chapter,cdir):
     #pdir = '%s/problems' % cdir
     pdir = '%s/problem' % cdir
     hdir = '%s/html' % cdir
+    #URLNAMES = []
+    #print "URLNAMES =", URLNAMES
+    #raw_input("Just printed URLNAMES before extraction")
     extract_problems(chapter,pdir)
     extract_html(chapter,hdir)
     cleanup_xml(chapter)
@@ -731,7 +729,9 @@ def course_to_files(course, update_mode, default_dir, fnprefix=''):
             os.mkdir(pdir)
         if not os.path.exists(hdir):
             os.mkdir(hdir)
-    
+    #URLNAMES = []
+    #print "URLNAMES =", URLNAMES
+    #raw_input("Just printed URLNAMES before extraction")
     extract_problems(course,pdir,fnprefix)
     extract_html(course,hdir,fnprefix)
     cleanup_xml(course)
@@ -790,9 +790,37 @@ def process_edXmacros(tree):
     handle_section_refs(tree)
     add_titles_to_edxtext(tree)
     add_chap_num_to_content(tree)
+    check_for_repeated_urlnames(tree)
 
     #ensure_https_for_youtube_embeds(tree)
     #fix_edXvideos_in_solutions(tree)   # this line currently breaks the normal video handling --- only bring back if we will be able to use <video> tags in solutions and replace all the iframe videos
+
+def check_for_repeated_urlnames(tree):
+    urlnames = []
+    for html in tree.findall('.//html'):
+        pname = html.get('url_name','noname')
+        if pname=="noname":
+            pname = html.get('display_name')
+        pfn = make_urlname(pname)
+        if pfn in urlnames:
+            print "ERROR: REPEATED URL_NAME = %s" % pfn
+            sys.exit(-1)
+        if (pfn.find("Measurable_outcomes")>=0 or pfn.find("Pre-requisite_material")>=0):
+            urlnames = urlnames # dont add it
+        else:
+            urlnames.append(pfn)
+    for problem in tree.findall('.//problem'):
+        pname = problem.get('url_name','noname')
+        if pname=="noname":
+            pname = problem.get('display_name')
+        pfn = make_urlname(pname)
+        if pfn in urlnames:
+            print "ERROR: REPEATED URL_NAME = %s" % pfn
+            sys.exit(-1)
+        if (pfn.find("Measurable_outcomes")>=0 or pfn.find("Pre-requisite_material")>=0):
+            urlnames = urlnames
+        else:
+            urlnames.append(pfn)
 
 def add_chap_num_to_content(tree):
     '''
@@ -835,7 +863,7 @@ def add_chapter_url_names(tree):
         url_name = make_urlname(display_name)
         chapter.set('url_name',url_name)
         print "\n\n CHAPTER URL: %s \n" % url_name
-        raw_input('Press ENTER')
+        #raw_input('Press ENTER')
 
 def fix_edXvideos_in_solutions(tree):
     '''
@@ -1601,7 +1629,7 @@ def handle_equation_labels_and_refs(tree):
                             if eqncontent.find("NOLABEL")>=0:
                                 print "eqncontent =", eqncontent
                                 print "found NOLABEL!"
-                                raw_input("Press ENTER")
+                                #raw_input("Press ENTER")
                                 eqncontent = re.sub('NOLABEL','',eqncontent)
                                 print "eqncontent (after) =", eqncontent
                                 nolabel = True
@@ -1893,8 +1921,8 @@ if 1:
     latex_str = codecs.open(fn).read()
     latex_str = latex_str.replace('\r','\n')	# convert from mac format for EOL
     
-    print latex_str[-500:]
-    raw_input('Press ENTER')
+    #print latex_str[-500:]
+    #raw_input('Press ENTER')
 
     # Instantiate a TeX processor and parse the input text
     tex = TeX()
