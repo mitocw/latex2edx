@@ -791,8 +791,7 @@ def process_edXmacros(tree):
     add_titles_to_edxtext(tree)
     add_chap_num_to_content(tree)
     check_for_repeated_urlnames(tree)
-
-    #ensure_https_for_youtube_embeds(tree)
+    ensure_relative_url_for_youtube_embeds(tree)
     #fix_edXvideos_in_solutions(tree)   # this line currently breaks the normal video handling --- only bring back if we will be able to use <video> tags in solutions and replace all the iframe videos
 
 def check_for_repeated_urlnames(tree):
@@ -842,16 +841,17 @@ def add_chap_num_to_content(tree):
                 for problem in vertical.findall('.//problem'):
                     problem.set('chapnum','%d' % chapnum)
 
-def ensure_https_for_youtube_embeds(tree):
+def ensure_relative_url_for_youtube_embeds(tree):
     '''
-    Make sure links for youtube embeds are https, not http
+    Make sure links for youtube embeds are relative (like <iframe src="//www.youtube.com/embed/RaRLRRLHjnc?rel=0" width="600" height="400"/>)
     '''
     for iframe in tree.findall('.//iframe'):
         print "found iframe"
         iframe_src = iframe.get('src')
-        if iframe_src[:5] != "https":
-            iframe_src = iframe_src[:4] + "s" + iframe_src[4:]
-        print "iframe_src: ", iframe_src
+        #if iframe_src[:5] != "https":
+        #    iframe_src = iframe_src[:4] + "s" + iframe_src[4:]
+        #print "iframe_src: ", iframe_src
+        iframe_src = re.sub(r'http:',r'',iframe_src)
         iframe.set('src',iframe_src)
 
 def add_chapter_url_names(tree):
