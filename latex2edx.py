@@ -215,7 +215,11 @@ class MyRenderer(XHTML.Renderer):
                     #print "row edXembedcode = %s" % edXyoutubeembedcode
                     # raw_input("Press ENTER")
             # 4.    if this iframe call uses that string
-                    if MITxyoutubeembedcode!="" and edXyoutubeembedcode!="" and (code.find(MITxyoutubeembedcode)>=0 or code.find(edXyoutubeembedcode)>=0):
+                    if edXyoutubeembedcode!="" and code.find(edXyoutubeembedcode)>=0:
+                        dlurl = row[7]
+                        code += '<p><a href="%s">Download this video</a></p>' % dlurl
+                        print "code =", code
+                    elif MITxyoutubeembedcode!="" and edXyoutubeembedcode!="" and code.find(MITxyoutubeembedcode)>=0:
                         print "MIT embed =", MITxyoutubeembedcode
                         print "edX embed =", edXyoutubeembedcode
                         if (code.find(MITxyoutubeembedcode)>=0): # MITx youtube code in there still
@@ -228,6 +232,7 @@ class MyRenderer(XHTML.Renderer):
             # 6.        create the extra code to append to make download link
                         code += '<p><a href="%s">Download this video</a></p>' % dlurl
                         print "code =", code
+
             return code
 
         def do_figure_ref(m):
