@@ -192,6 +192,7 @@ class MyRenderer(XHTML.Renderer):
             #print "inside iframe"
             print m.group(0).encode("utf-8")
             code = m.group(0).encode("utf-8")
+            code = re.sub(r'http:',r'',code)
             # add code to put download link, by processing the video_master_list.csv file
             # 1.load csv file
             # print "cwd =", os.getcwd()
