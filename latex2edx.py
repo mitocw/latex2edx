@@ -210,6 +210,9 @@ class MyRenderer(XHTML.Renderer):
             # 3.    grab the youtube embed code string (#7 position)
                     edXyoutubeembedcode = row[6].strip()
                     MITxyoutubeembedcode = row[4].strip()
+                    # remove DOUBLEHYPHEN from video master list entry
+                    edXyoutubeembedcode = re.sub(r'DOUBLEHYPHEN',r'',edXyoutubeembedcode)
+                    MITxyoutubeembedcode =  re.sub(r'DOUBLEHYPHEN',r'',MITxyoutubeembedcode) 
                     #print "Looking for embedcode %s..." % code
                     #print "row MITembedcode = %s" % MITxyoutubeembedcode
                     #print "row edXembedcode = %s" % edXyoutubeembedcode
@@ -1406,6 +1409,10 @@ def handle_section_refs(tree):
                     chapname = chapter.get('display_name')
                     chapnamewithunderscores = re.sub(r' ',r'_',chapname)
                     sectionurlname = section.get('url_name')
+                    if sectionurlname=="Overview" or sectionurlname=="Sample Problems" or sectionurlname=="Homework Problems":
+                        print "sectionurlname =", sectionurlname
+                        print chapternum
+                        sectionurlname += "%d" % (chapternum+1)
                     globalsecnum = 0
                     for section2 in tree.findall('.//section'):
                         globalsecnum = globalsecnum + 1
@@ -1462,6 +1469,10 @@ def handle_section_refs(tree):
                             chapname = chapter.get('display_name')
                             chapnamewithunderscores = re.sub(r' ',r'_',chapname)
                             sectionurlname = section.get('url_name')
+                            if sectionurlname=="Overview" or sectionurlname=="Sample Problems" or sectionurlname=="Homework Problems":
+                                print "sectionurlname =", sectionurlname
+                                print chapternum
+                                sectionurlname += "%d" % (chapternum+1)
                             globalsecnum = 0
                             for section2 in tree.findall('.//section'):
                                 globalsecnum = globalsecnum + 1
