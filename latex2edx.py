@@ -353,8 +353,10 @@ def make_urlname(s):
 
 def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''):
     pname = content.get('url_name','noname')
+    dispname = content.get('display_name')
     if pname=="noname":
         pname = content.get('display_name')
+        print "pname =", pname
     pfn = make_urlname(pname)
     pfn = fnprefix + pfn
     if (pfn.find("Measurable_outcomes")>=0 or pfn.find("Pre-requisite_material")>=0):
@@ -367,9 +369,14 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
         content.set('showanswer','closed')
         content.set('rerandomize','never')
 
-    # set display_name (will be overwritten below if it is specified in attrib_string)
-    content.set('display_name',pname)    
-    
+    # set display_name (will be overwritten below if it is specified in attrib_string -- NOT ANYMORE!!)
+    if content.get('display_name') is None: 
+        content.set('display_name',pname)   
+        
+    #if tagname=="problem":
+        #print "problem display name =", content.get('display_name') 
+        #raw_input("Press ENTER")    
+
     #extract attributes from attrib_string 
     attrib_string = content.get('attrib_string','')
     if attrib_string:
@@ -797,11 +804,63 @@ def process_edXmacros(tree):
     process_showhide(tree)
     fix_boxed_equations(tree)  # note this should come after fix_table always
     handle_section_refs(tree)
-    add_titles_to_edxtext(tree)
     add_chap_num_to_content(tree)
     check_for_repeated_urlnames(tree)
     ensure_relative_url_for_youtube_embeds(tree)
+    change_problem_display_names_to_have_counters(tree)
+    add_titles_to_edxtext(tree)
+    add_discussion_posts_to_problems(tree)
     #fix_edXvideos_in_solutions(tree)   # this line currently breaks the normal video handling --- only bring back if we will be able to use <video> tags in solutions and replace all the iframe videos
+
+def add_discussion_posts_to_problems(tree):
+    '''
+    Insert discussion posts at bottom of problems (or verticals containing problems)
+    '''
+    for problem in tree.findall('.//problem'):
+        if (problem.get('url_name').find('edx_surveys')<0): # only if not edx survey problem
+            print problem.get('url_name')
+            print problem.get('display_name')
+            discussion = etree.SubElement(problem,'discussion')
+            discussion.set('for',problem.get('display_name'))
+            discussion.set('id',"16101x_Fall2013_%s" % make_urlname(problem.get('url_name')))
+            discussion.set('discussion_category',"General")
+            discussion.set('display_name',problem.get('display_name'))
+
+# attempt to set display names with numbers below (but I think display_names are being set elsewhere down the line
+def change_problem_display_names_to_have_counters(tree):
+    chapnum = -1
+    for chap in tree.findall('.//chapter'):
+        if "Survey" in chap.get('display_name') or "Office Hour" in chap.get('display_name'):
+            continue        
+        chapnum += 1
+        sectionnum = 0
+        for section in chap.findall('.//section'):
+            sectionnum += 1
+            #htmls = section.findall('.//html')
+            #probs = section.findall('.//problem')
+            #verts = section.findall('.//vertical')
+            #allverts = htmls + probs + verts
+            pagenum = 0
+            print "section text =", etree.tostring(section)
+            for p in section.findall('.//p'): # use surrounding p-tags to my advantage
+                htmls = p.findall('.//html')
+                probs = p.findall('.//problem')
+                verts = p.findall('.//vertical')
+                allverts = htmls + probs + verts
+                for vert in allverts:
+                    verttag = vert.tag
+                    if (verttag=="html" or verttag=="problem"):
+                        currdispname = vert.get('url_name')
+                        pagenum += 1
+                        vert.set('display_name',"%d.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))  
+                    elif (verttag=="vertical"):
+                        for problem in vert.findall('.//problem'):
+                            currdispname = problem.get('url_name')
+                            pagenum += 1
+                            problem.set('display_name',"%d.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))
+                            break # name contained in first problem of vertical
+                    else:
+                        print "UNRECOGNIZED VERTICAL TAG TYPE"
 
 def check_for_repeated_urlnames(tree):
     urlnames = []
@@ -916,7 +975,7 @@ def add_titles_to_edxtext(tree):
     Add the titles as <h2 class="problem-header">?</h2> elements to each edXtext section
     '''
     for html in tree.findall('.//html'):
-        disp_name = html.get('url_name')
+        disp_name = html.get('display_name')
         # print disp_name
         header_sub_element = etree.Element('h2',{'class':"problem-header"})
         header_sub_element.text = disp_name
