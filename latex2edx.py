@@ -878,9 +878,16 @@ def change_problem_display_names_to_have_counters(tree):
                 for vert in allverts:
                     verttag = vert.tag
                     if (verttag=="html" or verttag=="problem"):
-                        currdispname = vert.get('url_name')
-                        pagenum += 1
-                        vert.set('display_name',"%d.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))  
+                        # check if this is contained in a vertical, because if it is, we want to skip it here
+                        in_vertical = False
+                        for testvert in section.findall('.//vertical'):
+                            for testproblem in testvert.findall('.//problem'):
+                                if testproblem.get('url_name')==vert.get('url_name'):
+                                    in_vertical = True
+                        if not in_vertical:
+                            currdispname = vert.get('url_name')
+                            pagenum += 1
+                            vert.set('display_name',"%d.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))  
                     elif (verttag=="vertical"):
                         for problem in vert.findall('.//problem'):
                             currdispname = problem.get('url_name')
