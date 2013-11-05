@@ -140,9 +140,6 @@ class AnswerBox(object):
         elif 'cfn' in abargs:
             abtype = 'customresponse'
         else:
-            print "aboxstr = ", aboxstr
-            print "abtype = ", abtype
-            raw_input("Defaulting to symbolicresponse... Press ENTER")
             abtype = 'symbolicresponse'	# default
         
         abxml = etree.Element(abtype)

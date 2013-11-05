@@ -281,6 +281,8 @@ class MyRenderer(XHTML.Renderer):
             
             s = re.sub('(?s)<edxxml>\\\\edXxml{(.*?)}</edxxml>','\\1',s)
             s = re.sub(r'(?s)<iframe(.*?)></iframe>',do_iframe,s)  # edXinlinevideo
+            s = re.sub(r'LESSTHAN',r'<',s)
+            s = re.sub(r'GREATERTHAN',r'>',s)
 
             # check 1
             fff = open('check1.txt','w')
@@ -817,42 +819,72 @@ def add_discussion_posts_to_problems(tree):
     Insert discussion posts at bottom of problems (or verticals containing problems)
     '''
     # first find all verticals, and insert problem tag at the bottom (for verticals that contain a problem or sequence of problems)
-    for vert in tree.findall('.//vertical'):
-        for problem in vert.findall('.//problem'):
-            if (problem.get('url_name').find('edx_surveys')<0):  # only if not edx survey problem
-                firstproblem = problem 
-                break # name contained in first problem of vertical
-        if firstproblem is not None: # this vertical has a problem
-            discussion = etree.SubElement(vert,'discussion')
-            discussion.set('for',firstproblem.get('display_name'))
-            discussion.set('id',"16101x_Fall2013_%s" % make_urlname(firstproblem.get('url_name')))
-            discussion.set('discussion_category',"General")
-            discussion.set('display_name',firstproblem.get('display_name'))
-    # then go through problems (that are NOT inside a vertical already), put them inside vertical tags and place discussion tag as last child of that vertical
-    for problem in tree.findall('.//problem'):
-        if (problem.get('url_name').find('edx_surveys')<0): # only if not edx survey problem
-            # check if problem is inside a vertical already 
-            inside_vert = False
-            for verti in tree.findall('.//vertical'):
-                for innerproblem in verti.findall('.//problem'):
-                    if (innerproblem.get('url_name').find('edx_surveys')<0):  # only if not edx survey problem
-                        if innerproblem==problem: # found it inside vert
-                            inside_vert = True
-                            break
-            if not inside_vert:    
-                # save a copy of the problem so we can put it inside the vertical
-                save_problem = etree.fromstring(etree.tostring(problem)) # make a copy
-                # change this problem to vertical (called 'problem') tag with nothing inside
-                problem.clear()
-                problem.tag = "vertical"
-                # append the save_problem problem to that vertical (called 'problem')
-                prob = problem.append(save_problem)
-                # append the discussion thread to that vertical (called 'problem')
-                discussion = etree.SubElement(problem,'discussion')
-                discussion.set('for',save_problem.get('display_name'))
-                discussion.set('id',"16101x_Fall2013_%s" % make_urlname(save_problem.get('url_name')))
-                discussion.set('discussion_category',"General")
-                discussion.set('display_name',save_problem.get('display_name'))
+    for chapter in tree.findall('.//chapter'):
+        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
+            continue 
+        chaptername = chapter.get('display_name')
+        for section in chapter.findall('.//section'):
+            sectionname = section.get('url_name')
+            for vert in section.findall('.//vertical'):
+                for problem in vert.findall('.//problem'):
+                    if (problem.get('url_name').find('edx_surveys')<0):  # only if not edx survey problem
+                        firstproblem = problem 
+                        break # name contained in first problem of vertical
+                if firstproblem is not None: # this vertical has a problem
+                    discussion = etree.SubElement(vert,'discussion')
+                    discussion.set('for',firstproblem.get('display_name'))
+                    discussion.set('id',"16101x_Fall2013_%s" % make_urlname(firstproblem.get('url_name')))
+                    discussion.set('discussion_category',"%s/%s" % (chaptername,sectionname))
+                    discussion.set('display_name',firstproblem.get('display_name'))
+            # then go through problems (that are NOT inside a vertical already), put them inside vertical tags and place discussion tag as last child of that vertical
+            for problem in section.findall('.//problem'):
+                if (problem.get('url_name').find('edx_surveys')<0): # only if not edx survey problem
+                    # check if problem is inside a vertical already 
+                    inside_vert = False
+                    for verti in section.findall('.//vertical'):
+                        for innerproblem in verti.findall('.//problem'):
+                            if (innerproblem.get('url_name').find('edx_surveys')<0):  # only if not edx survey problem
+                                if innerproblem==problem: # found it inside vert
+                                    inside_vert = True
+                                    break
+                    if not inside_vert:    
+                        # save a copy of the problem so we can put it inside the vertical
+                        save_problem = etree.fromstring(etree.tostring(problem)) # make a copy
+                        # change this problem to vertical (called 'problem') tag with nothing inside
+                        problem.clear()
+                        problem.tag = "vertical"
+                        # append the save_problem problem to that vertical (called 'problem')
+                        prob = problem.append(save_problem)
+                        # append the discussion thread to that vertical (called 'problem')
+                        discussion = etree.SubElement(problem,'discussion')
+                        discussion.set('for',save_problem.get('display_name'))
+                        discussion.set('id',"16101x_Fall2013_%s" % make_urlname(save_problem.get('url_name')))
+                        discussion.set('discussion_category',"%s/%s" % (chaptername,sectionname))
+                        discussion.set('display_name',save_problem.get('display_name'))
+            for html in section.findall('.//html'):
+                if (html.get('url_name').find('edx_surveys')<0): # only if not edx survey problem
+                    # check if problem is inside a vertical already 
+                    inside_vert = False
+                    for verti in section.findall('.//vertical'):
+                        for innerhtml in verti.findall('.//problem'):
+                            if (innerhtml.get('url_name').find('edx_surveys')<0):  # only if not edx survey problem
+                                if innerhtml==html: # found it inside vert
+                                    inside_vert = True
+                                    break
+                    if not inside_vert:    
+                        # save a copy of the html so we can put it inside the vertical
+                        save_html = etree.fromstring(etree.tostring(html)) # make a copy
+                        # change this html to vertical (called 'html') tag with nothing inside
+                        html.clear()
+                        html.tag = "vertical"
+                        # append the save_html problem to that vertical (called 'html')
+                        new_html = html.append(save_html)
+                        # append the discussion thread to that vertical (called 'html')
+                        discussion = etree.SubElement(html,'discussion')
+                        discussion.set('for',save_html.get('display_name'))
+                        discussion.set('id',"16101x_Fall2013_%s" % make_urlname(save_html.get('url_name')))
+                        discussion.set('discussion_category',"%s/%s" % (chaptername,sectionname))
+                        discussion.set('display_name',save_html.get('display_name'))
 
 # attempt to set display names with numbers below (but I think display_names are being set elsewhere down the line
 def change_problem_display_names_to_have_counters(tree):
