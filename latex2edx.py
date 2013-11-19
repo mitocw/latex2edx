@@ -1230,7 +1230,7 @@ def handle_measurable_outcomes(tree):
     #raw_input("Press ENTER")
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
-        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
+        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name') or "Exam" in chapter.get('display_name'):
             continue        
         chapternum += 1
         moindexhtml += "<h2>%s</h2>" % chapter.get('display_name')
@@ -1763,8 +1763,11 @@ def handle_equation_labels_and_refs(tree):
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
         if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
-            continue      
-        modulenum = modulenum + 1
+            continue  
+        if "Exam" in chapter.get('display_name'):
+          modulenum = modulenum
+        else:    
+          modulenum = modulenum + 1
         eqnnum = 1  # counter for equation numbering
         for table in chapter.findall('.//table'):
             if table.get('class') == 'equation':  # handle equation
