@@ -338,9 +338,9 @@ class AnswerBox(object):
 
             self.copy_attrib(abargs,'samples',abxml)
             tl = etree.Element('textline')
-            self.copy_attrib(abargs,'size',tl)
+            tl.attrib['math'] = "1"
+            tl.attrib['size'] = "30"
             self.copy_attrib(abargs,'inline',tl)
-            self.copy_attrib(abargs,'math',tl)
             abxml.append(tl)
             answer = self.stripquotes(abargs['expect'])
             abxml.set('answer',answer)
