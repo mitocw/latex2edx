@@ -10,10 +10,13 @@ For examples, run DOTEST
 
 This command:
 
+```bash
     python latex2edx.py -prefix "49_" test3.tex
+```
 
 should produce this content for 1.00x/course.xml:
 
+```xml
     <?xml version="1.0"?>
     <course number="1.00x" url_name="1.00x Fall 2012">
       <chapter url_name="Unit 1">
@@ -29,6 +32,7 @@ should produce this content for 1.00x/course.xml:
         </sequential>
       </chapter>
     </course>
+```
 
 For images, make sure the directory path "static/html" exists.
 
