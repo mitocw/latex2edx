@@ -10,10 +10,13 @@ For examples, run DOTEST
 
 This command:
 
+```bash
     python latex2edx.py -prefix "49_" test3.tex
+```
 
 should produce this content for 1.00x/course.xml:
 
+```xml
     <?xml version="1.0"?>
     <course number="1.00x" url_name="1.00x Fall 2012">
       <chapter url_name="Unit 1">
@@ -29,6 +32,7 @@ should produce this content for 1.00x/course.xml:
         </sequential>
       </chapter>
     </course>
+```
 
 For images, make sure the directory path "static/html" exists.
 
@@ -49,7 +53,7 @@ Here is how the process of getting from LaTeX to edXxml proceeds, in block diagr
                                                    math]
 ```
 
-PlasTeX uses edXpsl.py and the contents of the render folder to process your LaTeX source into the xhtml format.  The latex2edx.py script then processes the xhtml, operating on the images, chapters, sections, and math to produce the xml course files in the edX format.  It is intended to also convert and place the image files in the right locations to be served up properly by edX.
+PlasTeX uses `edXpsl.py` and the contents of the render folder to process your LaTeX source into the xhtml format.  The `latex2edx.py` script then processes the xhtml, operating on the images, chapters, sections, and math to produce the xml course files in the edX format.  It is intended to also convert and place the image files in the right locations to be served up properly by edX.
 
-NOTE: If you are using celieber's fork of the latex2edx.py processor, you need to also download latex2edx.js and include it in your static directory on github --- this enables the javascript new windows for figure and equation reference links.
+NOTE: If you are using celieber's fork of the `latex2edx.py` processor, you need to also download `latex2edx.js` and include it in your static directory on github --- this enables the javascript new windows for figure and equation reference links.
 
