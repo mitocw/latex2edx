@@ -820,7 +820,7 @@ def add_discussion_posts_to_problems(tree):
     '''
     # first find all verticals, and insert problem tag at the bottom (for verticals that contain a problem or sequence of problems)
     for chapter in tree.findall('.//chapter'):
-        if "Survey" in chapter.get('display_name') or "Exam" in chapter.get('display_name'):
+        if "Survey" in chapter.get('display_name'):
             continue 
         chaptername = chapter.get('display_name')
         for section in chapter.findall('.//section'):
@@ -832,6 +832,8 @@ def add_discussion_posts_to_problems(tree):
                         break # name contained in first problem of vertical
                 if firstproblem is not None: # this vertical has a problem
                     discussion = etree.SubElement(vert,'discussion')
+                    if firstproblem.get('display_name') is None:
+                        firstproblem.set('display_name',firstproblem.get('url_name'))
                     discussion.set('for',firstproblem.get('display_name'))
                     discussion.set('id',"16101x_Fall2013_%s" % make_urlname(firstproblem.get('url_name')))
                     discussion.set('discussion_category',"%s/%s" % (chaptername,sectionname))
@@ -1669,9 +1671,12 @@ def fix_figure_refs(tree):
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
         if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
-            continue      
-        modulenum = modulenum + 1
-        fignum = 0
+            continue  
+        if "Exam" in chapter.get('display_name'):
+          modulenum = modulenum
+        else:    
+          modulenum = modulenum + 1
+        fignum = 0  # counter for equation numbering
         for div in chapter.findall('.//div'):
             print "CHAPTER: %s" % chapter.get('display_name')
             print "div information:"
