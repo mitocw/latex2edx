@@ -868,10 +868,16 @@ def add_discussion_posts_to_problems(tree):
                     # check if problem is inside a vertical already 
                     inside_vert = False
                     for verti in section.findall('.//vertical'):
-                        for innerhtml in verti.findall('.//problem'):
+                        for innerhtml in verti.findall('.//html'):
                             if (innerhtml.get('url_name').find('edx_surveys')<0):  # only if not edx survey problem
                                 if innerhtml==html: # found it inside vert
                                     inside_vert = True
+                                    print "html inside vert = true for : "
+                                    print "   innerhtml = ", innerhtml
+                                    print "   innerhtml url_name = ", innerhtml.get('url_name')
+                                    print "   html = ", html
+                                    print "   html url_name = ", html.get('url_name')      
+                                    raw_input("Press ENTER")         
                                     break
                     if not inside_vert:    
                         # save a copy of the html so we can put it inside the vertical
@@ -1481,9 +1487,9 @@ def handle_section_refs(tree):
     chapternum = -1
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
-        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
-            continue      
-        chapternum = chapternum + 1
+        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name') or "Exam" in chapter.get('display_name'):
+            continue        
+        chapternum += 1
         # look for chapter label
         chaplabel = ""
         for p in chapter.findall('.//p'):
