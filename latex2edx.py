@@ -1481,9 +1481,9 @@ def handle_section_refs(tree):
     chapternum = -1
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
-        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
-            continue      
-        chapternum = chapternum + 1
+        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name') or "Exam" in chapter.get('display_name'):
+            continue        
+        chapternum += 1
         # look for chapter label
         chaplabel = ""
         for p in chapter.findall('.//p'):

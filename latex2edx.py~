@@ -1671,9 +1671,12 @@ def fix_figure_refs(tree):
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
         if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
-            continue      
-        modulenum = modulenum + 1
-        fignum = 0
+            continue  
+        if "Exam" in chapter.get('display_name'):
+          modulenum = modulenum
+        else:    
+          modulenum = modulenum + 1
+        fignum = 0  # counter for equation numbering
         for div in chapter.findall('.//div'):
             print "CHAPTER: %s" % chapter.get('display_name')
             print "div information:"
