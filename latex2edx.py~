@@ -798,6 +798,7 @@ def process_edXmacros(tree):
     fix_table(tree)
     fix_center(tree)
     fix_figure_refs(tree)
+    fix_table_refs(tree)
     handle_equation_labels_and_refs(tree)
     handle_measurable_outcomes(tree)
     # add_links_to_mo_index(tree)
@@ -872,12 +873,12 @@ def add_discussion_posts_to_problems(tree):
                             if (innerhtml.get('url_name').find('edx_surveys')<0):  # only if not edx survey problem
                                 if innerhtml==html: # found it inside vert
                                     inside_vert = True
-                                    print "html inside vert = true for : "
-                                    print "   innerhtml = ", innerhtml
-                                    print "   innerhtml url_name = ", innerhtml.get('url_name')
-                                    print "   html = ", html
-                                    print "   html url_name = ", html.get('url_name')      
-                                    raw_input("Press ENTER")         
+                                    #print "html inside vert = true for : "
+                                    #print "   innerhtml = ", innerhtml
+                                    #print "   innerhtml url_name = ", innerhtml.get('url_name')
+                                    #print "   html = ", html
+                                    #print "   html url_name = ", html.get('url_name')      
+                                    #raw_input("Press ENTER")         
                                     break
                     if not inside_vert:    
                         # save a copy of the html so we can put it inside the vertical
@@ -928,6 +929,9 @@ def change_problem_display_names_to_have_counters(tree):
                             for testproblem in testvert.findall('.//problem'):
                                 if testproblem.get('url_name')==vert.get('url_name'):
                                     in_vertical = True
+                            for testhtml in testvert.findall('.//html'):
+                                if testhtml.get('url_name')==vert.get('url_name'):
+                                    in_vertical = True 
                         if not in_vertical:
                             currdispname = vert.get('url_name')
                             pagenum += 1
@@ -1765,6 +1769,86 @@ def fix_figure_refs(tree):
                             onClick = "return newWindow(%s,'Figure %d.%d');" % (htmlstr,modulenum,fignum)
                             a.set('href',"javascript: void(0)")
                             a.set('onClick',onClick)
+
+def fix_table_refs(tree):
+    ''' 
+    Fix table references
+    '''
+    modulenum = -1
+    for chapter in tree.findall('.//chapter'):
+        # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
+        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
+            continue  
+        if "Exam" in chapter.get('display_name'):
+          modulenum = modulenum
+        else:    
+          modulenum = modulenum + 1
+        tabnum = 0  # counter for equation numbering
+        for div in chapter.findall('.//div'):
+            print "CHAPTER: %s" % chapter.get('display_name')
+            print "div information:"
+            print "  div class: %s" % div.get('class')
+            print "  div id: %s" % div.get('id')
+            #raw_input("Press ENTER")
+            if div.get('class') == "table":
+                thewholething = div
+                print "\n\n"
+                tablabel = div.get('id')
+                if tablabel is None:
+                    print "No label for this table."
+                    continue
+                print tablabel
+                for b in div.findall('.//b'):
+                    if re.search(r'Table [0-9]+$',b.text,re.S) is not None:
+                        splitres = b.text.split()
+                        #fignum = int(splitres[1])
+                        tabnum += 1
+                        b.text = "Table %d.%d" % (modulenum,tabnum)
+                        tabstr = "\'Table (%d.%d)\'" % (modulenum,tabnum)
+                        table = None
+                        for tbl in div.findall('.//table'):
+                            if tbl.get('class') == 'tabular':  # handle table
+                                table = tbl
+                        if table is None:
+                            print "TABLE (%s) NOT FOUND!" % tablabel
+                            raw_input("Press ENTER to continue...")
+                for innerdiv in div.findall('.//div'):
+                    if innerdiv.get('class') == "caption":
+                        for span in innerdiv.findall('.//span'):
+                            caption_description = (etree.tostring(span,encoding="utf-8",method="html")).rstrip()
+                            break
+                # look for references and put the right code
+                for a in tree.findall('.//a'):
+                    print "looking for the reference %s ..." % tablabel
+                    print "a.text =", a.text
+                    if a.text == tablabel:
+                        print "found reference"
+                        # change this ref element
+                        a.text = "%d.%d" % (modulenum,tabnum)
+                        print "\ntablabel =", tablabel
+                        table_info = tablabel.split(":")
+                        table_name = table_info[1]
+                        imgpath = ""
+                        figure_name = "tab_%s" % table_name
+                        for path, dirs, files in os.walk(latexfolder):
+                            for filename in fnmatch.filter(files,figure_name+".png"):
+                                imgpath = os.path.join(path, filename)
+                                if imgpath.find('figs') != -1:
+                                    #print "FOUND figs IN PATH"
+                                    fullimgpath = imgpath
+                        #print fullimgpath
+                        img = Image.open(fullimgpath)
+                        w, h = img.size
+                        #print "w =", w
+                        ws = 0.50
+                        wp = (int)(w*ws)
+                        #wp = w
+                        #hp = h
+                        hp = (int)(h*ws)
+                        href = "/static/html/%s.png" % figure_name
+                        onClick = "window.open(this.href,\'16.101x\',\'width=%s,height=%s\',\'toolbar=1\'); return false;" % (wp,hp)
+                        a.set('href',href)
+                        a.set('onClick',onClick)
 
 def handle_equation_labels_and_refs(tree):
     ''' 
