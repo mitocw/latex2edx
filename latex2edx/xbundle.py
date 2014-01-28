@@ -419,7 +419,7 @@ class XBundle(object):
         return xml
 
 
-    def export_to_directory(self, exdir='./', xml_only=False):
+    def export_to_directory(self, exdir='./', xml_only=False, newfmt=True):
         '''
         Export xbundle to edX xml directory
         First insert all the intermediate descriptors needed.
@@ -429,7 +429,10 @@ class XBundle(object):
         semester = self.course.get('semester', '')
         coursex.set('url_name',semester)
         coursex.set('org',self.course.get('org', ''))
-        coursex.set('number',self.course.get('number', ''))
+        if newfmt:
+            coursex.set('course',self.course.get('number', ''))
+        else:
+            coursex.set('number',self.course.get('number', ''))	# backwards compatibility
 
         self.export = self.make_descriptor(self.course, semester)
         self.export.append(self.course)
