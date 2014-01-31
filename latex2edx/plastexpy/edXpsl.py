@@ -37,7 +37,10 @@ class edXvideo(Base.Command):
 class includegraphics(Base.Command):
     args = '[ width ] self'
 
-class edXinclude(Base.Command):		# include external file
+class edXinclude(Base.Command):		# include external XML file
+    args = 'self'
+
+class edXincludepy(Base.Command):		# include external python file (puts inside <script>)
     args = 'self'
 
 class edXshowhide(Base.Environment):	# block of text to be hidden by default, but with clickable "show"

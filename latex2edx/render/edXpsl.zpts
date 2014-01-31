@@ -34,6 +34,9 @@ name: edXabox
 name: edXinclude
 <edxinclude tal:content='self'></edxinclude>
 
+name: edXincludepy
+<edxincludepy tal:content='self'></edxincludepy>
+
 name: edXsolution
 <solution><font color="blue">Answer: </font><font color="blue" tal:content='self'></font></solution>
 

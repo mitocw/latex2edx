@@ -92,6 +92,7 @@ class latex2edx(object):
                             self.fix_latex_minipage_div,
                             self.process_showhide,
                             self.process_include,
+                            self.process_includepy,
                             ]
         if extra_xml_filters:
             self.fix_filters += extra_xml_filters
@@ -200,11 +201,21 @@ class latex2edx(object):
             showhide.attrib.pop('description')
     
     @staticmethod
-    def process_include(tree):
-        for include in tree.findall('.//edxinclude'):
+    def process_include(tree, do_python=False):
+        '''
+        Include XML or python file.
+
+        For python files, wrap inside <script><![CDATA[ ... ]]></script>
+        '''
+        tag = './/edxinclude'
+        cmd = 'edXinclude'
+        if do_python:
+            tag += 'py'
+            cmd += "py"
+        for include in tree.findall(tag):
             incfn = include.text
             if incfn is None:
-                print "Error: edXinclude must specify file to include!"
+                print "Error: %s must specify file to include!" % cmd
                 print "See xhtml source line %s" % getattr(include,'sourceline','<unavailable>')
                 raise
             incfn = incfn.strip()
@@ -215,7 +226,10 @@ class latex2edx(object):
                 print "See xhtml source line %s" % getattr(include,'sourceline','<unavailable>')
                 raise
             try:
-                incxml = etree.fromstring(incdata)
+                if do_python:
+                    incxml = etree.fromstring('<script><![CDATA[\n%s\n]]></script>' % incdata)
+                else:
+                    incxml = etree.fromstring(incdata)
             except Exception, err:
                 print "Error %s parsing XML for include file %s" % (err,incfn)
                 print "See xhtml source line %s" % getattr(include,'sourceline','<unavailable>')
@@ -229,6 +243,9 @@ class latex2edx(object):
                 include.addprevious(incxml)
             p = include.getparent()
             p.remove(include)
+
+    def process_includepy(self, tree):
+        self.process_include(tree, do_python=True)
 
     def add_url_names(self, xml):
         '''
