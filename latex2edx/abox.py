@@ -242,6 +242,8 @@ class AnswerBox(object):
                 tl.set('correct_answer',ans)
                 self.copy_attrib(abargs,'inline',tl)
                 self.copy_attrib(abargs,'math',tl)
+                self.copy_attrib(abargs,'preprocessorClassName', tl)
+                self.copy_attrib(abargs,'preprocessorSrc', tl)
                 if prompt:
                     elem = etree.Element('p')
                     if 'inline' in abargs:
@@ -305,6 +307,8 @@ class AnswerBox(object):
             self.copy_attrib(abargs,'size',tl)
             self.copy_attrib(abargs,'inline',tl)
             self.copy_attrib(abargs,'math',tl)
+            self.copy_attrib(abargs,'preprocessorClassName', tl)
+            self.copy_attrib(abargs,'preprocessorSrc', tl)
             abxml.append(tl)
             answer = self.stripquotes(abargs['expect'])
             abxml.set('answer',answer)
@@ -320,6 +324,8 @@ class AnswerBox(object):
             tl = etree.Element('textline')
             self.copy_attrib(abargs,'inline',tl)
             self.copy_attrib(abargs,'size',tl)
+            self.copy_attrib(abargs,'preprocessorClassName', tl)
+            self.copy_attrib(abargs,'preprocessorSrc', tl)
             abxml.append(tl)
             self.copy_attrib(abargs,'inline',abxml)
             if 'correct_answer' in abargs:
