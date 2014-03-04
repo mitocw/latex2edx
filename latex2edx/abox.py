@@ -54,6 +54,18 @@ class AnswerBox(object):
         </customresponse>
 
         -----------------------------------------------------------------------------
+        <abox type="jsinput" expect="(3 * 5) / (2 + 3)" cfn="eq" gradefn="gradefn" height="500" 
+               get_statefn="getstate" set_statefn="setstate" html_file="/static/jsinput.html"/> 
+        
+        <customresponse cfn="eq" expect="(3 * 5) / (2 + 3)">
+            <jsinput gradefn="gradefn" 
+                height="500"
+                get_statefn="getstate"
+                set_statefn="setstate"
+                html_file="/static/jsinput.html"/>
+        </customresponse>
+        
+        -----------------------------------------------------------------------------
         <abox type="numerical" expect="3.141" tolerance="5%" />
         
         <numericalresponse answer="5.0">
@@ -130,7 +142,8 @@ class AnswerBox(object):
                           'shortanswer' : 'shortanswerresponse',
                           'string': 'stringresponse',
                           'symbolic': 'symbolicresponse',
-                          'image': 'imageresponse'
+                          'image': 'imageresponse',
+                          'jsinput': 'customresponse_jsinput',
                           }
 
         if 'type' in abargs and abargs['type'] in type2response:
@@ -257,7 +270,21 @@ class AnswerBox(object):
                 abxml.append(elem)
                 cnt += 1
                     
-            
+        elif abtype=='customresponse_jsinput':
+            abxml.tag = 'customresponse'
+            self.require_args(['expect','cfn'])
+            abxml.set('cfn',self.stripquotes(abargs['cfn']))
+            self.copy_attrib(abargs,'expect',abxml)
+            self.copy_attrib(abargs,'options',abxml)
+            if abxml.get('options',''):
+                abxml.set('cfn_extra_args','options')	# tells sandbox to include 'options' in cfn call arguments
+
+            js = etree.Element('jsinput')
+            jsattribs = ['width', 'height', 'gradefn', 'get_statefn', 'set_statefn', 'html_file']
+            for jsa in jsattribs:
+                self.copy_attrib(abargs, jsa, js)
+            abxml.append(js)
+                    
         elif abtype=='externalresponse' or abtype== 'coderesponse':
             if 'url' in abargs:
                 self.copy_attrib(abargs,'url',abxml)
