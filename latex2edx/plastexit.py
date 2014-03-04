@@ -42,7 +42,9 @@ class MyRenderer(XHTML.Renderer):
 
     @staticmethod
     def filter_fix_edxxml(m):
-        return m.group(1)
+        xmlstr = m.group(1)
+        xmlstr = xmlstr.replace('\\$','$')	# dollar sign must be escaped in plasTeX, but shouldn't be in XML
+        return xmlstr
 
     @staticmethod
     def fix_math_common(m):
