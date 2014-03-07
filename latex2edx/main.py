@@ -278,6 +278,7 @@ class latex2edx(object):
                '&': 'and',
                '[': 'LB_',
                ']': '_RB',
+               '?# ': '_',
                }
         if not s:
             s = tag
