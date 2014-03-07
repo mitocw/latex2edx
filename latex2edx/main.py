@@ -159,7 +159,7 @@ class latex2edx(object):
     @staticmethod
     def fix_table(tree):
         '''
-        Force tables to have table-layout: auto 
+        Force tables to have table-layout: auto
         '''
         for table in tree.findall('.//table'):
             table.set('style','table-layout:auto')
@@ -172,7 +172,7 @@ class latex2edx(object):
         '''
         for div in tree.findall('.//div[@class="minipage"]'):
             div.tag = 'text'
-    
+
     @staticmethod
     def process_showhide(tree):
         for showhide in tree.findall('.//edxshowhide'):
@@ -183,15 +183,15 @@ class latex2edx(object):
             print "---> showhide %s" % shid
             #jscmd = "javascript:toggleDisplay('%s','hide','show')" % shid
             jscmd = "javascript:$('#%s').toggle()" % shid
-    
+
             shtable = etree.Element('table')
             showhide.addnext(shtable)
-    
+
             desc = showhide.get('description','')
             shtable.set('class',"wikitable collapsible collapsed")
             shdiv = etree.XML('<tbody><tr><th> %s [<a href="%s" id="%sl">show</a>]</th></tr></tbody>' % (desc,jscmd,shid))
             shtable.append(shdiv)
-    
+
             tr = etree.SubElement(shdiv,'tr')
             tr.set('id',shid)
             tr.set('style','display:none')
@@ -199,7 +199,7 @@ class latex2edx(object):
             showhide.tag = 'td'
             showhide.attrib.pop('id')
             showhide.attrib.pop('description')
-    
+
     @staticmethod
     def process_include(tree, do_python=False):
         '''
@@ -234,15 +234,20 @@ class latex2edx(object):
                 print "Error %s parsing XML for include file %s" % (err,incfn)
                 print "See xhtml source line %s" % getattr(include,'sourceline','<unavailable>')
                 raise
-    
+
             print "--> including file %s at line %s" % (incfn,getattr(include,'sourceline','<unavailable>'))
             if incxml.tag=='html' and len(incxml)>0:		# strip out outer <html> container
                 for k in incxml:
-                    include.addprevious(k)	
+                    include.addprevious(k)
             else:
                 include.addprevious(incxml)
             p = include.getparent()
             p.remove(include)
+            # Remove the edXinclude tag
+            # if p.getchildren()[0].tag not in self.DescriptorTags:  #is not called with self
+            p.addprevious(include)
+            p.getparent().remove(p)
+            # The included xml may not have descriptor tags, but included <p> tags will still be removed.
 
     def process_includepy(self, tree):
         self.process_include(tree, do_python=True)
@@ -300,12 +305,12 @@ class latex2edx(object):
         '''
         attrib_string = elem.get('attrib_string','')
         if attrib_string:
-            attrib_list=split_args_with_quoted_strings(attrib_string)    
+            attrib_list=split_args_with_quoted_strings(attrib_string)
             if len(attrib_list)==1 & len(attrib_list[0].split('='))==1: # a single number n is interpreted as weight="n"
-                elem.set('weight',attrib_list[0]) 
+                elem.set('weight',attrib_list[0])
             else: # the normal case, can remove backwards compatibility later if desired
-                for s in attrib_list: 
-                    attrib_and_val=s.split('=')    	
+                for s in attrib_list:
+                    attrib_and_val=s.split('=')
                     if len(attrib_and_val) != 2:
                         print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
                         sys.exit(-1)
@@ -334,13 +339,13 @@ class latex2edx(object):
                 if parent.tag=='p':
                     parent.addprevious(elem)		# move <problem> up before <p>
                     parent.getparent().remove(parent)	# remove the <p>
-    
+
 
 def CommandLine():
     parser = optparse.OptionParser(usage="usage: %prog [options] filename.tex",
                                    version="%prog 1.0")
-    parser.add_option('-v', '--verbose', 
-                      dest='verbose', 
+    parser.add_option('-v', '--verbose',
+                      dest='verbose',
                       default=False, action='store_true',
                       help='verbose error messages')
     parser.add_option("-o", "--output-xbundle",
@@ -381,4 +386,4 @@ def CommandLine():
                   do_merge=opts.merge,
         )
     c.convert()
-    
+
