@@ -90,6 +90,8 @@ class MyRenderer(XHTML.Renderer):
             width = float(sm.group(1))
             if 'in' in widtype:
                 width = width * 110
+            elif 'cm' in widtype:
+                width = width * 110 / 2.54
             if 'extwidth' in widtype:
                 width = width * 110 * 6
             width = int(width)
