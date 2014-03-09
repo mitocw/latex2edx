@@ -92,6 +92,7 @@ class latex2edx(object):
                             self.fix_latex_minipage_div,
                             self.process_edxcite,
                             self.process_showhide,
+                            self.process_edxxml,
                             self.process_include,
                             self.process_includepy,
                             ]
@@ -194,6 +195,27 @@ class latex2edx(object):
             # print "  --> %s" % etree.tostring(exc)
             p = edxcite.getparent()
             p.remove(edxcite)
+
+    @staticmethod
+    def process_edxxml(tree):
+        '''
+        move content of edXxml into body
+        If edXxml is within a <p> then drop the <p>.  This allows edXxml to be used for discussion and video.
+        '''
+        for edxxml in tree.findall('.//edxxml'):
+            p = edxxml.getparent()
+            todrop = edxxml
+            where2add = edxxml
+            if p.tag=='p' and not p.text.strip():	# if in empty <p> then remove that <p>
+                todrop = p
+                where2add = p
+                p = p.getparent()
+
+            # move from edxxml to parent
+            for child in edxxml:
+                where2add.addprevious(child)
+
+            p.remove(todrop)
 
     @staticmethod
     def process_showhide(tree):
