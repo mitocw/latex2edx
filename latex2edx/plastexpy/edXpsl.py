@@ -37,6 +37,9 @@ class edXvideo(Base.Command):
 class includegraphics(Base.Command):
     args = '[ width ] self'
 
+class edXcite(Base.Command):	# tooltip citation (appears onmoseover, using <a title="self" href="#"><sup>[ref]</sup></a>)
+    args = '[ ref ] self'
+
 class edXinclude(Base.Command):		# include external XML file
     args = 'self'
 

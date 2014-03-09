@@ -90,6 +90,7 @@ class latex2edx(object):
                             self.add_url_names,
                             self.fix_table,
                             self.fix_latex_minipage_div,
+                            self.process_edxcite,
                             self.process_showhide,
                             self.process_include,
                             self.process_includepy,
@@ -159,10 +160,12 @@ class latex2edx(object):
     @staticmethod
     def fix_table(tree):
         '''
-        Force tables to have table-layout: auto 
+        Force tables to have table-layout: auto, no borders on table data
         '''
         for table in tree.findall('.//table'):
             table.set('style','table-layout:auto')
+            for td in table.findall('.//td'):
+                td.set('style', 'border:none')
 
     @staticmethod
     def fix_latex_minipage_div(tree):
@@ -173,6 +176,25 @@ class latex2edx(object):
         for div in tree.findall('.//div[@class="minipage"]'):
             div.tag = 'text'
     
+    def process_edxcite(self, tree):
+        if not hasattr(self, 'edxcitenum'):
+            self.edxcitenum = 0
+        for edxcite in tree.findall('.//edxcite'):
+            self.edxcitenum += 1
+            ref = edxcite.get('ref', None)
+            if ref is None or not ref:
+                ref = '[%d]' % self.edxcitenum
+            text = edxcite.text
+            exc = etree.Element('a')
+            edxcite.addnext(exc)
+            sup = etree.SubElement(exc, 'sup')
+            sup.text = ref
+            exc.set('href', '#')
+            exc.set('title', text)
+            # print "  --> %s" % etree.tostring(exc)
+            p = edxcite.getparent()
+            p.remove(edxcite)
+
     @staticmethod
     def process_showhide(tree):
         for showhide in tree.findall('.//edxshowhide'):

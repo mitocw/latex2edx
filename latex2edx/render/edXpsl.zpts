@@ -61,6 +61,9 @@ name: edXvideo
 name: includegraphics
 <includegraphics tal:attributes="style string:${self/attributes/width}" tal:content='self'></includegraphics>
 
+name: edXcite
+<edxcite tal:attributes="ref string:${self/attributes/ref}" tal:content='self'></edxcite>
+
 name: section
 <h2 tal:content='self'></h2>
 
