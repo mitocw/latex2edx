@@ -350,9 +350,11 @@ class latex2edx(object):
                 elem.set('weight',attrib_list[0]) 
             else: # the normal case, can remove backwards compatibility later if desired
                 for s in attrib_list: 
-                    attrib_and_val=s.split('=')    	
+                    attrib_and_val = s.split('=')
                     if len(attrib_and_val) != 2:
-                        print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
+                        print "ERROR! the attribute list '%s' for element %s is not properly formatted" % (attrib_string, elem.tag)
+                        # print "attrib_and_val=%s" % attrib_and_val
+                        print etree.tostring(elem)
                         sys.exit(-1)
                     elem.set(attrib_and_val[0],attrib_and_val[1].strip("\"")) # remove extra quotes
         if 'attrib_string' in elem.keys():
