@@ -11,6 +11,10 @@ Installation
 
     pip install -e git+https://github.com/mitocw/latex2edx.git#egg=latex2edx
 
+Note that xmllint and lxml are required; for ubuntu, this may work:
+
+    apt-get install libxml2-utils python-lxml
+
 Usage
 =====
 
