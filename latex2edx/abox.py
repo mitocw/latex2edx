@@ -226,6 +226,7 @@ class AnswerBox(object):
             abxml.set('answer',self.stripquotes(abargs['expect']))
             self.copy_attrib(abargs,'inline',tl)
             self.copy_attrib(abargs,'inline',abxml)
+            abxml.set('type','')
 
         elif abtype=='customresponse':
             self.require_args(['expect','cfn'])
