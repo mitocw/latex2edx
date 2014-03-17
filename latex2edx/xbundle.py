@@ -542,8 +542,10 @@ class XBundle(object):
 
     def pp_xml(self,xml):
         os.popen('xmllint --format -o tmp.xml -','w').write(etree.tostring(xml))
-        return open('tmp.xml').read()
-
+        xml = open('tmp.xml').read()
+        if xml.startswith('<?xml '):
+            xml = xml.split('\n', 1)[1]
+        return xml
 
     def make_urlname(self, xml, parent=''):
         dn = xml.get('display_name','')
