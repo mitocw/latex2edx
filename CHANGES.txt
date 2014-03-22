@@ -1,1 +1,2 @@
 v1.0, 2013-09-22 -- Initial release.
+v1.1, 2014-10-21 -- Support for jsinput, custom mathjax filtering, formularesponse
