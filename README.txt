@@ -38,4 +38,5 @@ History
 
 * v1.0: python package; unit tests; xbundle and modular code
 * v1.1: Support for jsinput, custom mathjax filtering, formularesponse
+* v1.1.1: Fix optargs bug with plastex
 
