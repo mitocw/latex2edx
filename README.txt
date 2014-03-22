@@ -50,7 +50,7 @@ Here is an annotated input tex file which generates the source for an edX course
     \begin{document}
     
     % edXcourse: {course_number}{course display_name}[optional arguments like semester]
-    \begin{edXcourse}{MIT.latex2edx}{latex2edx demo course}[semester=''2014 Spring'']
+    \begin{edXcourse}{MIT.latex2edx}{latex2edx demo course}[semester="2014 Spring"]
     
     % edXchapter: {chapter display_name}[optional arguments like url_name]
     \begin{edXchapter}{Basic examples}
@@ -83,6 +83,7 @@ History
 =======
 
 * v1.0: python package; unit tests; xbundle and modular code
-* v1.1: Support for jsinput, custom mathjax filtering, formularesponse
-* v1.1.1: Fix optargs bug with plastex
+* v1.1.0: Support for jsinput, custom mathjax filtering, formularesponse
+*     .1: Fix optargs bug with plastex
+*     .2: Allow spaces in semester; give example in README
 
