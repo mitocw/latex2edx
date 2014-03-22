@@ -62,8 +62,8 @@ Here is an annotated input tex file which generates the source for an edX course
     % edXvertical: {vertical display_name}[optional arguments like url_name]
     \begin{edXvertical}
     
-    % edXproblem: {problem display_name}[optional: url_name, weight, attempts]
-    \begin{edXproblem}{Numerical response}
+    % edXproblem: {problem display_name}{attributes: url_name, weight, attempts}
+    \begin{edXproblem}{Numerical response}{attempts=10}
     
     What is the numerical value of $\pi$?
 
