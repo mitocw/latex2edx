@@ -427,6 +427,8 @@ class XBundle(object):
         '''
         coursex = etree.Element('course')
         semester = self.course.get('semester', '')
+        semester = semester.replace(' ','_')		# no spaces in url_name (should do more checks here)
+        self.course.set('semester', semester)		# replace attribute just in case
         coursex.set('url_name',semester)
         coursex.set('org',self.course.get('org', ''))
         if newfmt:
