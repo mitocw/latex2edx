@@ -42,6 +42,7 @@ The source code for the demo course is here: https://github.com/mitocw/content-m
 
 Here is an annotated input tex file which generates the source for an edX course:
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     \documentclass[12pt]{article}
     
     \usepackage{edXpsl}	% edX
@@ -62,32 +63,21 @@ Here is an annotated input tex file which generates the source for an edX course
     \begin{edXvertical}
     
     % edXproblem: {problem display_name}[optional arguments like url_name, weight, attempts]
-    \begin{edXproblem}{Option response}
+    \begin{edXproblem}{Numerical response}
     
-    This is a sample problem, which is worth 10 points.
-    
-    Give the correct python {\tt type} for the following expressions.  Select {\tt noneType} if the expression is illegal.
-    
-    \begin{itemize}
-    % \edXabox: answer box, specifying 
-    \item \edXinline{\tt 3~~~}   \edXabox{expect="int" options="noneType","int","float" type="option" inline="1"}
-    \item \edXinline{\tt 5.2~~~} \edXabox{expect="float" options="noneType","int","float" type="option" inline="1"}
-    \item \edXinline{\tt 3/2~~~} \edXabox{expect="int" options="noneType","int","float" type="option" inline="1"}
-    \item \edXinline{\tt 1+[]~~~} \edXabox{expect="noneType" options="noneType","int","float" type="option" inline="1"}
-    \end{itemize}
+    What is the numerical value of $\pi$?
+
+    % \edXabox: answer box, specifying question type and expected response
+    \edXabox{expect="3.14159" type="numerical" tolerance='0.01' }
     
     \end{edXproblem}
     \end{edXvertical}
     \end{edXsection}
     \end{edXchapter}
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
     \end{edXcourse}
+    \end{document}
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    \end{document}
 
 History
 =======
