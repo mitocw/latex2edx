@@ -45,7 +45,7 @@ Here is an annotated input tex file which generates the source for an edX course
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     \documentclass[12pt]{article}
     
-    \usepackage{edXpsl}	% edX
+    \usepackage{edXpsl}	% edX "problem specification language"
     
     \begin{document}
     
@@ -62,7 +62,7 @@ Here is an annotated input tex file which generates the source for an edX course
     % edXvertical: {vertical display_name}[optional arguments like url_name]
     \begin{edXvertical}
     
-    % edXproblem: {problem display_name}[optional arguments like url_name, weight, attempts]
+    % edXproblem: {problem display_name}[optional: url_name, weight, attempts]
     \begin{edXproblem}{Numerical response}
     
     What is the numerical value of $\pi$?
