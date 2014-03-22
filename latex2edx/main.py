@@ -166,7 +166,11 @@ class latex2edx(object):
         for table in tree.findall('.//table'):
             table.set('style','table-layout:auto')
             for td in table.findall('.//td'):
-                td.set('style', 'border:none')
+                newstyle = td.get('style', '')
+                if newstyle:
+                    newstyle += '; '
+                newstyle += 'border:none'
+                td.set('style', newstyle)
 
     @staticmethod
     def fix_latex_minipage_div(tree):

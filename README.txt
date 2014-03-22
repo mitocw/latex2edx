@@ -86,4 +86,4 @@ History
 * v1.1.0: Support for jsinput, custom mathjax filtering, formularesponse
 *     .1: Fix optargs bug with plastex
 *     .2: Allow spaces in semester; give example in README
-
+*     .3: Fix bug in eqnarray table widths
