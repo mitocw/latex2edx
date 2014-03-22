@@ -216,6 +216,7 @@ class plastex2xhtml(object):
                  extra_filters=None,
                  latex_string=None,
                  add_wrap=False,
+                 fix_plastex_optarg_bug=True,
                  verbose=False):
         '''
         fn            = tex filename (should end in .tex)
@@ -226,6 +227,9 @@ class plastex2xhtml(object):
                         post-processing of XHTML output
         latex_string  = latex string (overrides fp and fn)
         add_wrap      = if True, then assume latex is partial, and add preamble and postfix
+        fix_plastex_optarg_bug = if True, then filter the input latex to fix the plastex bug 
+                                 triggered e.g. by \begin{edXchapter} and \begin{edXsection}
+                                 being placed with no empty newline inbetween
         verbose       = if True, then do verbose logging
         '''
 
@@ -241,6 +245,7 @@ class plastex2xhtml(object):
         self.add_wrap = add_wrap
         self.verbose = verbose
         self.renderer = MyRenderer(imdir, imurl, extra_filters)
+        self.fix_plastex_optarg_bug = fix_plastex_optarg_bug
 
         # Instantiate a TeX processor and parse the input text
         tex = TeX()
@@ -284,6 +289,9 @@ class plastex2xhtml(object):
             self.latex_string = self.fp.read()
             self.latex_string = self.latex_string.replace('\r','\n') # convert from mac format EOL
         
+        if self.fix_plastex_optarg_bug:
+            self.latex_string = self.do_fix_plastex_optarg_bug(self.latex_string)
+
         # add preamble and postfix wrap?
         if self.add_wrap:
             PRE = """\\documentclass[12pt]{article}\n\\usepackage{edXpsl}\n\n\\begin{document}\n\n"""
@@ -302,3 +310,62 @@ class plastex2xhtml(object):
     def xhtml(self):
         return self.renderer.xhtml
     
+    @staticmethod
+    def do_fix_plastex_optarg_bug(texstring):
+        '''
+        PlasTeX processing appears to have a bug, 
+        wherein if the tex document has two consecutive lines like this:
+
+          \begin{edXchapter}{Basic examples}
+          \begin{edXsection}{Basic example problems}
+
+        then the \begin{edXsection} gets eaten up as an optional argument
+        to \begin{edXchapter}.  This happens for all the Base.Environment
+        objects defined in edXpsl.py with optional arguments.
+
+        This can be fixed by introducing an extra newline, e.g.:
+
+          \begin{edXchapter}{Basic examples}
+
+          \begin{edXsection}{Basic example problems}
+
+        or by adding a {} at the end:
+
+          \begin{edXchapter}{Basic examples}{}
+          \begin{edXsection}{Basic example problems}{}
+
+        Here, we fix the problem by adding extra newlines after every \begin{*}
+        where * is one of the known new environments with optional arguments.
+        '''
+
+        edXenvironments = ['edXcourse', 
+                           'edXchapter',
+                           'edXsection',
+                           'edXsequential',
+                           'edXvertical',
+                           'edXtext',
+                           ]
+
+        newstring = []
+        insert_nl = False
+
+        for line in texstring.split('\n'):
+
+            if insert_nl:
+                # insert empty line if current line is not already empty line
+                if not line=='':
+                    newstring.append('')
+                insert_nl = False
+
+            if not r'\begin' in line:
+                newstring.append(line)
+                continue
+
+            newstring.append(line)
+            for env in edXenvironments:
+                if line.startswith('\\begin{%s}' % env):
+                    # queue up newline insertion
+                    insert_nl = True
+
+        newstring = '\n'.join(newstring)
+        return newstring
