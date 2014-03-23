@@ -88,5 +88,6 @@ History
 *     .2: Allow spaces in semester; give example in README
 *     .3: Fix bug in eqnarray table widths
 *     .4: Fix showhide to work under firefox
+*     .5: Allow multiple correct answers in multichoice
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/aa22ed806c67680aa2fdb27fff0368bf "githalytics.com")](http://githalytics.com/mitocw/latex2edx)

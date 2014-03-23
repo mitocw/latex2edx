@@ -88,3 +88,4 @@ History
 *     .2: Allow spaces in semester; give example in README
 *     .3: Fix bug in eqnarray table widths
 *     .4: Fix showhide to work under firefox
+*     .5: Allow multiple correct answers in multichoice
