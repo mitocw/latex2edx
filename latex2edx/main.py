@@ -230,14 +230,14 @@ class latex2edx(object):
                 raise Exception
             print "---> showhide %s" % shid
             #jscmd = "javascript:toggleDisplay('%s','hide','show')" % shid
-            jscmd = "javascript:$('#%s').toggle()" % shid
+            jscmd = "javascript:$('#%s').toggle();" % shid
     
             shtable = etree.Element('table')
             showhide.addnext(shtable)
     
             desc = showhide.get('description','')
             shtable.set('class',"wikitable collapsible collapsed")
-            shdiv = etree.XML('<tbody><tr><th> %s [<a href="%s" id="%sl">show</a>]</th></tr></tbody>' % (desc,jscmd,shid))
+            shdiv = etree.XML('<tbody><tr><th> %s [<a onclick="%s" href="javascript:void(0);" id="%sl">show</a>]</th></tr></tbody>' % (desc,jscmd,shid))
             shtable.append(shdiv)
     
             tr = etree.SubElement(shdiv,'tr')
