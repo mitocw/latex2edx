@@ -115,3 +115,18 @@ class input(Command):
             print "myinput error=%s" % msg
             log.warning(msg)
             status.info(' ) ')
+
+class edXgitlink(Command):
+    '''
+    Output link to github file with line number of specific place inside file
+    '''
+    args = '{url_root}{name}'
+    def invoke(self, tex):
+        Command.invoke(self, tex)
+        self.attributes['filename'] = tex.filename
+        self.attributes['linenum'] = tex.lineNumber
+        self.attributes['url'] = '%s/%s#L%s' % (self.attributes['url_root'].source, tex.filename, tex.lineNumber)
+        # print "root=%s, name=%s" % (self.attributes['url_root'].source, self.attributes['name'].source)
+        print "  --> edXgitlink: file=%s, line=%s, url=%s" % (tex.filename, tex.lineNumber, self.attributes['url'])
+
+    

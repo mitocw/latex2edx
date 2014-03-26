@@ -10,6 +10,7 @@ from plasTeX.Renderers.PageTemplate import Renderer as _Renderer
 from plasTeX.Config import config as plasTeXconfig
 from xml.sax.saxutils import escape, unescape
 from abox import AnswerBox, split_args_with_quoted_strings
+from StringIO import StringIO
 
 class MyRenderer(XHTML.Renderer):
     """
@@ -298,7 +299,9 @@ class plastex2xhtml(object):
             POST = "\n\n\\end{document}"
             self.latex_string = PRE + self.latex_string + POST
  
-        self.tex.input(self.latex_string)
+        source = StringIO(self.latex_string)
+        source.name = self.input_fn
+        self.tex.input(source)
         document = self.tex.parse()
         
         self.renderer.render(document)

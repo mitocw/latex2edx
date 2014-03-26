@@ -73,3 +73,5 @@ name: subsection
 name: subsection
 <h4 tal:content='self'></h4>
 
+name: edXgitlink
+<span class="gitlink" style="float:right"><a tal:attributes="href string:${self/attributes/url}" tal:content='self/attributes/name' /></span>
