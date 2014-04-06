@@ -2,18 +2,34 @@
 latex2edx
 =========
 
-Converts latex to edX XML format.
+This is version 1.1 of the open-source latex2edx compiler for
+generating interactive MITx / edX courses from LaTeX
 
-Uses plasTeX
+This system is particularly useful for producing interactive course
+content where the expressive power of LaTeX is helpful, e.g. with
+math, physics, CS content. latex2edx provides interactivity via the
+introduction of a basic new macro, the "answer box" \edXabox, which
+defines a mechanism for student input, as well as how that input is to
+be graded. Also introduced are structural macros for defining course
+structure.
+
+See project homepage: 
+
+   https://people.csail.mit.edu/ichuang/edx/latex2edx
 
 Installation
 ============
+
+Install using this command:
 
     pip install -e git+https://github.com/mitocw/latex2edx.git#egg=latex2edx
 
 Note that xmllint and lxml are required; for ubuntu, this may work:
 
     apt-get install libxml2-utils python-lxml
+
+PlasTeX (http://plastex.sourceforge.net/) is also required, but should
+be installed automatically by the pip install.
 
 Usage
 =====
