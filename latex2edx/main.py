@@ -354,8 +354,7 @@ class latex2edx(object):
                 where2add.addprevious(child)
                 p.remove(todrop)
 
-    @staticmethod
-    def process_edxxml(tree):
+    def process_edxxml(self, tree):
         '''
         move content of edXxml into body
         If edXxml is within a <p> then drop the <p>.  This allows edXxml to be used for discussion and video.
