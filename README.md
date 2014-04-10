@@ -106,5 +106,6 @@ History
 *     .4: Fix showhide to work under firefox
 *     .5: Allow multiple correct answers in multichoice
 *     .6: Add \edXgitlink for link to specific line in source file
+*     .7: Add \edXaskta for "Ask TA!" buttons
 
 

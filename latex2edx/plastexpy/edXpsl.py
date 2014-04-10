@@ -89,6 +89,10 @@ class section(Base.Command):
 class subsection(Base.Command):
     args = 'self'
 
+class edXaskta(Base.Command):
+    # ask TA link
+    args = 'self'
+
 class input(Command):
     """ verbose version of \\input
     """

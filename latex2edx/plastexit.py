@@ -347,6 +347,8 @@ class plastex2xhtml(object):
                            'edXsequential',
                            'edXvertical',
                            'edXtext',
+                           'edXproblem',
+                           'edXsolution',
                            ]
 
         newstring = []

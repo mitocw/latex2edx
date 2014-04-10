@@ -4,6 +4,7 @@ import xbundle
 import os
 import sys
 import optparse
+import urllib
 from path import path	# needs path.py
 from lxml import etree
 from plastexit import plastex2xhtml
@@ -91,6 +92,7 @@ class latex2edx(object):
                             self.fix_table,
                             self.fix_latex_minipage_div,
                             self.process_edxcite,
+                            self.process_askta,
                             self.process_showhide,
                             self.process_edxxml,
                             self.process_include,
@@ -181,7 +183,141 @@ class latex2edx(object):
         for div in tree.findall('.//div[@class="minipage"]'):
             div.tag = 'text'
     
+    def process_askta(self, tree):
+        '''
+        add "Ask TA!" links
+        arguments are taken as space delimited settings
+
+        if "settings" set, then:
+           - save key,value for next uses of edXaskta
+           - do not display a link
+
+        examples:
+
+        % sets settings, does not display link
+        \edXaskta{settings=1 label="Ask TA!" url_base="htps://edx.org/mycourse" to:"me@example.edu" cc:"ta@example.edu"}
+
+        % displays Email TA link
+        \edXaskta{label="Email TA" subject:"help"}
+        '''
+
+        special_attribs = [ 'url_base', 'cnt', 'label' ]
+
+        if not hasattr(self, 'askta_data'):
+            subject = "Question about {name}"
+            body = "This is a question about the problem at COURSE_URL/{url_name}\n\n" 
+            self.askta_data = { 'cnt': 0, 'label': 'Ask TA!', 'to':'', 'cc':'', 'subject':subject, 
+                                'body': body,
+                                'url_base': 'https://edx.org',
+            }
+
+        for askta in tree.findall('.//askta'):
+            text = askta.text
+            args = {}
+            if text:
+                argset = split_args_with_quoted_strings(text)
+                try:
+                    args = dict([x.split('=',1) for x in argset])
+                    for arg in args:
+                        args[arg] = self.stripquotes(args[arg], checkinternal=True)
+                except Exception, err:
+                    print "Error %s" % err
+                    print "Failed in parsing args to edXaskta = %s" % text
+                    raise
+                if 'settings' in args:
+                    args.pop('settings')
+                    self.askta_data.update(args)
+                    # print "askTA settings updated: %s" % self.askta_data
+                    # remove this element from xml tree
+                    self.remove_parent_p(askta)
+                    p = askta.getparent()
+                    p.remove(askta)
+                    continue
+
+            # generate button link, something like this:
+            #   <input style="float:right" class="check Check" type="button" value="Ask TA!" onclick="SendMail();"/>
+            # <script type="text/javascript">
+            # var amp = String.fromCharCode(38);
+            # function SendMail() {
+            #          var link = "mailto:me@example.com"
+            #             + "?cc=myCCaddress@example.com"
+            #             + amp + "subject=" + escape("This is my subject")
+            #             + amp + "body=";
+            #          window.open(link,'AskTA', "height=500,width=700");
+            # }
+            # </script>
+
+            data = {}
+            data.update(self.askta_data)
+            data.update(args)
+
+            display_name = ''
+            url_name = ''
+            for parent in askta.xpath('ancestor::*')[::-1]:
+                display_name = parent.get('display_name', '')
+                if display_name:
+                    url_name = parent.get('url_name')
+                    break
+
+            data['subject'] = data['subject'].format(name=display_name)
+            data['body'] = data['body'].format(url_name=url_name, **data)
+
+            self.askta_data['cnt'] += 1
+            smfn = 'SendMail_%d' % self.askta_data['cnt']
+
+            askta.tag = 'span'
+            askta.text = ''
+
+            atin = etree.SubElement(askta, 'input')
+            atin.set('style', 'float:right')
+            atin.set('class', 'check Check')
+            atin.set('value', data['label'])
+            atin.set('type', 'button')
+            atin.set('onclick', '%s();' % smfn)
+            
+            for attrib in special_attribs:
+                data.pop(attrib)
+
+            atlid = 'aturl_%s' % self.askta_data['cnt']
+            atlink = etree.SubElement(askta, 'a')
+            atlink.set('style', 'display:none')
+            atlink.set('href', '/course/jump_to_id')
+            atlink.set('id', atlid)
+
+            mailto = 'mailto:%s' % data['to']
+            data.pop('to')
+            body = data.pop('body')
+            mailto += '?' + urllib.urlencode(data)
+            mailto += '&' + urllib.urlencode({'body': body})
+
+            jscode = ('\nfunction %s() {\n'
+                      '    var cu = encodeURI(window.location.origin + $("#%s").attr("href"));\n'
+                      '    var link = "%s";\n'
+                      '    link = link.replace("COURSE_URL", cu);\n'
+                      '    link = link.replace(/&/g, String.fromCharCode(38));\n'
+                      '    console.log(link);\n'
+                      '    Logger.log("askta",{link:link});\n'
+                      '    window.open(link, "AskTA", "height=500,width=700"); \n'
+                      '}') % (smfn, atlid, mailto)
+
+            script = etree.SubElement(askta, 'script')
+            script.set('type', 'text/javascript')
+            script.text = jscode
+
+    @staticmethod
+    def stripquotes(x,checkinternal=False):
+        if x.startswith('"') and x.endswith('"'):
+            if checkinternal and '"' in x[1:-1]:
+                return x
+            return x[1:-1]
+        if x.startswith("'") and x.endswith("'"):
+            return x[1:-1]
+        return x
+
     def process_edxcite(self, tree):
+        '''
+        Add citation link visible on mouse hoover.
+        '''
         if not hasattr(self, 'edxcitenum'):
             self.edxcitenum = 0
         for edxcite in tree.findall('.//edxcite'):
@@ -201,25 +337,31 @@ class latex2edx(object):
             p.remove(edxcite)
 
     @staticmethod
+    def remove_parent_p(xml):
+        '''
+        If xml is inside an otherwise empty <p>, then push it up and remove the <p>
+        '''
+        p = xml.getparent()
+        todrop = xml
+        where2add = xml
+        if p.tag=='p' and not p.text.strip():	# if in empty <p> then remove that <p>
+            todrop = p
+            where2add = p
+            p = p.getparent()
+
+            # move from xml to parent
+            for child in xml:
+                where2add.addprevious(child)
+                p.remove(todrop)
+
+    @staticmethod
     def process_edxxml(tree):
         '''
         move content of edXxml into body
         If edXxml is within a <p> then drop the <p>.  This allows edXxml to be used for discussion and video.
         '''
         for edxxml in tree.findall('.//edxxml'):
-            p = edxxml.getparent()
-            todrop = edxxml
-            where2add = edxxml
-            if p.tag=='p' and not p.text.strip():	# if in empty <p> then remove that <p>
-                todrop = p
-                where2add = p
-                p = p.getparent()
-
-            # move from edxxml to parent
-            for child in edxxml:
-                where2add.addprevious(child)
-
-            p.remove(todrop)
+            remove_parent_p(edxxml)
 
     @staticmethod
     def process_showhide(tree):

@@ -31,6 +31,9 @@ name: edXshowhide
 name: edXabox
 <abox tal:content='self'></abox>
 
+name: edXaskta
+<askta tal:content='self'></askta>
+
 name: edXinclude
 <edxinclude tal:content='self'></edxinclude>
 
