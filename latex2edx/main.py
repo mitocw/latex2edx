@@ -361,7 +361,7 @@ class latex2edx(object):
         If edXxml is within a <p> then drop the <p>.  This allows edXxml to be used for discussion and video.
         '''
         for edxxml in tree.findall('.//edxxml'):
-            remove_parent_p(edxxml)
+            self.remove_parent_p(edxxml)
 
     @staticmethod
     def process_showhide(tree):
