@@ -1,0 +1,2 @@
+to run the edxaskta test:
+python setup.py  test -s latex2edx.test.test_edxaskta
