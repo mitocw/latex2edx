@@ -107,5 +107,6 @@ History
 *     .5: Allow multiple correct answers in multichoice
 *     .6: Add \edXgitlink for link to specific line in source file
 *     .7: Add \edXaskta for "Ask TA!" buttons
+*     .8: bugfix for edxxml
 
 
