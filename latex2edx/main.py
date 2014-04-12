@@ -509,7 +509,7 @@ class latex2edx(object):
         '''
         Convert attrib_string in <problem>, <chapter>, etc. to attributes, intelligently.
         '''
-        TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course']
+        TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course', 'html']
         for tag in TAGS:
             for elem in xml.findall('.//%s' % tag):
                 self.do_attrib_string(elem)

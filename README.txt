@@ -92,3 +92,4 @@ History
 *     .6: Add \edXgitlink for link to specific line in source file
 *     .7: Add \edXaskta for "Ask TA!" buttons
 *     .8: bugfix for edxxml
+*     .9: Allow \edXtext to have attributes option, eg \begin{edXtext}{My Name}[url_name=text_url_name]
