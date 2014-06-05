@@ -5,6 +5,7 @@ import os
 import sys
 import optparse
 import urllib
+import py_compile
 from path import path	# needs path.py
 from lxml import etree
 from plastexit import plastex2xhtml
@@ -414,6 +415,16 @@ class latex2edx(object):
                 print "Error %s: cannot open include file %s to read" % (err,incfn)
                 print "See xhtml source line %s" % getattr(include,'sourceline','<unavailable>')
                 raise
+
+            # if python script, then check its syntax
+            if do_python:
+                try:
+                    py_compile.compile(incfn, doraise=True)
+                except Exception as err:
+                    print "Error in python script %s! Err=%s" % (incfn, err)
+                    print "Aborting!"
+                    sys.exit(0)
+
             try:
                 if do_python:
                     incxml = etree.fromstring('<script><![CDATA[\n%s\n]]></script>' % incdata)

@@ -93,3 +93,4 @@ History
 *     .7: Add \edXaskta for "Ask TA!" buttons
 *     .8: bugfix for edxxml
 *     .9: Allow \edXtext to have attributes option, eg \begin{edXtext}{My Name}[url_name=text_url_name]
+*     .10: check imported python scripts for syntax errors
