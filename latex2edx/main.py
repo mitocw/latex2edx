@@ -1,12 +1,16 @@
 #!/usr/bin/python
 
-import xbundle
-import os
-import sys
+import datetime
+import json
 import optparse
-import urllib
+import os
 import py_compile
+import sys
 import tempfile
+import urllib
+import xbundle
+
+from collections import OrderedDict
 from path import path	# needs path.py
 from lxml import etree
 from plastexit import plastex2xhtml
@@ -22,6 +26,44 @@ DEFAULT_CONFIG = {
         'rerandomize': 'never',
      }
 }
+
+#-----------------------------------------------------------------------------
+
+def date_parse(datestr, retbad=False, verbose=True):
+    '''
+    Helpful general function for parsing dates.
+    Returns datetime object, or None
+    '''
+    if not datestr:
+        return None
+
+    formats = ['%Y-%m-%dT%H:%M:%SZ',    	# 2013-11-13T21:00:00Z
+               '%Y-%m-%dT%H:%M:%S.%f',    	# 2012-12-04T13:48:28.427430
+               '%Y-%m-%dT%H:%M:%S.%f+00:00',    	# 2013-12-15T18:33:32.378926+00:00
+               '%Y-%m-%dT%H:%M:%S',
+               '%Y-%m-%dT%H:%M',		# 2013-02-12T19:00
+               '%Y-%m-%d %H:%M:%S',		# 2013-05-29 12:51:48
+               '%Y-%m-%d',			# 2013-05-29
+               '%B %d, %Y',			# February 25, 2013
+               '%B %d, %H:%M, %Y', 		# December 12, 22:00, 2012
+               '%B %d, %Y, %H:%M', 		# March 25, 2013, 22:00
+               '%B %d %Y, %H:%M',		# January 2 2013, 22:00
+               '%B %d %Y', 			# March 13 2014
+               '%B %d %H:%M, %Y',		# December 24 05:00, 2012
+               ]
+
+    for fmt in formats:
+        try:
+            dt = datetime.datetime.strptime(datestr,fmt)
+            return dt
+        except Exception as err:
+            continue
+
+    if verbose:
+        print "--> Date %s unparsable" % datestr
+    if retbad:
+        return "Bad"
+    return None
 
 #-----------------------------------------------------------------------------
 
@@ -52,6 +94,8 @@ class latex2edx(object):
                  do_merge=False,
                  imurl='images',
                  do_images=True,
+                 update_policy=False,
+                 suppress_policy=False,
                  ):
         '''
         extra_xml_filters = list of functions acting on XML, applied to XHTML
@@ -80,6 +124,8 @@ class latex2edx(object):
         self.p2x.convert()
         self.xhtml = self.p2x.xhtml
         self.do_merge = do_merge
+        self.update_policy = update_policy
+        self.suppress_policy = suppress_policy
 
         if output_fn is None or not output_fn:
             if fn.endswith('.tex'):
@@ -101,6 +147,7 @@ class latex2edx(object):
                             self.process_includepy,
                             self.process_general_hint_system,
                             self.check_all_python_scripts,
+                            self.handle_policy_settings,
                             ]
         if extra_xml_filters:
             self.fix_filters += extra_xml_filters
@@ -163,6 +210,95 @@ class latex2edx(object):
             xb.set_course(course)
         self.xb = xb
         return xb
+
+    def handle_policy_settings(self, tree):
+        '''
+        Policy settings are those normally stored in the policies/semester/policy.json
+        file.  These include
+
+        - start       : start date
+        - end         : end date
+        - due         : due date
+        - graded      : true/false for graded or not
+        - showanswer  : when to allow "show answer"
+        - format      : 'grading format' - ie which collection graded components to be part of
+
+        We (optionally) strip these settings from the XML, and (optionally) save them
+        in the policy.json file, by updating that file (and not removing other info there).
+        '''
+        if (not self.suppress_policy) and (not self.update_policy):
+            return
+
+        def fixdate(dt):
+            dt = date_parse(dt)
+            if dt is None:
+                print "--> Error: bad date %s given for policy setting" % dt
+                raise
+            return dt.strftime('%Y-%m-%dT%H:%M')
+
+        def makebool(x):
+            if 'true' in x.lower():
+                return 'true'
+            elif 'false' in x.lower():
+                return 'false'
+            print "--> Warning: in policy settings turning %s in to false" % x
+            return 'false'
+
+        policy_settings = {'start': fixdate, 'end': fixdate, 'due': fixdate, 
+                           'graded': makebool, 'showanswer': None, 'format': None}
+
+        if self.update_policy:
+            course = tree.find('.//course')
+            semester = course.get('semester', course.get('url_name'))
+            policydir = self.output_dir / 'policies' / semester 
+            if not policydir.exists():
+                print "--> Creating directory %s" % policydir
+                os.system('mkdir -p "%s"' % policydir)
+            policyfile = policydir / 'policy.json'
+            if not policyfile.exists():
+                print "--> No existing policy.json, creating default"
+                policy = OrderedDict()
+                policy["course/%s" % semester] = OrderedDict(
+                    start="2012-06-02T02:00",
+                    end="2012-08-12T00:00",
+                    )
+            else:
+                policy = json.load(open(policyfile), object_pairs_hook=OrderedDict)
+
+            def copy_settings(elem, policy):
+                key = "%s/%s" % (elem.tag, elem.get('url_name'))
+                if not key in policy:
+                    policy[key] = OrderedDict()
+                for setting, ffun in policy_settings.items():
+                    val = elem.get(setting, None)
+                    if val is not None:
+                        if ffun is None:
+                            sval = val
+                        else:
+                            sval = ffun(val)
+                        policy[key][setting] = sval
+
+            copy_settings(course, policy)		    # do course first
+            
+            for chapter in tree.findall('.//chapter'):
+                copy_settings(chapter, policy)
+                for sequential in chapter.findall('.//sequential'):
+                    copy_settings(sequential, policy)
+            
+            with open(policyfile,'w') as fp:
+                fp.write(json.dumps(policy, indent=2))
+
+        def suppress_policy_settings(elem):
+            for setting in policy_settings:
+                if setting in elem.keys():
+                    elem.attrib.pop(setting)
+
+        if self.suppress_policy or self.update_policy:
+            for chapter in tree.findall('.//chapter'):
+                suppress_policy_settings(chapter)
+                for sequential in chapter.findall('.//sequential'):
+                    suppress_policy_settings(sequential)
+            
 
     @staticmethod
     def fix_table(tree):
@@ -610,6 +746,16 @@ def CommandLine():
                       dest="merge",
                       default=False,
                       help="merge chapters into existing course directory",)
+    parser.add_option("-P", "--update-policy-file",
+                      action="store_true",
+                      dest="update_policy",
+                      default=False,
+                      help="update policy.json from settings in latex file",)
+    parser.add_option("--suppress-policy-settings",
+                      action="store_true",
+                      dest="suppress_policy",
+                      default=False,
+                      help="suppress policy settings from XML files",)
     (opts, args) = parser.parse_args()
 
     if len(args)<1:
@@ -626,6 +772,8 @@ def CommandLine():
     c = latex2edx(fn, verbose=opts.verbose, output_fn=opts.output_fn,
                   output_dir=opts.output_dir,
                   do_merge=opts.merge,
+                  update_policy=opts.update_policy,
+                  suppress_policy=opts.suppress_policy,
         )
     c.convert()
     
