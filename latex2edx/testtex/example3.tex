@@ -62,13 +62,17 @@ aset = [ 'Chicago',
 
 (ans1,ans2,ans3,ans4) = aset
 
-myhints = [ {'string': ans1, 'hint': 'Too windy'},
+myhints = [ {'string': 'choice_1', 'hint': 'Too windy'},
+            {'string': 'choice_2', 'hint': 'An american classic'},
+            {'string': 'choice_3', 'hint': 'Too old'},
+            {'string': 'choice_4', 'hint': 'Too rainy'},
+            {'debug': True, 'hint': ''},
           ]
   
 \end{edXscript}
 
 \edXabox{type="multichoice"
-  expect='10' 
+  expect='\$ans2' 
   options="\$ans1","\$ans2","\$ans3","\$ans4" 
   hints='myhints'
 }
