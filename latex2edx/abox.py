@@ -114,12 +114,40 @@ class AnswerBox(object):
             <responseparam type="tolerance" default="0.01"/> 
             <textline size="40" math="1" />    
         </formularesponse>
+
+        -----------------------------------------------------------------------------
+        Adaptive hints:
+        
+        define the hints as a dict in an included python script, and give the name
+        of that dict as the parameter "hints".  Works inside customresponse,
+        optionresponse, and multiple choice problems, within latex2edx.
+        
+        latex2edx automatically translates <ed_general_hint_system/> into an import
+        of the general_hint_system.py python code.
+
+        Thus, this input:
+
+        <abox type="custom" expect="(3 * 5) / (2 + 3)" cfn="eq" hints="hint1"/>
+        
+        produces:
+
+        <edx_general_hint_system />
+
+        <script type="text/python">
+        do_hints_for_hint1 = HintSystem(hints=hint1).check_hint
+        </script>
+
+        <customresponse cfn="eq">
+        <textline size="40" correct_answer="(3 * 5) / (2 + 3)"/><br/>
+        <hintgroup hintfn="do_hints_for_hint1">
+        </customresponse>
+
         -----------------------------------------------------------------------------
 
         '''
         self.aboxstr = aboxstr
         self.xml = self.abox2xml(aboxstr)
-        self.xmlstr = etree.tostring(self.xml)
+        self.xmlstr = self.hint_extras + etree.tostring(self.xml)
         
     def abox2xml(self,aboxstr):
         if aboxstr.startswith('abox '): aboxstr = aboxstr[5:]
@@ -390,6 +418,17 @@ class AnswerBox(object):
             hintfn = self.stripquotes(abargs['hintfn'])
             hintgroup = etree.SubElement(abxml,'hintgroup')
             hintgroup.set('hintfn',hintfn)
+
+        # has hint? 
+        hint_extras = ''
+        if 'hints' in abargs:
+            hints = self.stripquotes(abargs['hints'])
+            hintfn = "do_hints_for_%s" % hints
+            hintgroup = etree.SubElement(abxml,'hintgroup')
+            hintgroup.set('hintfn', hintfn)
+            hint_extras = "<edx_general_hint_system />\n"
+            hint_extras += '<script type="text/python">\n%s = HintSystem(hints=%s).check_hint\n</script>\n' % (hintfn, hints)
+        self.hint_extras = hint_extras
 
         s = etree.tostring(abxml,pretty_print=True)
         s = re.sub('(?ms)<html>(.*)</html>','\\1',s)

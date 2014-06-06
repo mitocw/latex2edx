@@ -15,7 +15,7 @@ data_files = [
 
 setup(
     name='latex2edx',
-    version='1.1.10',
+    version='1.2.1',
     author='I. Chuang',
     author_email='ichuang@mit.edu',
     packages=['latex2edx', 'latex2edx.test'],
@@ -39,7 +39,7 @@ setup(
         'http://downloads.sourceforge.net/project/plastex/plastex/rel-0-9-2/plastex-0.9.2.tgz',
         ],
     package_dir={'latex2edx': 'latex2edx'},
-    package_data={ 'latex2edx': ['render/*', 'testtex/*', 'plastexpy/*.py'] },
+    package_data={ 'latex2edx': ['render/*', 'testtex/*', 'plastexpy/*.py', 'python_lib/*.py'] },
     # data_files = data_files,
     test_suite = "latex2edx.test",
 )

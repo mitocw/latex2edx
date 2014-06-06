@@ -6,6 +6,7 @@ import sys
 import optparse
 import urllib
 import py_compile
+import tempfile
 from path import path	# needs path.py
 from lxml import etree
 from plastexit import plastex2xhtml
@@ -98,6 +99,8 @@ class latex2edx(object):
                             self.process_edxxml,
                             self.process_include,
                             self.process_includepy,
+                            self.process_general_hint_system,
+                            self.check_all_python_scripts,
                             ]
         if extra_xml_filters:
             self.fix_filters += extra_xml_filters
@@ -445,7 +448,48 @@ class latex2edx(object):
             p.remove(include)
 
     def process_includepy(self, tree):
+        '''
+        Handle \edXincludepy{script_file.py} inclusion of python scripts.
+        '''
         self.process_include(tree, do_python=True)
+
+    def process_general_hint_system(self, tree):
+        '''
+        Include general_hint_system.py script for problems which have hints specified.
+        '''
+        mydir = os.path.dirname(__file__)
+        libpath = path(os.path.abspath(mydir + '/python_lib'))
+        ghsfn = libpath / 'general_hint_system.py'
+
+        # find all instances of <edx_general_hint_system />, 
+        # but at most one per problem
+
+        for problem in tree.findall('.//problem'):
+            isdone = False
+            for eghs in problem.findall('.//edx_general_hint_system'):
+                incxml = etree.fromstring('<script><![CDATA[\n%s\n]]></script>' % open(ghsfn).read())
+                if not isdone:
+                    eghs.addprevious(incxml)
+                    # print "  added eghs to problem %s" % problem.get('url_name')
+                    isdone = True
+                p = eghs.getparent()
+                p.remove(eghs)
+
+    def check_all_python_scripts(self, tree):
+        '''
+        Run syntax check on all python scripts
+        '''
+        for script in tree.findall('.//script[@type="text/python"]'):
+            pyfile = tempfile.NamedTemporaryFile(mode='w', delete=False)
+            pyfile.write(script.text)
+            pyfile.close()
+            try:
+                py_compile.compile(pyfile.name, doraise=True)
+            except Exception as err:
+                print "Error in python script %s! Err=%s" % (pyfile.name, err)
+                print "Aborting!"
+                sys.exit(0)
+            os.unlink(pyfile.name)
 
     def add_url_names(self, xml):
         '''
