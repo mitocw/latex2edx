@@ -2,7 +2,7 @@
 latex2edx
 =========
 
-This is version 1.1 of the open-source latex2edx compiler for
+This is version 1.2 of the open-source latex2edx compiler for
 generating interactive MITx / edX courses from LaTeX
 
 This system is particularly useful for producing interactive course
@@ -12,6 +12,15 @@ introduction of a basic new macro, the "answer box" \edXabox, which
 defines a mechanism for student input, as well as how that input is to
 be graded. Also introduced are structural macros for defining course
 structure.
+
+Version 1.2 provides, in addition, structured access to the adaptive hint 
+system built into the edX platform, via a generalized hints system. 
+This system allows hints to be provided for custom, multiple-choice,
+option, and numerical response problems, based on student responses.  
+The hint system provided by latex2edx allows authors to specify hints
+via pattern matching, based on matching strings, numerical value ranges,
+mathametical symbols and functions, and arbitrary boolean combinations of
+patterns.
 
 See project homepage: 
 
@@ -55,7 +64,10 @@ Options:
     -c CONFIG_FILE, --config-file=CONFIG_FILE
                           configuration file to load
     -m, --merge-chapters  merge chapters into existing course directory
-
+    -P, --update-policy-file
+                          update policy.json from settings in latex file
+    --suppress-policy-settings
+                          suppress policy settings from XML files
 Example
 =======
 
