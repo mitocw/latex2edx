@@ -43,7 +43,7 @@ response.
 Examples
 --------
 
-= Custom Response Problem with Hints =
+### Custom Response Problem with Hints ###
 
 This example demonstrates a custom response problem, which asks for
 two numbers which sum to 10.  Two different hints are provided,
@@ -88,7 +88,7 @@ and the values giving the rules for that response.
 
     \end{edXproblem}
 
-== Example of logical function of hints ==
+### Example of logical function of hints ###
 
 This example demonstrates how a logical function be applied in a hint
 rule, to cause a match when the logical inverse of a lower-level
@@ -117,8 +117,7 @@ symbol or string is not present in the input.
 
 \end{edXproblem}
 
-Hints in a multiple choice problem
-----------------------------------
+### Hints in a multiple choice problem ###
 
 This example demonstrates a multiple choice problem, which presents
 hints based on which choice the student responds with.
