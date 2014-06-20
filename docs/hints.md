@@ -1,10 +1,12 @@
-=== The General Hints System ===
+The General Hints System
+========================
 
 1. Overview and theory of operation
 2. Examples
 3. Technical specification
 
-== Overview and theory of operation ==
+Overview and theory of operation
+--------------------------------
 
 The edX platform allows hints to be generated for a wide variety of
 problems, including multiple choice, option response, and custom
@@ -38,7 +40,8 @@ simple functional combination of simple matches; for example, a match
 could be triggered when two distinct substrings are matched in the
 response.
 
-== Examples ==
+Examples
+--------
 
 = Custom Response Problem with Hints =
 
@@ -114,7 +117,8 @@ symbol or string is not present in the input.
 
 \end{edXproblem}
 
-= Hints in a multiple choice problem =
+Hints in a multiple choice problem
+----------------------------------
 
 This example demonstrates a multiple choice problem, which presents
 hints based on which choice the student responds with.
@@ -153,7 +157,8 @@ answer box line defining the multiple choice question.
     
     \end{edXproblem}
 
-== Technical specification ==
+Technical specification
+-----------------------
    
 The hint rules may be specified as a list of dictionaries.  Each
 dictionary may include the following key, value pairs:
