@@ -3,7 +3,11 @@ import os
 import re
 import codecs
 from logging import CRITICAL, DEBUG, INFO 
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except:
+    from ordereddict import OrderedDict
+    
 from plasTeX.Renderers import XHTML
 from plasTeX.TeX import TeX
 from plasTeX.Renderers.PageTemplate import Renderer as _Renderer

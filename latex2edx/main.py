@@ -10,7 +10,11 @@ import tempfile
 import urllib
 import xbundle
 
-from collections import OrderedDict
+try:
+    from collections import OrderedDict
+except:
+    from ordereddict import OrderedDict
+
 from path import path	# needs path.py
 from lxml import etree
 from plastexit import plastex2xhtml

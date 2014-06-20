@@ -55,25 +55,30 @@
 #
 # then use ch1 and ch2 as the hintfn in the edX capa problem.
 
+import numpy
+import numbers
+import random
+
 from math import log10
 from functools import partial
 
+from calc import evaluator
 from calc import ParseAugmenter
 
 #-----------------------------------------------------------------------------
-# provide compare_with_tolerance and formula_test, if they could not be imported
+# provide compare_with_tolerance and formula_test (for equation property checking)
 
-if True:
-
-    import numpy
-    import numbers
-    import random
-    # from math import *
-    from calc import evaluator
+class HintFormulaCheck(object):
 
     default_tolerance = '0.01%'
+
+    def __init__(self, tolerance=None, evalfun=None):
+        if tolerance is not None:
+            self.default_tolerance = tolerance
+        self.evalfun = evalfun or evaluator
+        return
     
-    def compare_with_tolerance(complex1, complex2, tolerance=default_tolerance, relative_tolerance=False):
+    def compare_with_tolerance(self, complex1, complex2, tolerance=None, relative_tolerance=False):
         """
         Compare complex1 to complex2 with maximum tolerance tol.
     
@@ -95,6 +100,9 @@ if True:
             In [212]: 1.9e24 - 1.9*10**24
             Out[212]: 268435456.0
         """
+        if tolerance is None:
+            tolerance = self.default_tolerance
+
         def myabs(elem):
             if isinstance(elem, numpy.matrix):
                 return numpy.sum(abs(elem))
@@ -105,10 +113,10 @@ if True:
         if relative_tolerance:
             tolerance = tolerance * max(myabs(complex1), myabs(complex2))
         elif tolerance.endswith('%'):
-            tolerance = evaluator(dict(), dict(), tolerance[:-1]) * 0.01
+            tolerance = self.evalfun(dict(), dict(), tolerance[:-1]) * 0.01
             tolerance = tolerance * max(myabs(complex1), myabs(complex2))
         else:
-            tolerance = evaluator(dict(), dict(), tolerance)
+            tolerance = self.evalfun(dict(), dict(), tolerance)
     
         try:
             if numpy.isinf(complex1).any() or numpy.isinf(complex2).any():
@@ -131,23 +139,22 @@ if True:
             print "err = ", err
             raise
     
-if True:
-    
-    def is_formula_equal(expected, given, samples, cs=True, tolerance='0.01', evalfun=None, cmpfun=None, debug=False):
+    def is_formula_equal(self, expected, given, samples, cs=True, tolerance='0.01', evalfun=None,
+                         cmpfun=None, debug=False):
         '''
-        expected = instructor's expression
-        given = student's expression
+        expected = expression expected by instructor
+        given = expression entered by student
         samples = sample string for numerical checking (see below)
         cs = case_sensitive flag
         tolerance = tolerance specification string
-        evalfun = function for doing evaluation (defaults to using evaluator from calc2)
+        evalfun = function for doing evaluation (defaults to using self.evalfun from calc2)
         cmpfun = comparison function for testing equality (defaults to compare_with_tolerance)
         debug = flag for verbosity of debugging output
     
         samples examples:
     
-        samples="m_I,m_J,I_z,J_z@1,1,1,1:20,20,20,20#50" 
-        samples="J,m,Delta,a,h,x,mu_0,g_I,B_z@0.5,1,1,1,1,1,1,1,1:0.5,20,20,20,20,20,20,20,20#50"
+        samples="m_I,m_J,I_z,J_z@1,1,1,1:20,20,20,20#50"
+        samples="J,m,Delta,a,h,x,mu_0,g_I,B_z@0.5,1,1,1,1,1,1,1,1:0.5,20,20,20,20,20,20,20,20#50" 
     
         matrix sampling:
     
@@ -155,15 +162,14 @@ if True:
     
         complex numbers:
     
-        'x,y,i@[1|2;3|4],[0|2;4|6],0+1j:[5|5;5|5],[8|8;8|8],0+1j#50'
-    
+        "x,y,i@[1|2;3|4],[0|2;4|6],0+1j:[5|5;5|5],[8|8;8|8],0+1j#50"
         '''
+        
         if evalfun is None:
-            evalfun = evaluator
-            #evalfun = EvaluateWithKets
+            evalfun = self.evalfun
         if cmpfun is None:
             def cmpfun(a, b, tol):
-                return compare_with_tolerance(a, b, tol)
+                return self.compare_with_tolerance(a, b, tol)
             
         variables = samples.split('@')[0].split(',')
         numsamples = int(samples.split('@')[1].split('#')[1])
@@ -213,7 +219,7 @@ if True:
                 return False
         return True
     
-    def formula_test(expect, ans, options=None):
+    def check_formula(self, expect, ans, options=None):
         '''
         expect and ans are math expression strings.
         Check for equality using random sampling.
@@ -227,6 +233,7 @@ if True:
     
         note that the different parts of the options string are to be spearated by a bang (!).
         '''
+        #'''
         samples = None
         tolerance = '0.1%'
         acceptable_answers = [expect]
@@ -256,13 +263,10 @@ if True:
         # for debuging
         # return {'ok': False, 'msg': 'ans=%s' % ans}
     
-        # local version - no matrix evaluation
-        matrix_evaluator = evaluator
-
         for acceptable in acceptable_answers:
             try:
-                ok = is_formula_equal(acceptable, ans, samples, cs=True, tolerance=tolerance, evalfun=matrix_evaluator, debug=False)
-                # ok = is_formula_equal(acceptable, ans, samples, cs=True, tolerance=tolerance)
+                ok = self.is_formula_equal(acceptable, ans, samples, cs=True, tolerance=tolerance,
+                                           evalfun=self.evalfun, debug=False)
             except Exception as err:
                 return {'ok': False, 'msg': "Sorry, could not evaluate your expression.  Error %s" % str(err)}
             if ok:
@@ -270,14 +274,16 @@ if True:
     
         return {'ok':ok, 'msg': ''}
     
-#'    
 #-----------------------------------------------------------------------------
 
 class HintSystem(object):
 
     def __init__(self, anum=0, hints=None, verbose_fail=False, 
-               extra_hint_functions=None, color="orange",
-               do_not_catch_exceptions=False):
+                 extra_hint_functions=None, color="orange",
+                 do_not_catch_exceptions=False,
+                 tolerance=None,
+                 evalfun=None,
+                 ):
         '''
         anum = answer_id index number, to base hint off of
         verbose_fail = flag for verbose error messages (bool)
@@ -292,6 +298,7 @@ class HintSystem(object):
         self.hints = hints
         self.color = color
         self.do_not_catch_exceptions = do_not_catch_exceptions
+        self.hfc = HintFormulaCheck(tolerance=tolerance, evalfun=evalfun)
 
     @staticmethod
     def hint_check_unbalanced_parens(ans, term):
@@ -326,9 +333,8 @@ class HintSystem(object):
         '''
         expect, samples = term.split('!')
         options = "samples='%s'" % samples
-        ret = formula_test(expect, ans, options=options)
+        ret = self.hfc.check_formula(expect, ans, options=options)
         return ret['ok']
-    
     
     @staticmethod
     def hint_check_numerical(ans, term):
@@ -350,7 +356,7 @@ class HintSystem(object):
     
         val: check for numerical value of answer matching "term"
     
-        don't worry about errors: those are caught by the caller
+        do not worry about errors: those are caught by the caller
         '''
         if isinstance(term, dict):
             expect = term['expect']
@@ -362,7 +368,7 @@ class HintSystem(object):
             expect = float(eval(expect))
     
         nans = float(eval(ans))
-        ok = compare_with_tolerance(expect, nans, tolerance=tolerance)
+        ok = self.hfc.compare_with_tolerance(expect, nans, tolerance=tolerance)
         if ok:
             return True
         return False
@@ -427,7 +433,7 @@ class HintSystem(object):
     
         search for function used in ans
     
-        don't worry about errors: those are caught by the caller
+        don not worry about errors: those are caught by the caller
         '''
         case_sensitive = True
         # parse expression
