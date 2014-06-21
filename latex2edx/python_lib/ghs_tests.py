@@ -13,6 +13,8 @@ class TestClass(object):
             self.hints[aid] = the_hint
             self.mode = mode
 
+    hfc = HintFormulaCheck()
+
     def test_hint_string_and_eval(self):
         hints = [  {'string': 'H', 
                     'hint': 'Your answer should not have H'
@@ -39,7 +41,7 @@ class TestClass(object):
         expect, samples = 'x+2!x@1:10#20'.split('!')
         options = "samples='%s'" % samples
         ans = 'x+2'
-        ret = formula_test(expect, ans, options=options)
+        ret = self.hfc.check_formula(expect, ans, options=options)
         if not ret['ok']:
             print ret
         assert(ret['ok'])
@@ -93,6 +95,7 @@ class TestClass(object):
 
         answers = ['12*1.04']
         check_hint(aids, answers, ncmap, ocmap)
+        print ncmap.hints
         assert('a hint' in ncmap.hints[0])
 
     def test_hint_val2(self):
@@ -115,6 +118,7 @@ class TestClass(object):
 
         answers = ['1/(16.3*16.3)']
         check_hint(aids, answers, ncmap, ocmap)
+        print ncmap.hints
         assert('factor of two' in ncmap.hints[0])
 
     def test_hint_symbol(self):

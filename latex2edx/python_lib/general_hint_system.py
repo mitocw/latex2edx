@@ -323,8 +323,7 @@ class HintSystem(object):
                         return True
         return len(stack)>0
     
-    @staticmethod
-    def hint_check_formula(ans, term):
+    def hint_check_formula(self, ans, term):
         '''
         ans = student answer
         term = formula to check equality with, as <expr>!<variables>@<lower_range>:<upper_range>#<num_samples>
@@ -348,8 +347,7 @@ class HintSystem(object):
             return False
         return False
 
-    @staticmethod
-    def hint_check_val(ans, term):
+    def hint_check_val(self, ans, term):
         '''
         ans = student answer
         term = search term to look for
