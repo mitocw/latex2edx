@@ -15,7 +15,7 @@ This system allows hints to be provided for custom, multiple-choice,
 option, and numerical response problems, based on student responses.  
 The hint system provided by latex2edx allows authors to specify hints
 via pattern matching, based on matching strings, numerical value ranges,
-mathametical symbols and functions, and arbitrary boolean combinations of
+mathematical symbols and functions, and arbitrary boolean combinations of
 patterns.
 
 Version 1.3 adds documentation, and the edXvideo and edXdiscussion macros.
