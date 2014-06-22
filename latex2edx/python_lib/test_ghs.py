@@ -1,7 +1,7 @@
 from general_hint_system import *
 
 #-----------------------------------------------------------------------------
-# unit tests
+# py.test unit tests
     
 class TestClass(object):
 

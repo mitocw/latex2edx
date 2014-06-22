@@ -83,7 +83,7 @@ class latex2edx(object):
     '''
 
     DescriptorTags = ['course','chapter','sequential','vertical','html','problem','video',
-                      'conditional', 'combinedopenended', 'randomize' ]
+                      'conditional', 'combinedopenended', 'randomize', 'discussion' ]
 
     def __init__(self,
                  fn,
@@ -704,7 +704,7 @@ class latex2edx(object):
         '''
         Convert attrib_string in <problem>, <chapter>, etc. to attributes, intelligently.
         '''
-        TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course', 'html']
+        TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course', 'html', 'video', 'discussion']
         for tag in TAGS:
             for elem in xml.findall('.//%s' % tag):
                 self.do_attrib_string(elem)
@@ -719,7 +719,8 @@ class latex2edx(object):
             for elem in xml.findall('.//%s' % tag):
                 parent = elem.getparent()
                 if parent.tag=='p':
-                    parent.addprevious(elem)		# move <problem> up before <p>
+                    for pcont in parent:
+                        parent.addprevious(pcont)	# move each element in <p> up before <p>
                     parent.getparent().remove(parent)	# remove the <p>
     
 

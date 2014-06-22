@@ -1,9 +1,8 @@
 The General Hints System
 ========================
 
-1. Overview and theory of operation
-2. Examples
-3. Technical specification
+.. toctree::
+   :maxdepth: 4
 
 Overview and theory of operation
 --------------------------------
@@ -43,7 +42,8 @@ response.
 Examples
 --------
 
-### Custom Response Problem with Hints ###
+Custom Response Problem with Hints
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This example demonstrates a custom response problem, which asks for
 two numbers which sum to 10.  Two different hints are provided,
@@ -51,7 +51,7 @@ triggered on independent inputs into the two boxes.
 
 Note that the hint rules are specified by a dictionary, with the keys
 giving the sequential number for the response input box to match to,
-and the values giving the rules for that response.
+and the values giving the rules for that response.::
 
     \begin{edXproblem}{Example problem with hints}{url_name="p1"}
      
@@ -88,12 +88,13 @@ and the values giving the rules for that response.
 
     \end{edXproblem}
 
-### Example of logical function of hints ###
+Example of logical function of hints
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This example demonstrates how a logical function be applied in a hint
 rule, to cause a match when the logical inverse of a lower-level
 matching rule succeeds.  In this case, the match triggers when a
-symbol or string is not present in the input.
+symbol or string is not present in the input.::
 
     \begin{edXproblem}
     
@@ -106,18 +107,19 @@ symbol or string is not present in the input.
     \end{edXscript}
     
     \edXinline{Alice's state $|\psi'_{A,0}\>$ when Bob measures $k=0$:} 
-    % \edXabox{type="custom" size=30 expect="[1, 0]"  cfn="sympy_formula_check" inline="1"}
       \edXabox{type="custom" 
         expect="|0>" 
         cfn="ket_formula_check" 
         options="samples='phi@1:10*10'"
         math="1" 
+        hints='myhints'
         size="60"
         inline="1"}
 
-\end{edXproblem}
+    \end{edXproblem}
 
-### Hints in a multiple choice problem ###
+Hints in a multiple choice problem
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This example demonstrates a multiple choice problem, which presents
 hints based on which choice the student responds with.
@@ -132,7 +134,7 @@ display when the match is found.
 
 The hint rules are bound to a variable named "myhints", and that
 variable name is specified by the "hints" attribute in the \edXabox
-answer box line defining the multiple choice question.
+answer box line defining the multiple choice question.::
 
     \begin{edXproblem}{Example multiple choice problem with hints}{url_name="p2"}
      

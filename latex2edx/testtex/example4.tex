@@ -1,0 +1,38 @@
+%
+% File:   example4.tex
+%
+% test edXvideo and edXdiscussion
+% 
+
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl}	% edX
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{edXcourse}{1.00x}{1.00x Fall 2013}[url_name=2013_Fall showanswer=always start=2014-05-11T12:00]
+\begin{edXchapter}{Unit 2}[start="2013-11-22"]
+\begin{edXsection}{A second section}[due="2016-11-22" graded=true]
+
+\edXvideo{A sample video}{u23ZUSu7-HY}[source=test]
+
+\begin{edXproblem}{Example problem with hints}{url_name="p1"}
+ 
+What is $3+7$?
+
+\edXabox{type="numerical" expect="10"}
+
+\end{edXproblem}
+
+\edXdiscussion{Discuss this question}{forumid=discuss2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{edXsection}
+\end{edXchapter}
+\end{edXcourse}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

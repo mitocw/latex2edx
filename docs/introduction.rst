@@ -1,9 +1,5 @@
-=========
-latex2edx
-=========
-
-This is version 1.3 of the open-source latex2edx compiler for
-generating interactive MITx / edX courses from LaTeX
+Introduction
+============
 
 This system is particularly useful for producing interactive course
 content where the expressive power of LaTeX is helpful, e.g. with
@@ -28,33 +24,12 @@ See project homepage:
 
    https://people.csail.mit.edu/ichuang/edx/latex2edx
 
-Requirements
-============
-
-* python 2.7
-* python-lxml
-* beautifulsoup
-
-Installation
-============
-
-Install using this command:
-
-    pip install -e git+https://github.com/mitocw/latex2edx.git#egg=latex2edx
-
-Note that xmllint and lxml are required; for ubuntu, this may work:
-
-    apt-get install libxml2-utils python-lxml
-
-PlasTeX (http://plastex.sourceforge.net/) is also required, but should
-be installed automatically by the pip install.
-
 Usage
-=====
+-----
 
 Usage: latex2edx [options] filename.tex
 
-Options:
+Options::
 
     --version             show program's version number and exit
     -h, --help            show this help message and exit
@@ -70,14 +45,15 @@ Options:
                           update policy.json from settings in latex file
     --suppress-policy-settings
                           suppress policy settings from XML files
-Example
-=======
+
+Quick Example
+-------------
 
 See live demo course: https://edge.edx.org/courses/MITx/MIT.latex2edx/2014_Spring/about
 
 The source code for the demo course is here: https://github.com/mitocw/content-mit-latex2edx-demo
 
-Here is an annotated input tex file which generates the source for an edX course:
+Here is an annotated input tex file which generates the source for an edX course::
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     \documentclass[12pt]{article}
@@ -115,26 +91,4 @@ Here is an annotated input tex file which generates the source for an edX course
     \end{document}
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-History
-=======
-
-* v1.0: python package; unit tests; xbundle and modular code
-* v1.1.0: Support for jsinput, custom mathjax filtering, formularesponse
-*     .1: Fix optargs bug with plastex
-*     .2: Allow spaces in semester; give example in README
-*     .3: Fix bug in eqnarray table widths
-*     .4: Fix showhide to work under firefox
-*     .5: Allow multiple correct answers in multichoice
-*     .6: Add \edXgitlink for link to specific line in source file
-*     .7: Add \edXaskta for "Ask TA!" buttons
-*     .8: bugfix for edxxml
-*     .9: Allow \edXtext to have attributes option, eg \begin{edXtext}{My Name}[url_name=text_url_name]
-*    .10: check imported python scripts for syntax errors
-* v1.2.0: General hint system for problems
-*     .1: All python scripts syntax checked
-*     .2: New option -P for generating policy.json from tex; handles, e.g. start, end, due, graded
-* v1.3.0: Add documentation, abox unit tests, edXvideo, edXdiscussion
-
-
 

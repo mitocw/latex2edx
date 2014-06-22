@@ -97,3 +97,4 @@ History
 * v1.2.0: General hint system for problems
 *     .1: All python scripts syntax checked
 *     .2: New option -P for generating policy.json from tex; handles, e.g. start, end, due, graded
+* v1.3.0: Add documentation, abox unit tests, edXvideo, edXdiscussion

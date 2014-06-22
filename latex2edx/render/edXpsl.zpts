@@ -59,7 +59,10 @@ name: edXxml
 <edxxml tal:content='self/source'></edxxml>
 
 name: edXvideo
-<video tal:content='self'></video>
+<video tal:attributes='display_name self/attributes/display_name; youtube_id_1_0 string:${self/attributes/youtube}; attrib_string self/attributes/attrib_string' tal:content='self'></video>
+
+name: edXdiscussion
+<discussion tal:attributes='display_name self/attributes/display_name; attrib_string self/attributes/attrib_string' tal:content='self'></discussion>
 
 name: includegraphics
 <includegraphics tal:attributes="style string:${self/attributes/width}" tal:content='self'></includegraphics>

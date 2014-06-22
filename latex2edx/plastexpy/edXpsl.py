@@ -32,7 +32,11 @@ class edXbr(Base.Command):
     args = 'self'
 
 class edXvideo(Base.Command):
-    args = 'self'
+    args = '{ display_name } { youtube } [ attrib_string ] self'
+    # args = 'self'
+
+class edXdiscussion(Base.Command):
+    args = '{ display_name } { attrib_string } self'
 
 class includegraphics(Base.Command):
     args = '[ width ] self'

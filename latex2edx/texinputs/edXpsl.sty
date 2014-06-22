@@ -4,14 +4,23 @@
 %
 
 \usepackage{verbatim}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{url}
+\let\vurl\url
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{indentfirst}
 
-\newenvironment{edXcourse}[2][\unskip]{{\noindent\Large\bf edX Course: #1}~\\}{}
-\newenvironment{edXchapter}[1]{\section{#1}}{}
-\newenvironment{edXsection}[1]{\subsection{#1}}{}
-\newenvironment{edXsequential}{}{}
-\newenvironment{edXvertical}[1]{}{}
-\newenvironment{edXshowhide}[1]{\begin{quote}{{\bf Showhide: #1}}}{\end{quote}}
-\newenvironment{edXscript}{\verbatim}{\endverbatim}
+\usepackage{xparse}
+
+% edX commands understood by latex2edx.py
+\NewDocumentEnvironment{edXcourse}{m m o}{{\noindent\Large\bf edX Course: {#1}} \hfill Display Name: \texttt{#2}}{}
+\NewDocumentEnvironment{edXchapter}{m o}{\section{#1}}{}
+\NewDocumentEnvironment{edXsequential}{m o}{\subsection{#1}}{}
+\NewDocumentEnvironment{edXvertical}{m o}{\subsection*{#1}\vspace{-2mm}}{}
+\NewDocumentEnvironment{edXshowhide}{m m o}{\begin{quote}{{\bf Showhide: #2 (ID: #1):}}}{\end{quote}}
+\newenvironment{edXscript}{\noindent \underline{\texttt{Python code:}} \verbatim}{\endverbatim}
 \newenvironment{edXanswer}{\verbatim}{\endverbatim}
 \newenvironment{edXjavascript}{\verbatim}{\endverbatim}
 \newenvironment{edXproblem}[2]{\subsubsection{{\bf #1}}}{}
@@ -19,12 +28,29 @@
 \newenvironment{edXmath}{$$}{$$}
 \newcommand\edXsolution[1]{#1}
 \newcommand\edXinline[1]{#1}
-\newcommand\edXinclude[1]{}
+\newcommand\edXinclude[1]{\texttt{#1}}
 \newcommand\edXincludepy[1]{}
-\newcommand\edXxml[1]{}
+\newcommand\edXxml[1]{\texttt{#1}}
 \newcommand\edXbr[1]{\par}
-\newcommand\edXvideo[1]{}
-%\newcommand\edXabox[1]{\fbox{#1}}
+%\newcommand\edXabox[1]{\fbox{\parbox{0.9\hsize}{\urlstyle{tt} \vurl{#1}}}}
 \newcommand\edXabox[1]{ANSWER BOX HERE}
 
-\usepackage{graphicx}
+\renewcommand\texttt[1]{\urlstyle{tt} \vurl{#1}}
+
+% Create header on every page
+\RequirePackage[left=1in,right=1in,top=0.8in,bottom=1.4in]{geometry}
+\RequirePackage{fancyhdr}
+\fancypagestyle{203x}{
+\setlength{\voffset}{0.6in}
+\setlength{\textheight}{8in}
+\setlength{\parskip}{0.2pc}
+\fancyhead{}
+\headheight = 3.6pc
+\chead{\hrule\vspace{0.3pc}
+{\fontsize{10}{12}{\scshape 2.03x Fall 2014: Dynamics I} \hfill \LaTeX\ {\bf edX Course}}\\[-3ex]
+\vspace{12pt}
+{\fontsize{10}{12}{\scshape Massachusetts Institute of Technology} \hfill {\bf Development}}\\[-3ex]
+\vspace{12pt}
+{\fontsize{10}{12}{\scshape Department of Mechanical Engineering} \hfill {\bf Eric Heubel}}}
+}
+\pagestyle{203x}
