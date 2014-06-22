@@ -28,37 +28,148 @@
     <div id="content-wrapper">
       <div class="inner clearfix">
         <section id="main-content">
-          <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+          <h1></h1>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<h1>
+<a name="latex2edx" class="anchor" href="#latex2edx"><span class="octicon octicon-link"></span></a>latex2edx</h1>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+<p>This is version 1.2 of the open-source latex2edx compiler for
+generating interactive MITx / edX courses from LaTeX</p>
+
+<p>This system is particularly useful for producing interactive course
+content where the expressive power of LaTeX is helpful, e.g. with
+math, physics, CS content. latex2edx provides interactivity via the
+introduction of a basic new macro, the "answer box" \edXabox, which
+defines a mechanism for student input, as well as how that input is to
+be graded. Also introduced are structural macros for defining course
+structure.</p>
+
+<p>Version 1.2 provides, in addition, structured access to the adaptive hint 
+system built into the edX platform, via a generalized hints system. 
+This system allows hints to be provided for custom, multiple-choice,
+option, and numerical response problems, based on student responses.<br>
+The hint system provided by latex2edx allows authors to specify hints
+via pattern matching, based on matching strings, numerical value ranges,
+mathametical symbols and functions, and arbitrary boolean combinations of
+patterns.</p>
+
+<p>See project homepage: </p>
+
+<p><a href="https://people.csail.mit.edu/ichuang/edx/latex2edx">https://people.csail.mit.edu/ichuang/edx/latex2edx</a></p>
+
+<h1>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h1>
+
+<ul>
+<li>python 2.7</li>
+<li>python-lxml</li>
+<li>beautifulsoup</li>
+</ul><h1>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h1>
+
+<p>Install using this command:</p>
+
+<pre><code>pip install -e git+https://github.com/mitocw/latex2edx.git#egg=latex2edx
 </code></pre>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<p>Note that xmllint and lxml are required; for ubuntu, this may work:</p>
 
-<h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<pre><code>apt-get install libxml2-utils python-lxml
+</code></pre>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p>PlasTeX (<a href="http://plastex.sourceforge.net/">http://plastex.sourceforge.net/</a>) is also required, but should
+be installed automatically by the pip install.</p>
 
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
+<h1>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h1>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p>Usage: latex2edx [options] filename.tex</p>
 
-<h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<p>Options:</p>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<pre><code>--version             show program's version number and exit
+-h, --help            show this help message and exit
+-v, --verbose         verbose error messages
+-o OUTPUT_FN, --output-xbundle=OUTPUT_FN
+                      Filename for output xbundle file
+-d OUTPUT_DIR, --output-directory=OUTPUT_DIR
+                      Directory name for output course XML files
+-c CONFIG_FILE, --config-file=CONFIG_FILE
+                      configuration file to load
+-m, --merge-chapters  merge chapters into existing course directory
+-P, --update-policy-file
+                      update policy.json from settings in latex file
+--suppress-policy-settings
+                      suppress policy settings from XML files
+</code></pre>
 
-<h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+<h1>
+<a name="example" class="anchor" href="#example"><span class="octicon octicon-link"></span></a>Example</h1>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
+<p>See live demo course: <a href="https://edge.edx.org/courses/MITx/MIT.latex2edx/2014_Spring/about">https://edge.edx.org/courses/MITx/MIT.latex2edx/2014_Spring/about</a></p>
+
+<p>The source code for the demo course is here: <a href="https://github.com/mitocw/content-mit-latex2edx-demo">https://github.com/mitocw/content-mit-latex2edx-demo</a></p>
+
+<p>Here is an annotated input tex file which generates the source for an edX course:</p>
+
+<pre><code>%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl} % edX "problem specification language"
+
+\begin{document}
+
+% edXcourse: {course_number}{course display_name}[optional arguments like semester]
+\begin{edXcourse}{MIT.latex2edx}{latex2edx demo course}[semester="2014 Spring"]
+
+% edXchapter: {chapter display_name}[optional arguments like url_name]
+\begin{edXchapter}{Basic examples}
+
+% edXsection: {section display_name}[optional arguments like url_name]
+% this turns into a &lt;sequential&gt; in the XML
+\begin{edXsection}{Basic example problems}
+
+% edXvertical: {vertical display_name}[optional arguments like url_name]
+\begin{edXvertical}
+
+% edXproblem: {problem display_name}{attributes: url_name, weight, attempts}
+\begin{edXproblem}{Numerical response}{attempts=10}
+
+What is the numerical value of $\pi$?
+
+% \edXabox: answer box, specifying question type and expected response
+\edXabox{expect="3.14159" type="numerical" tolerance='0.01' }
+
+\end{edXproblem}
+\end{edXvertical}
+\end{edXsection}
+\end{edXchapter}
+\end{edXcourse}
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+</code></pre>
+
+<h1>
+<a name="history" class="anchor" href="#history"><span class="octicon octicon-link"></span></a>History</h1>
+
+<ul>
+<li>v1.0: python package; unit tests; xbundle and modular code</li>
+<li>v1.1.0: Support for jsinput, custom mathjax filtering, formularesponse</li>
+<li>    .1: Fix optargs bug with plastex</li>
+<li>    .2: Allow spaces in semester; give example in README</li>
+<li>    .3: Fix bug in eqnarray table widths</li>
+<li>    .4: Fix showhide to work under firefox</li>
+<li>    .5: Allow multiple correct answers in multichoice</li>
+<li>    .6: Add \edXgitlink for link to specific line in source file</li>
+<li>    .7: Add \edXaskta for "Ask TA!" buttons</li>
+<li>    .8: bugfix for edxxml</li>
+<li>    .9: Allow \edXtext to have attributes option, eg \begin{edXtext}{My Name}[url_name=text_url_name]</li>
+<li>   .10: check imported python scripts for syntax errors</li>
+<li>v1.2.0: General hint system for problems</li>
+<li>    .1: All python scripts syntax checked</li>
+<li>    .2: New option -P for generating policy.json from tex; handles, e.g. start, end, due, graded</li>
+</ul>
         </section>
 
         <aside id="sidebar">
