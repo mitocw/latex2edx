@@ -1,9 +1,10 @@
-=========
 latex2edx
 =========
 
 This is version 1.3 of the open-source latex2edx compiler for
 generating interactive MITx / edX courses from LaTeX
+
+![latex2edx logo](Https://raw.github.com/mitocw/latex2edx/master/docs/images/latex2edx-logo.png)
 
 This system is particularly useful for producing interactive course
 content where the expressive power of LaTeX is helpful, e.g. with
