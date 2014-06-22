@@ -6,6 +6,14 @@ Converts latex to edX XML format.
 
 Uses plasTeX
 
+Detailed documentation:
+
+   http://mitocw.github.io/latex2edx/html/index.html
+
+Project homepage: 
+
+   https://people.csail.mit.edu/ichuang/edx/latex2edx
+
 Installation
 ============
 

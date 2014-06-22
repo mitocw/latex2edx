@@ -28,6 +28,11 @@ See project homepage:
 
    https://people.csail.mit.edu/ichuang/edx/latex2edx
 
+and detailed documentation:
+
+   http://mitocw.github.io/latex2edx/html/index.html
+
+
 Requirements
 ============
 
