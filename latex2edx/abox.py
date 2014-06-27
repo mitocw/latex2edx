@@ -294,8 +294,13 @@ class AnswerBox(object):
 
             cnt = 0
             for ans, prompt in zip(answers,prompts):
-                tl = etree.Element('textline')
-                self.copy_attrib(abargs,'size',tl)
+                if 'rows' in abargs:
+                    tl = etree.Element('textbox')
+                    self.copy_attrib(abargs,'rows',tl)
+                    self.copy_attrib(abargs,'cols',tl)
+                else:
+                    tl = etree.Element('textline')
+                    self.copy_attrib(abargs,'size',tl)
                 tl.set('correct_answer',ans)
                 self.copy_attrib(abargs,'inline',tl)
                 self.copy_attrib(abargs,'math',tl)
@@ -641,7 +646,7 @@ def test_custom1():
     assert('<p style="display:inline">y =<textline correct_answer="9" inline="1"/></p>' in xmlstr)
     assert('<br/>' in xmlstr)
 
-def test_custom1():
+def test_custom2():
     abox = AnswerBox('''expect="" type="jsinput" cfn="test_findep" 
       width="650"
       height="555"
@@ -653,3 +658,14 @@ def test_custom1():
     print xmlstr
     assert('<customresponse cfn="test_findep" expect="">' in xmlstr)
     assert('<jsinput width="650" height="555" gradefn="getinput" get_statefn="getstate" set_statefn="setstate" html_file="/static/html/ps3plot_btran1.html"/>' in xmlstr)
+
+def test_custom3():
+    abox = AnswerBox('''expect="test"
+      rows=30 cols=80
+      type="custom"
+      cfn="sumtest"
+      inline="1" ''')
+    xmlstr = abox.xmlstr
+    print xmlstr
+    assert('<customresponse cfn="sumtest" inline="1" expect="test">' in xmlstr)
+    assert('<textbox rows="30" cols="80" correct_answer="test" inline="1"/>' in xmlstr)
