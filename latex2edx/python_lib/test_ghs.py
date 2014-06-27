@@ -100,6 +100,7 @@ class TestClass(object):
 
     def test_hint_string2(self):
         hints = [  {'string': {'regexp': 'ab.*cd'}, 'hint': 'a hint' },
+                   {'string': {'nospaces': 'xyz'}, 'hint': 'another hint' },
                ]
         HS = HintSystem(hints=hints)
         check_hint = HS.check_hint
@@ -115,6 +116,11 @@ class TestClass(object):
         check_hint(aids, answers, ncmap, ocmap)
         print ncmap.hints
         assert('a hint' in ncmap.hints[0])
+
+        answers = ['asdx y  zbb']
+        check_hint(aids, answers, ncmap, ocmap)
+        print ncmap.hints
+        assert('another hint' in ncmap.hints[0])
 
     def test_hint_val2(self):
         anum0 = 1/((2*16.3)**2)

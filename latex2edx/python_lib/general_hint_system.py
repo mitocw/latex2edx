@@ -410,7 +410,7 @@ class HintSystem(object):
             if 'regexp' in term:
                 return (re.search(term['regexp'], ans) is not None)
             elif 'nospaces' in term:
-                return (term in ans.replace(' ',''))
+                return (term['nospaces'] in ans.replace(' ',''))
         return ans.count(term)
     
     
