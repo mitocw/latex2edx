@@ -142,6 +142,7 @@ class latex2edx(object):
                             self.fix_attrib_string,
                             self.add_url_names,
                             self.fix_table,
+                            self.fix_table_p,
                             self.fix_latex_minipage_div,
                             self.process_edxcite,
                             self.process_askta,
@@ -317,6 +318,23 @@ class latex2edx(object):
                     newstyle += '; '
                 newstyle += 'border:none'
                 td.set('style', newstyle)
+
+    @staticmethod
+    def fix_table_p(tree):
+        '''
+        Force "tabular" tables to not have <p> as top-level within <td>.  
+        Those <p> mess up table spacing.
+        '''
+        for table in tree.findall('.//table[@class="tabular"]'):
+            for td in table.findall('.//td'):
+                if not len(td):
+                    continue
+                tdtop = td[0]
+                if tdtop.tag=='p':
+                    for elem in tdtop:
+                        tdtop.addprevious(elem)
+                td.text = (td.text or '') + tdtop.text
+                td.remove(tdtop)
 
     @staticmethod
     def fix_latex_minipage_div(tree):
@@ -496,7 +514,7 @@ class latex2edx(object):
             # move from xml to parent
             for child in xml:
                 where2add.addprevious(child)
-                p.remove(todrop)
+            p.remove(todrop)
 
     def process_edxxml(self, tree):
         '''
