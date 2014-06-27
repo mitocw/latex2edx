@@ -166,6 +166,9 @@ dictionary may include the following key, value pairs:
 
 *    hint    - string to display when the hint rule matches
 *    string  - match on string present for in the student's answer
+               value = string 
+               value = {'regexp': regular-expression-string }
+               value = {'nospaces': string-to-match-in-answer-after-spaces-removed-from-answer}
 *    symbol  - match on math symbol in the answer
      func    - match on math function in the answer
      isnum   - match on answer being numerical (value ignored)
