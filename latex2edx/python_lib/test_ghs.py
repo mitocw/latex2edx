@@ -98,6 +98,24 @@ class TestClass(object):
         print ncmap.hints
         assert('a hint' in ncmap.hints[0])
 
+    def test_hint_string2(self):
+        hints = [  {'string': {'regexp': 'ab.*cd'}, 'hint': 'a hint' },
+               ]
+        HS = HintSystem(hints=hints)
+        check_hint = HS.check_hint
+        HS.verbose_fail = False
+        aids = [0]
+        answers = ['Hello']
+        ncmap = self.correct_map()
+        ocmap = self.correct_map()
+        check_hint(aids, answers, ncmap, ocmap)
+        assert(len(ncmap.hints)==0)
+
+        answers = ['cxab syy cd13']
+        check_hint(aids, answers, ncmap, ocmap)
+        print ncmap.hints
+        assert('a hint' in ncmap.hints[0])
+
     def test_hint_val2(self):
         anum0 = 1/((2*16.3)**2)
 

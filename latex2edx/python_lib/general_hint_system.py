@@ -55,6 +55,7 @@
 #
 # then use ch1 and ch2 as the hintfn in the edX capa problem.
 
+import re
 import numpy
 import numbers
 import random
@@ -393,13 +394,23 @@ class HintSystem(object):
     @staticmethod
     def hint_check_string(ans, term):
         '''
+        string: search for string in ans
+
         ans = student answer
         term = search term to look for
-    
-        string: search for string in ans
+
+        if term is a dict, it can contain these keys:
+           
+           - regexp: value = regular expression to match
+           - nospaces: value = string to look for in answer (after all spaces removed from ans)
     
         don't worry about errors: those are caught by the caller
         '''
+        if isinstance(term, dict):
+            if 'regexp' in term:
+                return (re.search(term['regexp'], ans) is not None)
+            elif 'nospaces' in term:
+                return (term in ans.replace(' ',''))
         return ans.count(term)
     
     
