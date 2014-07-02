@@ -727,9 +727,10 @@ Example::
 edXdndtex
 ^^^^^^^^^
 
-This macro causes the specified latex2dnd tex file to be included at the point
-where the macro is located.  The tex file will automatically be compiled, using
-latex2dnd (https://github.com/mitocw/latex2dnd), to generate the XML and images
+This macro causes the specified latex2dnd ("drag-and-drop") tex file
+to be included at the point where the macro is located.  The tex file
+will automatically be compiled, using latex2dnd
+(https://github.com/mitocw/latex2dnd), to generate the XML and images
 needed for the drag-and-drop problem.
 
 .. image:: images/dnd-problem.png
