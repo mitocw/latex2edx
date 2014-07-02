@@ -75,7 +75,7 @@ patterns.</p>
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <p>Usage: latex2edx [options] filename.tex</p>
 <p>Options:</p>
-<div class="highlight-python"><pre>--version             show program's version number and exit
+<div class="highlight-python"><div class="highlight"><pre>--version             show program&#39;s version number and exit
 -h, --help            show this help message and exit
 -v, --verbose         verbose error messages
 -o OUTPUT_FN, --output-xbundle=OUTPUT_FN
@@ -88,7 +88,8 @@ patterns.</p>
 -P, --update-policy-file
                       update policy.json from settings in latex file
 --suppress-policy-settings
-                      suppress policy settings from XML files</pre>
+                      suppress policy settings from XML files
+</pre></div>
 </div>
 </div>
 <div class="section" id="quick-example">
@@ -96,15 +97,15 @@ patterns.</p>
 <p>See live demo course: <a class="reference external" href="https://edge.edx.org/courses/MITx/MIT.latex2edx/2014_Spring/about">https://edge.edx.org/courses/MITx/MIT.latex2edx/2014_Spring/about</a></p>
 <p>The source code for the demo course is here: <a class="reference external" href="https://github.com/mitocw/content-mit-latex2edx-demo">https://github.com/mitocw/content-mit-latex2edx-demo</a></p>
 <p>Here is an annotated input tex file which generates the source for an edX course:</p>
-<div class="highlight-python"><pre>%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+<div class="highlight-python"><div class="highlight"><pre>%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[12pt]{article}
 
-\usepackage{edXpsl} % edX "problem specification language"
+\usepackage{edXpsl} % edX &quot;problem specification language&quot;
 
 \begin{document}
 
 % edXcourse: {course_number}{course display_name}[optional arguments like semester]
-\begin{edXcourse}{MIT.latex2edx}{latex2edx demo course}[semester="2014 Spring"]
+\begin{edXcourse}{MIT.latex2edx}{latex2edx demo course}[semester=&quot;2014 Spring&quot;]
 
 % edXchapter: {chapter display_name}[optional arguments like url_name]
 \begin{edXchapter}{Basic examples}
@@ -122,7 +123,7 @@ patterns.</p>
 What is the numerical value of $\pi$?
 
 % \edXabox: answer box, specifying question type and expected response
-\edXabox{expect="3.14159" type="numerical" tolerance='0.01' }
+\edXabox{expect=&quot;3.14159&quot; type=&quot;numerical&quot; tolerance=&#39;0.01&#39; }
 
 \end{edXproblem}
 \end{edXvertical}
@@ -131,7 +132,8 @@ What is the numerical value of $\pi$?
 \end{edXcourse}
 \end{document}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</pre>
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+</pre></div>
 </div>
 </div>
 </div>
@@ -196,7 +198,7 @@ What is the numerical value of $\pi$?
     </div>
     <div class="footer">
         &copy; Copyright 2014, I. Chuang.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>
