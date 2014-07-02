@@ -15,7 +15,7 @@ data_files = [
 
 setup(
     name='latex2edx',
-    version='1.3.0',
+    version='1.3.1',
     author='I. Chuang',
     author_email='ichuang@mit.edu',
     packages=['latex2edx', 'latex2edx.test'],
@@ -34,6 +34,7 @@ setup(
                       'path.py',
                       'plastex',
                       'beautifulsoup',
+                      'latex2dnd',
                       ],
     dependency_links = [
         'http://downloads.sourceforge.net/project/plastex/plastex/rel-0-9-2/plastex-0.9.2.tgz',

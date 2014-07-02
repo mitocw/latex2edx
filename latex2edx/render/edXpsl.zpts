@@ -40,6 +40,9 @@ name: edXinclude
 name: edXincludepy
 <edxincludepy tal:content='self'></edxincludepy>
 
+name: edXdndtex
+<edxdndtex tal:attributes="linenum string:${self/attributes/linenum}; attrib_string self/attributes/attrib_string" tal:content='self'></edxdndtex>
+
 name: edXsolution
 <solution><font color="blue">Answer: </font><font color="blue" tal:content='self'></font></solution>
 

@@ -50,6 +50,14 @@ class edXinclude(Base.Command):		# include external XML file
 class edXincludepy(Base.Command):		# include external python file (puts inside <script>)
     args = 'self'
 
+class edXdndtex(Base.Command):		# insert external drag-and-drop problem (should point to latex2dnd tex file)
+    args = '[ attrib_string ] self'
+    def invoke(self, tex):
+        Command.invoke(self, tex)
+        self.attributes['filename'] = tex.filename
+        self.attributes['linenum'] = tex.lineNumber
+        print "  --> edXdndtex in %s: dndtex=%s, line=%s" % (tex.filename, self.attributes['self'], tex.lineNumber)
+
 class edXshowhide(Base.Environment):	# block of text to be hidden by default, but with clickable "show"
     args = ' { id } { description } self'
 

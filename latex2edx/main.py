@@ -148,6 +148,7 @@ class latex2edx(object):
                             self.process_askta,
                             self.process_showhide,
                             self.process_edxxml,
+                            self.process_dndtex,	# must come before process_include
                             self.process_include,
                             self.process_includepy,
                             self.process_general_hint_system,
@@ -567,14 +568,18 @@ class latex2edx(object):
             incfn = include.text
             if incfn is None:
                 print "Error: %s must specify file to include!" % cmd
-                print "See xhtml source line %s" % getattr(include,'sourceline','<unavailable>')
+                print "See xhtml source line %s" % getattr(include,'linenum','<unavailable>')
                 raise
             incfn = incfn.strip()
+            if not os.path.exists(incfn):
+                print "Error: include file %s does not exist!" % incfn
+                print "See xhtml source line %s" % getattr(include,'linenum','<unavailable>')
+                raise
             try:
                 incdata = open(incfn).read()
             except Exception, err:
                 print "Error %s: cannot open include file %s to read" % (err,incfn)
-                print "See xhtml source line %s" % getattr(include,'sourceline','<unavailable>')
+                print "See xhtml source line %s" % getattr(include,'linenum','<unavailable>')
                 raise
 
             # if python script, then check its syntax
@@ -610,6 +615,85 @@ class latex2edx(object):
         Handle \edXincludepy{script_file.py} inclusion of python scripts.
         '''
         self.process_include(tree, do_python=True)
+
+    def process_dndtex(self, tree):
+        '''
+        Handle \edXdndtex{dnd_file.tex} inclusion of latex2dnd tex inputs.
+        '''
+        tag = './/edxdndtex'
+        for dndxml in tree.findall(tag):
+            dndfn = dndxml.text
+            if dndfn is None:
+                print "Error: %s must specify dnd tex filename!" % cmd
+                print "See xhtml source line %s" % getattr(dndxml,'linenum','<unavailable>')
+                raise
+            dndfn = dndfn.strip()
+            if not dndfn.endswith('.tex'):
+                print "Error: dnd file %s should be a .tex file!" % dndfn
+                print "See xhtml source line %s" % getattr(dndxml,'linenum','<unavailable>')
+                raise
+            if not os.path.exists(dndfn):
+                print "Error: dnd tex file %s does not exist!" % dndfn
+                print "See xhtml source line %s" % getattr(dndxml,'linenum','<unavailable>')
+                raise
+            try:
+                dndsrc = open(dndfn).read()
+            except Exception, err:
+                print "Error %s: cannot open dnd tex file %s to read" % (err,dndfn)
+                print "See xhtml source line %s" % getattr(dndxml,'linenum','<unavailable>')
+                raise
+
+            # Use latex2dnd to compile dnd tex into edX XML.
+            # 
+            # For dndfile.tex, at least two files must be produced: dndfile_dnd.xml and 
+            # dndfile_dnd.png
+            #
+            # we copy all the *.png files to static/images/<dndfile>/
+            #
+            # run latex2dnd only when the dndfile_dnd.xml file is older than dndfile.tex
+
+            fnb = os.path.basename(dndfn)
+            fnpre = fnb[:-4]
+            fndir = path(os.path.dirname(dndfn))
+            xmlfn = fndir / (fnpre + '_dnd.xml')
+
+            run_latex2dnd = False
+            if not os.path.exists(xmlfn):
+                run_latex2dnd = True
+            if not run_latex2dnd:
+                dndmt = os.path.getmtime(dndfn)
+                xmlmt = os.path.getmtime(xmlfn)
+                if dndmt > xmlmt:
+                    run_latex2dnd = True
+            if run_latex2dnd:
+                options = ''
+                if dndxml.get('can_reuse', False):
+                    options += '-C'
+                cmd = 'cd "%s"; latex2dnd -r %s -v %s %s.tex' % (fndir, dndxml.get('resolution', 210), options, fnpre)
+                print "--> Running %s" % cmd
+                sys.stdout.flush()
+                status = os.system(cmd)
+                if status:
+                    print "Oops - latex2dnd apparently failed - aborting!"
+                    raise
+                imdir = self.output_dir / ('static/images/%s' % fnpre)
+                os.system('mkdir -p %s' % imdir)
+                cmd = "cp %s/%s*.png %s/" % (fndir, fnpre, imdir)
+                print "----> Copying dnd images: %s" % cmd
+                sys.stdout.flush()
+                status = os.system(cmd)
+                if status:
+                    print "Oops - copying images from latex2dnd apparently failed - aborting!"
+                    raise
+            else:
+                print "--> latex2dnd XML file %s is up to date: %s" % (xmlfn, fnpre)
+
+            # change dndtex tag to become include
+            # change filename to become dndfile_dnd.xml
+            # this will trigger an include of that XML in process_include, which happens after this filter
+
+            dndxml.tag = 'edxinclude'
+            dndxml.text = xmlfn
 
     def process_general_hint_system(self, tree):
         '''
@@ -722,7 +806,7 @@ class latex2edx(object):
         '''
         Convert attrib_string in <problem>, <chapter>, etc. to attributes, intelligently.
         '''
-        TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course', 'html', 'video', 'discussion']
+        TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course', 'html', 'video', 'discussion', 'edxdndtex']
         for tag in TAGS:
             for elem in xml.findall('.//%s' % tag):
                 self.do_attrib_string(elem)

@@ -674,6 +674,7 @@ edXscript     Environment None
 edXshowhide   Environment { id }{ description }
 edXgitlink    Command     { git_url_root } { Label }
 edXinline     Command     { text }
+edXdndtex     Command     [attributes]{ filename }
 edXinclude    Command     { filename }
 edXincludepy  Command     { filename }
 edXaskta      Command     { arguments }
@@ -722,6 +723,33 @@ Example::
     
     \end{edXscript}
     
+
+edXdndtex
+^^^^^^^^^
+
+This macro causes the specified latex2dnd tex file to be included at the point
+where the macro is located.  The tex file will automatically be compiled, using
+latex2dnd (https://github.com/mitocw/latex2dnd), to generate the XML and images
+needed for the drag-and-drop problem.
+
+Allowed attributes for ``edXdndtex`` include:
+
+========== =========================================================================
+Key        Value
+========== =========================================================================
+resolution number giving DPI at which images should be generated
+can_reuse  (default False): set to True to allow labels to be reused in DND problem
+
+If the dnd XML file does not yet exist, or has an older modification time than the 
+tex file, then latex2dnd will be run.  Otherwise, it will not be re-run.
+
+Note that this means if you change an attribute, the XML and image files may not
+be re-generated.  To force recompilation, delete the dnd XML file.
+
+Example::
+
+    \edXdnd[resolution=300 can_reuse=True]{dnd/quadratic.tex}
+
 
 edXinclude
 ^^^^^^^^^^
