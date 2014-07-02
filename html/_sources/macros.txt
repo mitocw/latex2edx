@@ -741,6 +741,7 @@ Key        Value
 ========== =========================================================================
 resolution number giving DPI at which images should be generated
 can_reuse  set to True to allow labels to be reused in DND problem (default False)
+========== =========================================================================
 
 If the dnd XML file does not yet exist, or has an older modification time than the 
 tex file, then latex2dnd will be run.  Otherwise, it will not be re-run.

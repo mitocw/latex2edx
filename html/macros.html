@@ -961,8 +961,25 @@ latex2dnd (<a class="reference external" href="https://github.com/mitocw/latex2d
 needed for the drag-and-drop problem.</p>
 <img alt="_images/dnd-problem.png" src="_images/dnd-problem.png" />
 <p>Allowed attributes for <tt class="docutils literal"><span class="pre">edXdndtex</span></tt> include:</p>
-<p>resolution number giving DPI at which images should be generated
-can_reuse  set to True to allow labels to be reused in DND problem (default False)</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>resolution</td>
+<td>number giving DPI at which images should be generated</td>
+</tr>
+<tr class="row-odd"><td>can_reuse</td>
+<td>set to True to allow labels to be reused in DND problem (default False)</td>
+</tr>
+</tbody>
+</table>
 <p>If the dnd XML file does not yet exist, or has an older modification time than the
 tex file, then latex2dnd will be run.  Otherwise, it will not be re-run.</p>
 <p>Note that this means if you change an attribute, the XML and image files may not
