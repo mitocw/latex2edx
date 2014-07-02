@@ -733,6 +733,7 @@ latex2dnd (https://github.com/mitocw/latex2dnd), to generate the XML and images
 needed for the drag-and-drop problem.
 
 .. image:: images/dnd-problem.png
+           :width: 600 px
 
 Allowed attributes for ``edXdndtex`` include:
 
