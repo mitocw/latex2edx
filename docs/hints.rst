@@ -170,7 +170,9 @@ dictionary may include the following key, value pairs:
 | hint        + string     + text to display when the hint rule matches                                                  |
 +-------------+------------+---------------------------------------------------------------------------------------------+
 + string      + string     + match on this string present (exact or substring) in the student's answer                   |
+|             +            +                                                                                             |
 |             + dict       + {'regexp': regular-expression-string }                                                      |
+|             +            +                                                                                             |
 |             + dict       + {'nospaces': string-to-match-in-answer-after-spaces-removed-from-answer}                    |
 +-------------+------------+---------------------------------------------------------------------------------------------+
 | symbol      + string     + match on math symbol in the answer                                                          |
@@ -180,19 +182,23 @@ dictionary may include the following key, value pairs:
 | isnum       +            + match on answer being numerical (value ignored)                                             |
 +-------------+------------+---------------------------------------------------------------------------------------------+
 | val         + float      + match on numerical value of student's answer                                                |
+|             +            +                                                                                             |
 |	      + dict       + {'expect': number, 'tolerance': tolerance}                                                  |
 +-------------+------------+---------------------------------------------------------------------------------------------+
 | magdif      + float      + match on difference in magnitude between given & expected numerical values being too large  |
+|             +            +                                                                                             |
 |	      + dict       + {'expect': number, 'max': maximum_magnitude_difference_in_log10}                            |
 +-------------+------------+---------------------------------------------------------------------------------------------+
 | range       + list	   + [min, max] match on numerical answer being within a certain range                           |
 +-------------+------------+---------------------------------------------------------------------------------------------+
-| formula     +  string    + match on formula equality (via numerical sampling), specified by expression of the form:    |
+| formula     + string     + match on formula equality (via numerical sampling), specified by expression of the form:    |
+|             +            +                                                                                             |
 |             +            + <expr>!<variables>@<lower_range>:<upper_range>*yyyyyyyyyyyynyyyy<num_samples>               |
 +-------------+------------+---------------------------------------------------------------------------------------------+
 | parens      +            + match on un-balanced parentheses (value ignored)                                            |
 +-------------+------------+---------------------------------------------------------------------------------------------+
 | eval        + string     + match on evaluated expression, which may contain calls to other hint functions              |
+|             +            +                                                                                             |
 |             +            + value = expression to evaluate, e.g. "not string('*') and string('x')"                      |
 +-------------+------------+---------------------------------------------------------------------------------------------+
 | debug       +            + always matches, but outputs the student's response (not the hint string)                    |
