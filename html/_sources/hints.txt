@@ -164,29 +164,39 @@ Technical specification
 The hint rules may be specified as a list of dictionaries.  Each
 dictionary may include the following key, value pairs:
 
-*    hint    - string to display when the hint rule matches
-*    string  - match on string present for in the student's answer
-               value = string 
-               value = {'regexp': regular-expression-string }
-               value = {'nospaces': string-to-match-in-answer-after-spaces-removed-from-answer}
-*    symbol  - match on math symbol in the answer
-     func    - match on math function in the answer
-     isnum   - match on answer being numerical (value ignored)
-*    val     - match on numerical value of student's answer
-               value = number ...or
-               value = {'expect': number, 'tolerance': tolerance}
-*    magdif  - match on difference in magnitude between given and expected numerical values being too large
-               value = expected number ...or
-               value = {'expect': number, 'max': maximum_magnitude_difference_in_log10}
-*    range   - match on numerical answer being within a certain range
-               value = [min, max]
-*    formula - match on formula equality (via numerical sampling);
-               value = as <expr>!<variables>@<lower_range>:<upper_range>*yyyyyyyyyyyynyyyy<num_samples>
-*    parens  - match on un-balanced parentheses
-               value = ignored (anything ok)
-*    eval    - match on evaluated expression, which may contain calls to other hint functions
-               value = expression to evaluate, e.g. "not string('*') and string('x')"
-*    debug   - always matches, but outputs the student's response (not the hint string) 
++-------------+------------+---------------------------------------------------------------------------------------------+
+| Key         | Value type |  Description                                                                                |
++=============+============+=============================================================================================+
+| hint        + string     + text to display when the hint rule matches                                                  |
++-------------+------------+---------------------------------------------------------------------------------------------+
++ string      + string     + match on this string present (exact or substring) in the student's answer                   |
+|             + dict       + {'regexp': regular-expression-string }                                                      |
+|             + dict       + {'nospaces': string-to-match-in-answer-after-spaces-removed-from-answer}                    |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| symbol      + string     + match on math symbol in the answer                                                          |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| func        + string     + match on math function name in the answer                                                   |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| isnum       +            + match on answer being numerical (value ignored)                                             |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| val         + float      + match on numerical value of student's answer                                                |
+|	      + dict       + {'expect': number, 'tolerance': tolerance}                                                  |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| magdif      + float      + match on difference in magnitude between given & expected numerical values being too large  |
+|	      + dict       + {'expect': number, 'max': maximum_magnitude_difference_in_log10}                            |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| range       + list	   + [min, max] match on numerical answer being within a certain range                           |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| formula     +  string    + match on formula equality (via numerical sampling), specified by expression of the form:    |
+|             +            + <expr>!<variables>@<lower_range>:<upper_range>*yyyyyyyyyyyynyyyy<num_samples>               |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| parens      +            + match on un-balanced parentheses (value ignored)                                            |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| eval        + string     + match on evaluated expression, which may contain calls to other hint functions              |
+|             +            + value = expression to evaluate, e.g. "not string('*') and string('x')"                      |
++-------------+------------+---------------------------------------------------------------------------------------------+
+| debug       +            + always matches, but outputs the student's response (not the hint string)                    |
++-------------+------------+---------------------------------------------------------------------------------------------+
 
 The hint rule matches, and the hint string is emitted, if any of the
 keys (other than "hint") matches.

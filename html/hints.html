@@ -202,62 +202,97 @@ myhints = [ {'string': 'choice_1', 'hint': 'Too windy'},
 <h2>Technical specification<a class="headerlink" href="#technical-specification" title="Permalink to this headline">¶</a></h2>
 <p>The hint rules may be specified as a list of dictionaries.  Each
 dictionary may include the following key, value pairs:</p>
-<ul>
-<li><p class="first">hint    - string to display when the hint rule matches</p>
-</li>
-<li><dl class="first docutils">
-<dt>string  - match on string present for in the student&#8217;s answer</dt>
-<dd><p class="first last">value = string
-value = {&#8216;regexp&#8217;: regular-expression-string }
-value = {&#8216;nospaces&#8217;: string-to-match-in-answer-after-spaces-removed-from-answer}</p>
-</dd>
-</dl>
-</li>
-<li><p class="first">symbol  - match on math symbol in the answer
-func    - match on math function in the answer
-isnum   - match on answer being numerical (value ignored)</p>
-</li>
-<li><dl class="first docutils">
-<dt>val     - match on numerical value of student&#8217;s answer</dt>
-<dd><p class="first last">value = number ...or
-value = {&#8216;expect&#8217;: number, &#8216;tolerance&#8217;: tolerance}</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>magdif  - match on difference in magnitude between given and expected numerical values being too large</dt>
-<dd><p class="first last">value = expected number ...or
-value = {&#8216;expect&#8217;: number, &#8216;max&#8217;: maximum_magnitude_difference_in_log10}</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>range   - match on numerical answer being within a certain range</dt>
-<dd><p class="first last">value = [min, max]</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>formula - match on formula equality (via numerical sampling);</dt>
-<dd><p class="first last">value = as &lt;expr&gt;!&lt;variables&gt;&#64;&lt;lower_range&gt;:&lt;upper_range&gt;*yyyyyyyyyyyynyyyy&lt;num_samples&gt;</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>parens  - match on un-balanced parentheses</dt>
-<dd><p class="first last">value = ignored (anything ok)</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>eval    - match on evaluated expression, which may contain calls to other hint functions</dt>
-<dd><p class="first last">value = expression to evaluate, e.g. &#8220;not string(&#8216;*&#8217;) and string(&#8216;x&#8217;)&#8221;</p>
-</dd>
-</dl>
-</li>
-<li><p class="first">debug   - always matches, but outputs the student&#8217;s response (not the hint string)</p>
-</li>
-</ul>
+<table border="1" class="docutils">
+<colgroup>
+<col width="11%" />
+<col width="10%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Value type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td rowspan="2">hint</td>
+<td rowspan="2">string</td>
+<td rowspan="2">text to display when the hint rule matches</td>
+</tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="4">string</td>
+<td rowspan="4">string
+dict
+dict</td>
+<td rowspan="4">match on this string present (exact or substring) in the student&#8217;s answer
+{&#8216;regexp&#8217;: regular-expression-string }
+{&#8216;nospaces&#8217;: string-to-match-in-answer-after-spaces-removed-from-answer}</td>
+</tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"></tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="2">symbol</td>
+<td rowspan="2">string</td>
+<td rowspan="2">match on math symbol in the answer</td>
+</tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="2">func</td>
+<td rowspan="2">string</td>
+<td rowspan="2">match on math function name in the answer</td>
+</tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="2">isnum</td>
+<td rowspan="2">&nbsp;</td>
+<td rowspan="2">match on answer being numerical (value ignored)</td>
+</tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="3">val</td>
+<td rowspan="3">float
+dict</td>
+<td rowspan="3">match on numerical value of student&#8217;s answer
+{&#8216;expect&#8217;: number, &#8216;tolerance&#8217;: tolerance}</td>
+</tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"></tr>
+<tr class="row-odd"><td rowspan="3">magdif</td>
+<td rowspan="3">float
+dict</td>
+<td rowspan="3">match on difference in magnitude between given &amp; expected numerical values being too large
+{&#8216;expect&#8217;: number, &#8216;max&#8217;: maximum_magnitude_difference_in_log10}</td>
+</tr>
+<tr class="row-even"></tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="2">range</td>
+<td rowspan="2">list</td>
+<td rowspan="2">[min, max] match on numerical answer being within a certain range</td>
+</tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="3">formula</td>
+<td rowspan="3">string</td>
+<td rowspan="3">match on formula equality (via numerical sampling), specified by expression of the form:
+&lt;expr&gt;!&lt;variables&gt;&#64;&lt;lower_range&gt;:&lt;upper_range&gt;*yyyyyyyyyyyynyyyy&lt;num_samples&gt;</td>
+</tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"></tr>
+<tr class="row-odd"><td rowspan="2">parens</td>
+<td rowspan="2">&nbsp;</td>
+<td rowspan="2">match on un-balanced parentheses (value ignored)</td>
+</tr>
+<tr class="row-even"></tr>
+<tr class="row-odd"><td rowspan="3">eval</td>
+<td rowspan="3">string</td>
+<td rowspan="3">match on evaluated expression, which may contain calls to other hint functions
+value = expression to evaluate, e.g. &#8220;not string(&#8216;*&#8217;) and string(&#8216;x&#8217;)&#8221;</td>
+</tr>
+<tr class="row-even"></tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="2">debug</td>
+<td rowspan="2">&nbsp;</td>
+<td rowspan="2">always matches, but outputs the student&#8217;s response (not the hint string)</td>
+</tr>
+<tr class="row-odd"></tr>
+</tbody>
+</table>
 <p>The hint rule matches, and the hint string is emitted, if any of the
 keys (other than &#8220;hint&#8221;) matches.</p>
 </div>
