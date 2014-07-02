@@ -732,13 +732,15 @@ where the macro is located.  The tex file will automatically be compiled, using
 latex2dnd (https://github.com/mitocw/latex2dnd), to generate the XML and images
 needed for the drag-and-drop problem.
 
+.. image:: images/dnd-problem.png
+
 Allowed attributes for ``edXdndtex`` include:
 
 ========== =========================================================================
 Key        Value
 ========== =========================================================================
 resolution number giving DPI at which images should be generated
-can_reuse  (default False): set to True to allow labels to be reused in DND problem
+can_reuse  set to True to allow labels to be reused in DND problem (default False)
 
 If the dnd XML file does not yet exist, or has an older modification time than the 
 tex file, then latex2dnd will be run.  Otherwise, it will not be re-run.
