@@ -96,40 +96,41 @@ triggered on independent inputs into the two boxes.</p>
 <p>Note that the hint rules are specified by a dictionary, with the keys
 giving the sequential number for the response input box to match to,
 and the values giving the rules for that response.:</p>
-<div class="highlight-python"><pre>\begin{edXproblem}{Example problem with hints}{url_name="p1"}
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXproblem}{Example problem with hints}{url_name=&quot;p1&quot;}
 
 Let $x=3$ and $y=9$.  Give two expressions using $x$ and $y$ which add
 up to 10.
 
 \begin{edXscript}
 
-myhints = {0: [ {'symbol': 'L', 'hint': 'Should your answer depend on L?'},
+myhints = {0: [ {&#39;symbol&#39;: &#39;L&#39;, &#39;hint&#39;: &#39;Should your answer depend on L?&#39;},
               ],
-           1: [ {'range': [4, 9],
-                      'hint': 'You are out of range'
+           1: [ {&#39;range&#39;: [4, 9],
+                      &#39;hint&#39;: &#39;You are out of range&#39;
                   },
               ],
           }
 
 def test10(expect, ans):
-    samples = 'x,y,L@3,9,1:3,9,5#10'
-    given = '(%s)+(%s)' % (ans[0], ans[1])
-    ok = is_formula_equal('10', given, samples=samples)
-    return {'ok': ok, 'msg': 'given=%s' % given}
+    samples = &#39;x,y,L@3,9,1:3,9,5#10&#39;
+    given = &#39;(%s)+(%s)&#39; % (ans[0], ans[1])
+    ok = is_formula_equal(&#39;10&#39;, given, samples=samples)
+    return {&#39;ok&#39;: ok, &#39;msg&#39;: &#39;given=%s&#39; % given}
 
 \end{edXscript}
 
-\edXabox{type='custom'
-  size='20'
-  expect='10'
-  prompts="First number: ","Second number: "
-  answers="1","9"
-  inline="1"
-  cfn='test10'
-  hints='myhints'
+\edXabox{type=&#39;custom&#39;
+  size=&#39;20&#39;
+  expect=&#39;10&#39;
+  prompts=&quot;First number: &quot;,&quot;Second number: &quot;
+  answers=&quot;1&quot;,&quot;9&quot;
+  inline=&quot;1&quot;
+  cfn=&#39;test10&#39;
+  hints=&#39;myhints&#39;
 }
 
-\end{edXproblem}</pre>
+\end{edXproblem}
+</pre></div>
 </div>
 </div>
 <div class="section" id="example-of-logical-function-of-hints">
@@ -138,27 +139,28 @@ def test10(expect, ans):
 rule, to cause a match when the logical inverse of a lower-level
 matching rule succeeds.  In this case, the match triggers when a
 symbol or string is not present in the input.:</p>
-<div class="highlight-python"><pre>\begin{edXproblem}
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXproblem}
 
 \begin{edXscript}
 
-myhints = [ {'eval': "not symbol('g')", 'hint': "Shouldn't your answer depend on g?"},
-            {'eval': "not string('sqrt')", 'hint': "What should the answer be for g=0 and g=1?"},
+myhints = [ {&#39;eval&#39;: &quot;not symbol(&#39;g&#39;)&quot;, &#39;hint&#39;: &quot;Shouldn&#39;t your answer depend on g?&quot;},
+            {&#39;eval&#39;: &quot;not string(&#39;sqrt&#39;)&quot;, &#39;hint&#39;: &quot;What should the answer be for g=0 and g=1?&quot;},
           ]
 
 \end{edXscript}
 
-\edXinline{Alice's state $|\psi'_{A,0}\&gt;$ when Bob measures $k=0$:}
-  \edXabox{type="custom"
-    expect="|0&gt;"
-    cfn="ket_formula_check"
-    options="samples='phi@1:10*10'"
-    math="1"
-    hints='myhints'
-    size="60"
-    inline="1"}
+\edXinline{Alice&#39;s state $|\psi&#39;_{A,0}\&gt;$ when Bob measures $k=0$:}
+  \edXabox{type=&quot;custom&quot;
+    expect=&quot;|0&gt;&quot;
+    cfn=&quot;ket_formula_check&quot;
+    options=&quot;samples=&#39;phi@1:10*10&#39;&quot;
+    math=&quot;1&quot;
+    hints=&#39;myhints&#39;
+    size=&quot;60&quot;
+    inline=&quot;1&quot;}
 
-\end{edXproblem}</pre>
+\end{edXproblem}
+</pre></div>
 </div>
 </div>
 <div class="section" id="hints-in-a-multiple-choice-problem">
@@ -174,27 +176,28 @@ display when the match is found.</p>
 <p>The hint rules are bound to a variable named &#8220;myhints&#8221;, and that
 variable name is specified by the &#8220;hints&#8221; attribute in the edXabox
 answer box line defining the multiple choice question.:</p>
-<div class="highlight-python"><pre>\begin{edXproblem}{Example multiple choice problem with hints}{url_name="p2"}
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXproblem}{Example multiple choice problem with hints}{url_name=&quot;p2&quot;}
 
 What is the largest city in the world?
 
 \begin{edXscript}
 
-myhints = [ {'string': 'choice_1', 'hint': 'Too windy'},
-            {'string': 'choice_2', 'hint': 'An american classic'},
-            {'string': 'choice_3', 'hint': 'Too old'},
-            {'string': 'choice_4', 'hint': 'Too rainy'},
+myhints = [ {&#39;string&#39;: &#39;choice_1&#39;, &#39;hint&#39;: &#39;Too windy&#39;},
+            {&#39;string&#39;: &#39;choice_2&#39;, &#39;hint&#39;: &#39;An american classic&#39;},
+            {&#39;string&#39;: &#39;choice_3&#39;, &#39;hint&#39;: &#39;Too old&#39;},
+            {&#39;string&#39;: &#39;choice_4&#39;, &#39;hint&#39;: &#39;Too rainy&#39;},
           ]
 
 \end{edXscript}
 
-\edXabox{type="multichoice"
-  expect='New York'
-  options="Chicago","New York","Rome","London"
-  hints='myhints'
+\edXabox{type=&quot;multichoice&quot;
+  expect=&#39;New York&#39;
+  options=&quot;Chicago&quot;,&quot;New York&quot;,&quot;Rome&quot;,&quot;London&quot;
+  hints=&#39;myhints&#39;
 }
 
-\end{edXproblem}</pre>
+\end{edXproblem}
+</pre></div>
 </div>
 </div>
 </div>
@@ -364,7 +367,7 @@ keys (other than &#8220;hint&#8221;) matches.</p>
     </div>
     <div class="footer">
         &copy; Copyright 2014, I. Chuang.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>
