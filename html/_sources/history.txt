@@ -17,3 +17,4 @@ Release History
 *     .1: All python scripts syntax checked
 *     .2: New option -P for generating policy.json from tex; handles, e.g. start, end, due, graded
 * v1.3.0: Add documentation, abox unit tests, edXvideo, edXdiscussion
+*     .1: Add regexp mapping to hints; add \edXdndtex command; allow texbox for customresponse
