@@ -548,6 +548,8 @@ size                  width of the input box displayed
 inline                1: display input box inline (default is not inline, i.e. block display)
 preprocessorSrc       name of javascript file to load for mathjax pre-processing
 preprocessorClassName javascript function name within the js file, for mathjax pre-processing
+rows                  an integer, specifying number of rows to use for text area input
+cols                  an integer, specifying number of columns to use for text area input
 ===================== ========================================================================
 
 ``prompts`` and ``answers`` are only used in multiple-input-box
@@ -621,10 +623,29 @@ Output XML::
             <p style="display:inline">[mathjaxinline]|\phi _4\rangle  =[/mathjaxinline]<textline size="70" correct_answer="(sqrt(2)*exp(-5*i*pi/3)*|0&amp;gt;+|1&amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/></p>
           </customresponse>
 
+Here's another example, which specifies the "rows" attribute, thus triggering the input element to be a text 
+area instead of just a text line.  This example also illustrates how "options" may be specified as an additional
+attribute::
 
-| Add more about the python check function
+    \edXabox{type="custom" rows=30 cols=90 expect="See solutions" options="none" cfn=check_ft_threshold}
 
-| Add more examples
+The XML produced by this example is::
+
+          <customresponse cfn="check_ft_threshold" expect="See solutions" options="none" cfn_extra_args="options">
+            <textbox rows="30" cols="90" correct_answer="See solutions"/>
+          </customresponse>
+
+Note the extra "cfn_extra_args" which is automatically included, causing the "options" variable to be 
+passed as an argument to the python check function.  This means the python check function would be defined 
+like this::
+
+    def check_ft_threshold(expect, ans, options=None):
+       ...
+
+where the "options" argument will, in this case, be set to the string "none".  It is very convenient to
+use the "options" attribute to pass arbitrary parameters to the python check function.  For example,
+the sympy_check.py symbolic mathematical expression checking library uses "options" to specify tolerances,
+numerical sampling ranges for equality testing, and alternate acceptable answers, among other things.
 
 Javascript response problem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

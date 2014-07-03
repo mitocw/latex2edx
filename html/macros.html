@@ -747,6 +747,12 @@ explicit examples constructed by the instructor.</p>
 <tr class="row-odd"><td>preprocessorClassName</td>
 <td>javascript function name within the js file, for mathjax pre-processing</td>
 </tr>
+<tr class="row-even"><td>rows</td>
+<td>an integer, specifying number of rows to use for text area input</td>
+</tr>
+<tr class="row-odd"><td>cols</td>
+<td>an integer, specifying number of columns to use for text area input</td>
+</tr>
 </tbody>
 </table>
 <p><tt class="docutils literal"><span class="pre">prompts</span></tt> and <tt class="docutils literal"><span class="pre">answers</span></tt> are only used in multiple-input-box
@@ -814,12 +820,27 @@ def sumtest(expect,ans):
   &lt;p style="display:inline"&gt;[mathjaxinline]|\phi _4\rangle  =[/mathjaxinline]&lt;textline size="70" correct_answer="(sqrt(2)*exp(-5*i*pi/3)*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/&gt;&lt;/p&gt;
 &lt;/customresponse&gt;</pre>
 </div>
-<div class="line-block">
-<div class="line">Add more about the python check function</div>
+<p>Here&#8217;s another example, which specifies the &#8220;rows&#8221; attribute, thus triggering the input element to be a text
+area instead of just a text line.  This example also illustrates how &#8220;options&#8221; may be specified as an additional
+attribute:</p>
+<div class="highlight-python"><pre>\edXabox{type="custom" rows=30 cols=90 expect="See solutions" options="none" cfn=check_ft_threshold}</pre>
 </div>
-<div class="line-block">
-<div class="line">Add more examples</div>
+<p>The XML produced by this example is:</p>
+<div class="highlight-python"><pre>&lt;customresponse cfn="check_ft_threshold" expect="See solutions" options="none" cfn_extra_args="options"&gt;
+  &lt;textbox rows="30" cols="90" correct_answer="See solutions"/&gt;
+&lt;/customresponse&gt;</pre>
 </div>
+<p>Note the extra &#8220;cfn_extra_args&#8221; which is automatically included, causing the &#8220;options&#8221; variable to be
+passed as an argument to the python check function.  This means the python check function would be defined
+like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">check_ft_threshold</span><span class="p">(</span><span class="n">expect</span><span class="p">,</span> <span class="n">ans</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+   <span class="o">...</span>
+</pre></div>
+</div>
+<p>where the &#8220;options&#8221; argument will, in this case, be set to the string &#8220;none&#8221;.  It is very convenient to
+use the &#8220;options&#8221; attribute to pass arbitrary parameters to the python check function.  For example,
+the sympy_check.py symbolic mathematical expression checking library uses &#8220;options&#8221; to specify tolerances,
+numerical sampling ranges for equality testing, and alternate acceptable answers, among other things.</p>
 </div>
 <div class="section" id="javascript-response-problem">
 <h3>Javascript response problem<a class="headerlink" href="#javascript-response-problem" title="Permalink to this headline">¶</a></h3>
