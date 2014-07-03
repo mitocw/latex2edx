@@ -388,22 +388,36 @@ type of answer box:</p>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>type</td>
-<td>option
-string
-multichoice
-numerical
-formula
-custom
-jsinput
-image</td>
-<td>Option response question
-String response question
-Multiple choice input question
-Numerical response question
-Formula response question
-Custom response question
-Javascript input response question
-Image response question</td>
+<td>option</td>
+<td>Option response question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>string</td>
+<td>String response question</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>multichoice</td>
+<td>Multiple choice input question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>numerical</td>
+<td>Numerical response question</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>formula</td>
+<td>Formula response question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>custom</td>
+<td>Custom response question</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>jsinput</td>
+<td>Javascript input response question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>image</td>
+<td>Image response question</td>
 </tr>
 </tbody>
 </table>
@@ -694,8 +708,8 @@ explicit examples constructed by the instructor.</p>
 <p>Custom response problems are specified by the following key, value pairs:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="15%" />
-<col width="85%" />
+<col width="23%" />
+<col width="77%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Key</th>
@@ -726,6 +740,12 @@ explicit examples constructed by the instructor.</p>
 </tr>
 <tr class="row-odd"><td>inline</td>
 <td>1: display input box inline (default is not inline, i.e. block display)</td>
+</tr>
+<tr class="row-even"><td>preprocessorSrc</td>
+<td>name of javascript file to load for mathjax pre-processing</td>
+</tr>
+<tr class="row-odd"><td>preprocessorClassName</td>
+<td>javascript function name within the js file, for mathjax pre-processing</td>
 </tr>
 </tbody>
 </table>
@@ -773,6 +793,27 @@ def sumtest(expect,ans):
   &lt;p style="display:inline"&gt;y =&lt;textline correct_answer="9" inline="1"/&gt;&lt;/p&gt;
 &lt;/customresponse&gt;</pre>
 </div>
+<p>Another example, demonstrating multiple input boxes, with prompts, and javascript pre-processing:</p>
+<div class="highlight-python"><pre>\edXabox{type="custom"
+  size=70
+  prompts="$|\phi_2\&gt; = $","$|\phi_3\&gt; = $","$|\phi_4\&gt; = $"
+  answers="(sqrt(2)*exp(-  i*pi/3)*|0&gt;+|1&gt;)/sqrt(3)","(sqrt(2)*exp(-  i*pi  )*|0&gt;+|1&gt;)/sqrt(3)","(sqrt(2)*exp(-5*i*pi/3)*|0&gt;+|1&gt;)/sqrt(3)"
+  expect="See solutions"
+  cfn="check_tetra_holevo"
+  preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"
+  math=1
+  inline="1"
+}</pre>
+</div>
+<p>Output XML:</p>
+<div class="highlight-python"><pre>&lt;customresponse cfn="check_tetra_holevo" inline="1" expect="See solutions"&gt;
+  &lt;p style="display:inline"&gt;[mathjaxinline]|\phi _2\rangle  =[/mathjaxinline]&lt;textline size="70" correct_answer="(sqrt(2)*exp(- i*pi/3)*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/&gt;&lt;/p&gt;
+  &lt;br/&gt;
+  &lt;p style="display:inline"&gt;[mathjaxinline]|\phi _3\rangle  =[/mathjaxinline]&lt;textline size="70" correct_answer="(sqrt(2)*exp(- i*pi )*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/&gt;&lt;/p&gt;
+  &lt;br/&gt;
+  &lt;p style="display:inline"&gt;[mathjaxinline]|\phi _4\rangle  =[/mathjaxinline]&lt;textline size="70" correct_answer="(sqrt(2)*exp(-5*i*pi/3)*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/&gt;&lt;/p&gt;
+&lt;/customresponse&gt;</pre>
+</div>
 <div class="line-block">
 <div class="line">Add more about the python check function</div>
 </div>
@@ -800,8 +841,8 @@ value pairs for custom response problems, and in addition several
 needed to specify the javascript interface:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="15%" />
-<col width="85%" />
+<col width="13%" />
+<col width="87%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Key</th>
@@ -827,13 +868,16 @@ needed to specify the javascript interface:</p>
 <tr class="row-odd"><td>gradefn</td>
 <td>name of the javascript function used to get the grading input</td>
 </tr>
-<tr class="row-even"><td>get_statefn</td>
+<tr class="row-even"><td>initial_state</td>
+<td>initial state to send to the js problem (JSON) &#8211; only in edX platform after ~7/1/14</td>
+</tr>
+<tr class="row-odd"><td>get_statefn</td>
 <td>name of the javascript function used to get the js problem state</td>
 </tr>
-<tr class="row-odd"><td>set_statefn</td>
+<tr class="row-even"><td>set_statefn</td>
 <td>name of the javascript function used to set the js problem state</td>
 </tr>
-<tr class="row-even"><td>html_file</td>
+<tr class="row-odd"><td>html_file</td>
 <td>name of the HTML file with the javascript, to be displayed in the iframe</td>
 </tr>
 </tbody>
@@ -843,6 +887,7 @@ needed to specify the javascript interface:</p>
   width="650"
   height="555"
   gradefn="getinput"
+  initial_state="some-json-state-string"
   get_statefn="getstate"
   set_statefn="setstate"
   html_file="/static/html/ps3plot_btran1.html"
@@ -852,6 +897,23 @@ needed to specify the javascript interface:</p>
 <div class="highlight-python"><pre>&lt;customresponse cfn="test_findep" expect=""&gt;
   &lt;jsinput width="650" height="555" gradefn="getinput" get_statefn="getstate" set_statefn="setstate" html_file="/static/html/ps3plot_btran1.html"/&gt;
 &lt;/customresponse&gt;</pre>
+</div>
+<p>A hint on encoding: often, it is the case that the initial state (or some other argument
+to a custom response edXabox) needs to contain non-alphanumeric characters, such as quotes
+or greater-than and less-than symbols, which typically need to be escaped.  A convenient way
+to set such arguments is to define them as variables within an edXscript, then use the
+&#8220;dollar sign&#8221; text replacement feature built into edX&#8217;s capa problems, to effect a variable
+substitution.  Specifically, for example:</p>
+<div class="highlight-python"><pre>\begin{edXscript}
+
+state = cgi.escape(json.dumps(_state_),True)
+
+\end{edXscript}
+
+\edXabox{...
+  initial_state=\$istate
+  ...
+}</pre>
 </div>
 </div>
 </div>
