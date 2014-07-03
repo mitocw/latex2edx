@@ -552,8 +552,7 @@ class latex2edx(object):
             showhide.attrib.pop('id')
             showhide.attrib.pop('description')
     
-    @staticmethod
-    def process_include(tree, do_python=False):
+    def process_include(self, tree, do_python=False):
         '''
         Include XML or python file.
 
@@ -566,20 +565,22 @@ class latex2edx(object):
             cmd += "py"
         for include in tree.findall(tag):
             incfn = include.text
+            linenum = include.get('linenum','<unavailable>')
+            texfn = include.get('filename','<unavailable>')
             if incfn is None:
                 print "Error: %s must specify file to include!" % cmd
-                print "See xhtml source line %s" % getattr(include,'linenum','<unavailable>')
+                print "See tex file %s line %s" % (texfn, linenum)
                 raise
             incfn = incfn.strip()
             if not os.path.exists(incfn):
                 print "Error: include file %s does not exist!" % incfn
-                print "See xhtml source line %s" % getattr(include,'linenum','<unavailable>')
+                print "See tex file %s line %s" % (texfn, linenum)
                 raise
             try:
                 incdata = open(incfn).read()
             except Exception, err:
                 print "Error %s: cannot open include file %s to read" % (err,incfn)
-                print "See xhtml source line %s" % getattr(include,'linenum','<unavailable>')
+                print "See tex file %s line %s" % (texfn, linenum)
                 raise
 
             # if python script, then check its syntax
@@ -598,10 +599,16 @@ class latex2edx(object):
                     incxml = etree.fromstring(incdata)
             except Exception, err:
                 print "Error %s parsing XML for include file %s" % (err,incfn)
-                print "See xhtml source line %s" % getattr(include,'sourceline','<unavailable>')
+                print "See tex file %s line %s" % (texfn, linenum)
                 raise
     
-            print "--> including file %s at line %s" % (incfn,getattr(include,'sourceline','<unavailable>'))
+	    # remove parent <p> if it exists
+            parent = include.getparent()
+            if parent.tag=='p' and not parent.text.strip():
+                parent.addprevious(include)
+            parent.getparent().remove(parent)
+
+            print "--> including file %s at line %s" % (incfn, linenum)
             if incxml.tag=='html' and len(incxml)>0:		# strip out outer <html> container
                 for k in incxml:
                     include.addprevious(k)	
@@ -623,24 +630,26 @@ class latex2edx(object):
         tag = './/edxdndtex'
         for dndxml in tree.findall(tag):
             dndfn = dndxml.text
+            linenum = dndxml.get('linenum','<unavailable>')
+            texfn = dndxml.get('filename','<unavailable>')
             if dndfn is None:
                 print "Error: %s must specify dnd tex filename!" % cmd
-                print "See xhtml source line %s" % getattr(dndxml,'linenum','<unavailable>')
+                print "See tex file %s line %s" % (texfn, linenum)
                 raise
             dndfn = dndfn.strip()
             if not dndfn.endswith('.tex'):
                 print "Error: dnd file %s should be a .tex file!" % dndfn
-                print "See xhtml source line %s" % getattr(dndxml,'linenum','<unavailable>')
+                print "See tex file %s line %s" % (texfn, linenum)
                 raise
             if not os.path.exists(dndfn):
                 print "Error: dnd tex file %s does not exist!" % dndfn
-                print "See xhtml source line %s" % getattr(dndxml,'linenum','<unavailable>')
+                print "See tex file %s line %s" % (texfn, linenum)
                 raise
             try:
                 dndsrc = open(dndfn).read()
             except Exception, err:
                 print "Error %s: cannot open dnd tex file %s to read" % (err,dndfn)
-                print "See xhtml source line %s" % getattr(dndxml,'linenum','<unavailable>')
+                print "See tex file %s line %s" % (texfn, linenum)
                 raise
 
             # Use latex2dnd to compile dnd tex into edX XML.

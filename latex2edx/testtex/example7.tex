@@ -1,7 +1,7 @@
 %
-% File:   example6.tex
+% File:   example7.tex
 %
-% test edXmath
+% test edXinclude
 % 
 
 \documentclass[12pt]{article}
@@ -15,29 +15,13 @@
 \begin{edXchapter}{Unit 2}[start="2013-11-22"]
 \begin{edXsection}{A second section}[due="2016-11-22" graded=true]
 
-\begin{edXproblem}{Example problem with hints}{url_name="p1"}
+\begin{edXproblem}{Dummy}{url_name="p1"}
  
-This is an edXmath example.
-
-\begin{edXmath}
-\begin{eqnarray}
-S(\rho) &=&  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
-        &=&  H((1+r)/2)
-\end{eqnarray}
-\end{edXmath}
-
-This is text after the edXmath.
-
-Contrast that with
-
-\begin{eqnarray}
-S(\rho) &=&  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
-        &=&  H((1+r)/2)
-\end{eqnarray}
-
-which plastex mangles into a table, that still does render ok.
+This is a problem.
 
 \end{edXproblem}
+
+\edXinclude{sga.xml}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

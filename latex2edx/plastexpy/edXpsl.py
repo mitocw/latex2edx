@@ -44,19 +44,23 @@ class includegraphics(Base.Command):
 class edXcite(Base.Command):	# tooltip citation (appears onmoseover, using <a title="self" href="#"><sup>[ref]</sup></a>)
     args = '[ ref ] self'
 
-class edXinclude(Base.Command):		# include external XML file
-    args = 'self'
-
-class edXincludepy(Base.Command):		# include external python file (puts inside <script>)
-    args = 'self'
-
-class edXdndtex(Base.Command):		# insert external drag-and-drop problem (should point to latex2dnd tex file)
-    args = '[ attrib_string ] self'
+class MyBaseCommand(Base.Command):	# add filename and linenum attributes
     def invoke(self, tex):
         Command.invoke(self, tex)
         self.attributes['filename'] = tex.filename
         self.attributes['linenum'] = tex.lineNumber
-        print "  --> edXdndtex in %s: dndtex=%s, line=%s" % (tex.filename, self.attributes['self'], tex.lineNumber)
+
+class edXinclude(MyBaseCommand):		# include external XML file
+    args = 'self'
+
+class edXincludepy(MyBaseCommand):		# include external python file (puts inside <script>)
+    args = 'self'
+
+class edXdndtex(MyBaseCommand):		# insert external drag-and-drop problem (should point to latex2dnd tex file)
+    args = '[ attrib_string ] self'
+    def invoke(self, tex):
+        Command.invoke(self, tex)
+        print "  --> edXdndtex in %s: dndtex=%s, line=%s" % (tex.filename, self.attributes['self'].source, tex.lineNumber)
 
 class edXshowhide(Base.Environment):	# block of text to be hidden by default, but with clickable "show"
     args = ' { id } { description } self'
