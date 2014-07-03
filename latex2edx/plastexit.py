@@ -36,6 +36,7 @@ class MyRenderer(XHTML.Renderer):
             self.filters[ffm] = self.filter_fix_math
         for ffm in self.filter_fix_displaymath_match:
             self.filters[ffm] = self.filter_fix_displaymath
+        self.filters[self.filter_fix_displaymathverbatim_match] = self.filter_fix_displaymathverbatim
         self.filters[self.filter_fix_abox_match] = self.filter_fix_abox
         self.filters[self.filter_fix_image_match] = self.filter_fix_image
         self.filters[self.filter_fix_edxxml_match] = self.filter_fix_edxxml
@@ -53,13 +54,14 @@ class MyRenderer(XHTML.Renderer):
         return "<edxxml>%s</edxxml>" % xmlstr
 
     @staticmethod
-    def fix_math_common(m):
+    def fix_math_common(m, removenl=True):
         x = m.group(1).strip()
         x = x.replace(u'\u2019',"'")
         x = x.decode('ascii','ignore')
         x = x.replace('\\ensuremath','')
         x = x.replace('{^\\circ','{}^\\circ')	# workaround plasTeX bug
-        x = x.replace('\n','')
+        if removenl:
+            x = x.replace('\n','')
         x = escape(x)
         return x
 
@@ -84,6 +86,12 @@ class MyRenderer(XHTML.Renderer):
         if len(x)==0 or x=="\displaystyle":
             return "&nbsp;"
         return '[mathjax]%s[/mathjax]' % x
+        
+    filter_fix_displaymathverbatim_match = r'(?s)<displaymathverbatim>\\begin{edXmath}(.*?)\\end{edXmath}</displaymathverbatim>'
+
+    @classmethod
+    def filter_fix_displaymathverbatim(cls, m):
+        return '[mathjax]%s[/mathjax]' % escape(m.group(1).strip())
 
     filter_fix_image_match = '<includegraphics style="(.*?)">(.*?)</includegraphics>'
 

@@ -728,6 +728,7 @@ edXinclude    Command     { filename }
 edXincludepy  Command     { filename }
 edXaskta      Command     { arguments }
 edXbr         Command     None
+edXmath       Environment None
 ============= =========== ============================================================
 
 edXsolution
@@ -841,6 +842,64 @@ Example::
     \item \edXinline{\tt 5.2~~~} \edXabox{expect="float" options="noneType","int","float" type="option" inline="1"}
     \end{itemize}
 
+
+edXmath
+^^^^^^^
+
+Forces contents to be rendered as mathjax.  This is a convenient way to sidestep the fact that some 
+math formatting is changed by plastex.  In particular, plastex renders eqnarray using html tables, 
+rather than relying on mathjax's ability to render eqnarray properly.  
+
+Example::
+
+    \begin{edXmath}
+    \begin{eqnarray}
+    S(\rho) &=&  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+            &=&  H((1+r)/2)
+    \end{eqnarray}
+    \end{edXmath}
+
+This produces the XML::
+
+    [mathjax]\begin{eqnarray}
+    S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+            &amp;=&amp;  H((1+r)/2)
+    \end{eqnarray}[/mathjax]
+
+which renders as:
+
+.. image:: images/mathjax-render-example.png
+           :width: 300 px
+
+Contrast that with::
+
+    \begin{eqnarray}
+    S(\rho) &=&  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+            &=&  H((1+r)/2)
+    \end{eqnarray}
+
+(no edXmath, just native math) which plastex renders using an HTML table, producing this XML::
+
+    <table id="a0000000002" cellpadding="7" width="100%" cellspacing="0" class="eqnarray" style="table-layout:auto"><tr id="a0000000003"><td style="width:40%; border:none">&#xA0;</td><td style="vertical-align:middle;                                    text-align:right; border:none">
+	    [mathjaxinline]\displaystyle  S(\rho )[/mathjaxinline]
+        </td><td style="vertical-align:middle;                                    text-align:center; border:none">
+	    [mathjaxinline]\displaystyle =[/mathjaxinline]
+        </td><td style="vertical-align:middle;                                    text-align:left; border:none">
+	    [mathjaxinline]\displaystyle  -\lambda _{1} \log \lambda _{1} -\lambda _{2} \log \lambda _{2}[/mathjaxinline]
+        </td><td style="width:40%; border:none">&#xA0;</td><td style="width:20%; border:none" class="eqnnum"><span>(<span>1</span>)</span></td></tr><tr id="a0000000004"><td style="width:40%; border:none">&#xA0;</td><td style="vertical-align:middle;                                    text-align:right; border:none">
+	    &#xA0;
+        </td><td style="vertical-align:middle;                                    text-align:center; border:none">
+	    [mathjaxinline]\displaystyle =[/mathjaxinline]
+        </td><td style="vertical-align:middle;                                    text-align:left; border:none">
+	    [mathjaxinline]\displaystyle  H((1+r)/2)[/mathjaxinline]
+        </td><td style="width:40%; border:none">&#xA0;</td><td style="width:20%; border:none" class="eqnnum"><span>(<span>2</span>)</span></td></tr></table>
+
+which renders as:
+
+.. image:: images/mathjax-render-plastex.png
+           :width: 850 px
+
+Note that this includes equation numbers (!), and is centered.
 
 edXbr
 ^^^^^

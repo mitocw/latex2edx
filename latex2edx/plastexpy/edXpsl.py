@@ -79,8 +79,11 @@ class edXjavascript(Base.verbatim):
 class endedXjavascript(Base.endverbatim):
     macroName = "endedXjavascript"
 
-class edXmath(Base.Environment):
-    args = 'self'
+class edXmath(Base.verbatim):
+    macroName = "edXmath"
+
+class endedXmath(Base.endverbatim):
+    macroName = "endedXmath"
 
 class edXxml(Base.Command):
     args = 'self'

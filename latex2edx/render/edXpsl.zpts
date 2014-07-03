@@ -56,7 +56,7 @@ name: edXjavascript
 <script type="text/javascript" tal:content='self'></script>
 
 name: edXmath
-<displaymath tal:content='self/source'></displaymath>
+<displaymathverbatim tal:content='self/source'></displaymathverbatim>
 
 name: edXxml
 <edxxml tal:content='self/source'></edxxml>
