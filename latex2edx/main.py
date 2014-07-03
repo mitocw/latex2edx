@@ -827,8 +827,10 @@ class latex2edx(object):
     
 
 def CommandLine():
+    import pkg_resources  # part of setuptools
+    version = pkg_resources.require("latex2edx")[0].version
     parser = optparse.OptionParser(usage="usage: %prog [options] filename.tex",
-                                   version="%prog 1.0")
+                                   version="%prog version " + version)
     parser.add_option('-v', '--verbose', 
                       dest='verbose', 
                       default=False, action='store_true',
