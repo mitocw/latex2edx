@@ -40,5 +40,8 @@ class TestedXinclude(unittest.TestCase):
     </vertical>"""
             assert(expect in data)
 
+            cfn = path(tmdir) / 'staffgrading/project_paper.xml'
+            assert(os.path.exists(cfn))
+
 if __name__ == '__main__':
     unittest.main()

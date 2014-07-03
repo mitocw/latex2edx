@@ -112,7 +112,8 @@ class XBundle(object):
 
     DescriptorTags = ['course','chapter','sequential','vertical','html','problem','video',
                       'conditional', 'combinedopenended', 'videosequence', 'problemset',
-                      'wrapper', 'poll_question', 'randomize', 'proctor', 'discussion' ]
+                      'wrapper', 'poll_question', 'randomize', 'proctor', 'discussion',
+                      'staffgrading', ]
     KeepTogetherTags = []	# for latex2edx - simplier course structure
     MapTags = dict(section='sequential')
     DefaultSemester = '2013_Fall'

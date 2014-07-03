@@ -604,9 +604,10 @@ class latex2edx(object):
     
 	    # remove parent <p> if it exists
             parent = include.getparent()
-            if parent.tag=='p' and not parent.text.strip():
+            pp = parent.getparent()
+            if parent.tag=='p' and not parent.text.strip() and pp is not None:
                 parent.addprevious(include)
-            parent.getparent().remove(parent)
+                pp.remove(parent)
 
             print "--> including file %s at line %s" % (incfn, linenum)
             if incxml.tag=='html' and len(incxml)>0:		# strip out outer <html> container
@@ -615,7 +616,8 @@ class latex2edx(object):
             else:
                 include.addprevious(incxml)
             p = include.getparent()
-            p.remove(include)
+            if p is not None:
+                p.remove(include)
 
     def process_includepy(self, tree):
         '''
