@@ -906,7 +906,10 @@ to set such arguments is to define them as variables within an edXscript, then u
 substitution.  Specifically, for example:</p>
 <div class="highlight-python"><pre>\begin{edXscript}
 
-state = cgi.escape(json.dumps(_state_),True)
+import cgi
+import json
+
+istate = cgi.escape(json.dumps(_state_),True)
 
 \end{edXscript}
 

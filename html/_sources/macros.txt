@@ -692,7 +692,10 @@ substitution.  Specifically, for example::
 
     \begin{edXscript}
     
-    state = cgi.escape(json.dumps(_state_),True)
+    import cgi
+    import json
+
+    istate = cgi.escape(json.dumps(_state_),True)
     
     \end{edXscript}
     
