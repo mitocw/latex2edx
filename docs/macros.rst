@@ -287,13 +287,13 @@ type of answer box:
 Key           Value       Description
 ============= =========== ============================================================
 type          option      Option response question
-              string      String response question
-	      multichoice Multiple choice input question
-	      numerical   Numerical response question
-	      formula     Formula response question
-              custom      Custom response question
-	      jsinput     Javascript input response question
-	      image       Image response question
+\             string      String response question
+\ 	      multichoice Multiple choice input question
+\ 	      numerical   Numerical response question
+\ 	      formula     Formula response question
+\             custom      Custom response question
+\ 	      jsinput     Javascript input response question
+\ 	      image       Image response question
 ============= =========== ============================================================
 
 Each of these problem types is `documented by edX
@@ -535,18 +535,20 @@ explicit examples constructed by the instructor.
 
 Custom response problems are specified by the following key, value pairs:
 
-============= ========================================================================
-Key           Description of value
-============= ========================================================================
-expect        a double-quoted string giving the "correct" answer, when appropriate
-cfn           name of the python function to use as the "check" function
-prompts       comma-delimited list of double-quoted strings specifying prompts
-answers       comma-delimited list of double-quoted strings specifying answers
-options       a comma-delimited list of double-quoted strings
-math          1: display mathjax rendering of formula below the input box
-size          width of the input box displayed
-inline        1: display input box inline (default is not inline, i.e. block display)
-============= ========================================================================
+===================== ========================================================================
+Key                   Description of value
+===================== ========================================================================
+expect                a double-quoted string giving the "correct" answer, when appropriate
+cfn                   name of the python function to use as the "check" function
+prompts               comma-delimited list of double-quoted strings specifying prompts
+answers               comma-delimited list of double-quoted strings specifying answers
+options               a comma-delimited list of double-quoted strings
+math                  1: display mathjax rendering of formula below the input box
+size                  width of the input box displayed
+inline                1: display input box inline (default is not inline, i.e. block display)
+preprocessorSrc       name of javascript file to load for mathjax pre-processing
+preprocessorClassName javascript function name within the js file, for mathjax pre-processing
+===================== ========================================================================
 
 ``prompts`` and ``answers`` are only used in multiple-input-box
 problems.  When used, the number of input boxes corresponds to the
@@ -596,6 +598,30 @@ Output XML::
       <p style="display:inline">y =<textline correct_answer="9" inline="1"/></p>
     </customresponse>
 
+Another example, demonstrating multiple input boxes, with prompts, and javascript pre-processing::
+
+    \edXabox{type="custom" 
+      size=70 
+      prompts="$|\phi_2\> = $","$|\phi_3\> = $","$|\phi_4\> = $"
+      answers="(sqrt(2)*exp(-  i*pi/3)*|0>+|1>)/sqrt(3)","(sqrt(2)*exp(-  i*pi  )*|0>+|1>)/sqrt(3)","(sqrt(2)*exp(-5*i*pi/3)*|0>+|1>)/sqrt(3)"
+      expect="See solutions" 
+      cfn="check_tetra_holevo" 
+      preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"
+      math=1
+      inline="1"
+    }
+
+Output XML::
+
+          <customresponse cfn="check_tetra_holevo" inline="1" expect="See solutions">
+            <p style="display:inline">[mathjaxinline]|\phi _2\rangle  =[/mathjaxinline]<textline size="70" correct_answer="(sqrt(2)*exp(- i*pi/3)*|0&amp;gt;+|1&amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/></p>
+            <br/>
+            <p style="display:inline">[mathjaxinline]|\phi _3\rangle  =[/mathjaxinline]<textline size="70" correct_answer="(sqrt(2)*exp(- i*pi )*|0&amp;gt;+|1&amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/></p>
+            <br/>
+            <p style="display:inline">[mathjaxinline]|\phi _4\rangle  =[/mathjaxinline]<textline size="70" correct_answer="(sqrt(2)*exp(-5*i*pi/3)*|0&amp;gt;+|1&amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/></p>
+          </customresponse>
+
+
 | Add more about the python check function
 
 | Add more examples
@@ -624,19 +650,20 @@ Javascript input response problems are specified by all the usual key,
 value pairs for custom response problems, and in addition several
 needed to specify the javascript interface:
 
-============= ========================================================================
+============= ======================================================================================
 Key           Description of value
-============= ========================================================================
+============= ======================================================================================
 expect        a double-quoted string giving the "correct" answer, when appropriate
 cfn           name of the python function to use as the "check" function
 options       a comma-delimited list of double-quoted strings
 width         width of the iframe window used for display of the problem
 height        height of the iframe window used for display of the problem
 gradefn       name of the javascript function used to get the grading input
+initial_state initial state to send to the js problem (JSON) -- only in edX platform after ~7/1/14
 get_statefn   name of the javascript function used to get the js problem state
 set_statefn   name of the javascript function used to set the js problem state
 html_file     name of the HTML file with the javascript, to be displayed in the iframe
-============= ========================================================================
+============= ======================================================================================
 
 Example input (suppressing the python function)::
 
@@ -644,6 +671,7 @@ Example input (suppressing the python function)::
       width="650"
       height="555"
       gradefn="getinput"
+      initial_state="some-json-state-string"
       get_statefn="getstate"
       set_statefn="setstate"
       html_file="/static/html/ps3plot_btran1.html"
@@ -654,6 +682,24 @@ Output XML::
     <customresponse cfn="test_findep" expect="">
       <jsinput width="650" height="555" gradefn="getinput" get_statefn="getstate" set_statefn="setstate" html_file="/static/html/ps3plot_btran1.html"/>
     </customresponse>
+
+A hint on encoding: often, it is the case that the initial state (or some other argument
+to a custom response \edXabox) needs to contain non-alphanumeric characters, such as quotes
+or greater-than and less-than symbols, which typically need to be escaped.  A convenient way
+to set such arguments is to define them as variables within an edXscript, then use the
+"dollar sign" text replacement feature built into edX's capa problems, to effect a variable
+substitution.  Specifically, for example::
+
+    \begin{edXscript}
+    
+    state = cgi.escape(json.dumps(_state_),True)
+    
+    \end{edXscript}
+    
+    \edXabox{...
+      initial_state=\$istate
+      ...
+    }
 
 
 Auxilliary Macros
