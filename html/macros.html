@@ -980,6 +980,10 @@ among other things.</p>
 <td>Command</td>
 <td>None</td>
 </tr>
+<tr class="row-even"><td>edXmath</td>
+<td>Environment</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
 <div class="section" id="edxsolution">
@@ -1082,6 +1086,52 @@ answer box.</p>
 \end{itemize}</pre>
 </div>
 </div>
+<div class="section" id="edxmath">
+<h3>edXmath<a class="headerlink" href="#edxmath" title="Permalink to this headline">¶</a></h3>
+<p>Forces contents to be rendered as mathjax.  This is a convenient way to sidestep the fact that some
+math formatting is changed by plastex.  In particular, plastex renders eqnarray using html tables,
+rather than relying on mathjax&#8217;s ability to render eqnarray properly.</p>
+<p>Example:</p>
+<div class="highlight-python"><pre>\begin{edXmath}
+\begin{eqnarray}
+S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+        &amp;=&amp;  H((1+r)/2)
+\end{eqnarray}
+\end{edXmath}</pre>
+</div>
+<p>This produces the XML:</p>
+<div class="highlight-python"><pre>[mathjax]\begin{eqnarray}
+S(\rho) &amp;amp;=&amp;amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+        &amp;amp;=&amp;amp;  H((1+r)/2)
+\end{eqnarray}[/mathjax]</pre>
+</div>
+<p>which renders as:</p>
+<a class="reference internal image-reference" href="_images/mathjax-render-example.png"><img alt="_images/mathjax-render-example.png" src="_images/mathjax-render-example.png" style="width: 300px;" /></a>
+<p>Contrast that with:</p>
+<div class="highlight-python"><pre>\begin{eqnarray}
+S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+        &amp;=&amp;  H((1+r)/2)
+\end{eqnarray}</pre>
+</div>
+<p>(no edXmath, just native math) which plastex renders using an HTML table, producing this XML:</p>
+<div class="highlight-python"><pre>&lt;table id="a0000000002" cellpadding="7" width="100%" cellspacing="0" class="eqnarray" style="table-layout:auto"&gt;&lt;tr id="a0000000003"&gt;&lt;td style="width:40%; border:none"&gt;&amp;#xA0;&lt;/td&gt;&lt;td style="vertical-align:middle;                                    text-align:right; border:none"&gt;
+        [mathjaxinline]\displaystyle  S(\rho )[/mathjaxinline]
+    &lt;/td&gt;&lt;td style="vertical-align:middle;                                    text-align:center; border:none"&gt;
+        [mathjaxinline]\displaystyle =[/mathjaxinline]
+    &lt;/td&gt;&lt;td style="vertical-align:middle;                                    text-align:left; border:none"&gt;
+        [mathjaxinline]\displaystyle  -\lambda _{1} \log \lambda _{1} -\lambda _{2} \log \lambda _{2}[/mathjaxinline]
+    &lt;/td&gt;&lt;td style="width:40%; border:none"&gt;&amp;#xA0;&lt;/td&gt;&lt;td style="width:20%; border:none" class="eqnnum"&gt;&lt;span&gt;(&lt;span&gt;1&lt;/span&gt;)&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr id="a0000000004"&gt;&lt;td style="width:40%; border:none"&gt;&amp;#xA0;&lt;/td&gt;&lt;td style="vertical-align:middle;                                    text-align:right; border:none"&gt;
+        &amp;#xA0;
+    &lt;/td&gt;&lt;td style="vertical-align:middle;                                    text-align:center; border:none"&gt;
+        [mathjaxinline]\displaystyle =[/mathjaxinline]
+    &lt;/td&gt;&lt;td style="vertical-align:middle;                                    text-align:left; border:none"&gt;
+        [mathjaxinline]\displaystyle  H((1+r)/2)[/mathjaxinline]
+    &lt;/td&gt;&lt;td style="width:40%; border:none"&gt;&amp;#xA0;&lt;/td&gt;&lt;td style="width:20%; border:none" class="eqnnum"&gt;&lt;span&gt;(&lt;span&gt;2&lt;/span&gt;)&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</pre>
+</div>
+<p>which renders as:</p>
+<a class="reference internal image-reference" href="_images/mathjax-render-plastex.png"><img alt="_images/mathjax-render-plastex.png" src="_images/mathjax-render-plastex.png" style="width: 850px;" /></a>
+<p>Note that this includes equation numbers (!), and is centered.</p>
+</div>
 <div class="section" id="edxbr">
 <h3>edXbr<a class="headerlink" href="#edxbr" title="Permalink to this headline">¶</a></h3>
 <p>Forces insert of a one-line break.</p>
@@ -1160,6 +1210,7 @@ stored on github, then use something like this example:</p>
 <li><a class="reference internal" href="#edxinclude">edXinclude</a></li>
 <li><a class="reference internal" href="#edxincludepy">edXincludepy</a></li>
 <li><a class="reference internal" href="#edxinline">edXinline</a></li>
+<li><a class="reference internal" href="#edxmath">edXmath</a></li>
 <li><a class="reference internal" href="#edxbr">edXbr</a></li>
 <li><a class="reference internal" href="#edxaskta">edXaskta</a></li>
 <li><a class="reference internal" href="#edxgitlink">edXgitlink</a></li>
