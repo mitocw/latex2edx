@@ -6,6 +6,18 @@ from plasTeX import Base
 log = getLogger()
 status = getLogger('status')
 
+class MyBaseCommand(Base.Command):	# add filename and linenum attributes
+    def invoke(self, tex):
+        Command.invoke(self, tex)
+        self.attributes['filename'] = tex.filename
+        self.attributes['linenum'] = tex.lineNumber
+
+class MyBaseVerbatim(Base.verbatim):	# add filename and linenum attributes
+    def invoke(self, tex):
+        self.attributes['filename'] = tex.filename
+        self.attributes['linenum'] = tex.lineNumber
+        return Base.verbatim.invoke(self, tex)
+
 class edXcourse(Base.Environment):
     args = '{ number } { display_name } [ attrib_string:str ] self'
 
@@ -22,7 +34,7 @@ class edXsequential(Base.Environment):
 class edXvertical(Base.Environment):
     args = '{ display_name } [ attrib_string:str ] self'
 
-class edXabox(Base.Command):
+class edXabox(MyBaseCommand):
     args = 'self'
 
 class edXinline(Base.Command):
@@ -44,12 +56,6 @@ class includegraphics(Base.Command):
 class edXcite(Base.Command):	# tooltip citation (appears onmoseover, using <a title="self" href="#"><sup>[ref]</sup></a>)
     args = '[ ref ] self'
 
-class MyBaseCommand(Base.Command):	# add filename and linenum attributes
-    def invoke(self, tex):
-        Command.invoke(self, tex)
-        self.attributes['filename'] = tex.filename
-        self.attributes['linenum'] = tex.lineNumber
-
 class edXinclude(MyBaseCommand):		# include external XML file
     args = 'self'
 
@@ -65,7 +71,7 @@ class edXdndtex(MyBaseCommand):		# insert external drag-and-drop problem (should
 class edXshowhide(Base.Environment):	# block of text to be hidden by default, but with clickable "show"
     args = ' { id } { description } self'
 
-class edXscript(Base.verbatim):
+class edXscript(MyBaseVerbatim):
     macroName = "edXscript"
     
 class endedXscript(Base.endverbatim):

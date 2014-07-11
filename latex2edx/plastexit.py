@@ -38,6 +38,7 @@ class MyRenderer(XHTML.Renderer):
             self.filters[ffm] = self.filter_fix_displaymath
         self.filters[self.filter_fix_displaymathverbatim_match] = self.filter_fix_displaymathverbatim
         self.filters[self.filter_fix_abox_match] = self.filter_fix_abox
+        self.filters[self.filter_fix_abox_match_with_linenum] = self.filter_fix_abox_with_linenum
         self.filters[self.filter_fix_image_match] = self.filter_fix_image
         self.filters[self.filter_fix_edxxml_match] = self.filter_fix_edxxml
 
@@ -163,11 +164,17 @@ class MyRenderer(XHTML.Renderer):
         print 'Cannot find image file %s' % fn
         return '<img src="NOTFOUND-%s" />' % fn
 
-    filter_fix_abox_match = r'(?s)<abox>(.*?)</abox>'
+    filter_fix_abox_match = r'(?s)<abox(|linenum="\d+" filename="[^>]+")>(.*?)</abox>'
 
     @staticmethod
     def filter_fix_abox(m):
         return AnswerBox(m.group(1)).xmlstr
+
+    filter_fix_abox_match_with_linenum = r'(?s)<abox (linenum="\d+" filename="[^>]+")>(.*?)</abox>'
+
+    @staticmethod
+    def filter_fix_abox_with_linenum(m):
+        return AnswerBox(m.group(2), context=m.group(1)).xmlstr
 
     @staticmethod
     def fix_unicode(stxt):

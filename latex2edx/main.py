@@ -734,12 +734,23 @@ class latex2edx(object):
         '''
         for script in tree.findall('.//script[@type="text/python"]'):
             pyfile = tempfile.NamedTemporaryFile(mode='w', delete=False)
-            pyfile.write(script.text)
+            if script.text is None:
+                print "Warning: empty script!"
+                print "Script location: %s" % etree.tostring(script)
+                continue
+            try:
+                pyfile.write(script.text)
+            except Exception as err:
+                print "Error checking python script %s" % script.text
+                print str(err)
+                print "Script location: %s" % etree.tostring(script)
+                continue
             pyfile.close()
             try:
                 py_compile.compile(pyfile.name, doraise=True)
             except Exception as err:
                 print "Error in python script %s! Err=%s" % (pyfile.name, err)
+                print "Script location: %s" % etree.tostring(script)
                 print "Aborting!"
                 sys.exit(0)
             os.unlink(pyfile.name)

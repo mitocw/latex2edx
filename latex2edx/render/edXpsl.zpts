@@ -29,7 +29,7 @@ name: edXshowhide
 <edxshowhide tal:attributes='id self/attributes/id; description self/attributes/description' tal:content='self'></edxshowhide>
 
 name: edXabox
-<abox tal:content='self'></abox>
+<abox tal:attributes="linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}" tal:content='self'></abox>
 
 name: edXaskta
 <askta tal:content='self'></askta>
@@ -47,7 +47,7 @@ name: edXsolution
 <solution><font color="blue">Answer: </font><font color="blue" tal:content='self'></font></solution>
 
 name: edXscript
-<script type="text/python" system_path="python_lib" tal:content='self'></script>
+<script type="text/python" system_path="python_lib" tal:attributes="linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}" tal:content='self'></script>
 
 name: edXanswer
 <answer type="text/python" tal:content='self'></answer>

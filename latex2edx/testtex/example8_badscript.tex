@@ -1,0 +1,51 @@
+%
+% File:   example3.tex
+% 
+
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl}	% edX
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{edXcourse}{1.00x}{1.00x Fall 2013}[url_name=2013_Fall showanswer=always start=2014-05-11T12:00]
+\begin{edXchapter}{Unit 2}[start="2013-11-22"]
+\begin{edXsection}{A second section}[due="2016-11-22" graded=true]
+\begin{edXproblem}{Example problem with hints}{url_name="p1"}
+ 
+Let $x=3$ and $y=9$.  Give two expressions using $x$ and $y$ which add
+up to 10.
+
+\begin{edXscript}
+  
+def test10(expect, ans):
+    samples = 'x,y,L@3,9,1:3,9,5#10'
+    given = '(%s)+(%s)' % (ans[0], ans[1])
+    ok = is_formula_equal('10', given, samples=samples)
+    return {'ok': ok, 'msg': 'given=%s' % given}
+
+\end{edXscript}
+
+% abox missing expect - should cause error
+%  expect='10' 
+
+\edXabox{type='custom' 
+  size='20' 
+  prompts="First number: ","Second number: " 
+  answers="1","9"
+  inline="1"
+  cfn='test10'
+}
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{edXsection}
+\end{edXchapter}
+\end{edXcourse}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}

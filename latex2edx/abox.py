@@ -18,7 +18,7 @@ import os, sys, string ,re
 from lxml import etree
 
 class AnswerBox(object):
-    def __init__(self,aboxstr):
+    def __init__(self, aboxstr, context=None, verbose=False):
         '''
         Parse a TUT abox and produce edX XML for a problem responsetype.
 
@@ -144,8 +144,13 @@ class AnswerBox(object):
 
         -----------------------------------------------------------------------------
 
+        context is used for error reporting, and provides context like the line number and
+        filename where the abox is located.
+
         '''
         self.aboxstr = aboxstr
+        self.context = context
+        self.verbose = verbose
         self.xml = self.abox2xml(aboxstr)
         self.xmlstr = self.hint_extras + etree.tostring(self.xml)
         
@@ -226,7 +231,8 @@ class AnswerBox(object):
             optionstr, options = self.get_options(abargs)
             expectstr, expects = self.get_options(abargs,'expect')
             cnt = 1
-            print "choice; options=/%s/, expects=/%s/" % (options,expects)
+            if self.verbose:
+                print "[abox.py] oldmultichoice: options=/%s/, expects=/%s/" % (options,expects)
             for op in options:
                 choice = etree.SubElement(cg,'choice')
                 choice.set('correct','true' if (op in expects) else 'false')
@@ -288,9 +294,11 @@ class AnswerBox(object):
             else:
                 prompts = ['']
             if not len(prompts)==len(answers):
-                print "Error: number of answers and prompts must match in:"
-                print aboxstr
-                sys.exit(-1)
+                msg = "Error: number of answers and prompts must match in:"
+                msg += aboxstr
+                msg += "\nabox located: %s\n" %  self.context
+                raise Exception(msg)
+                # sys.exit(-1)
 
             cnt = 0
             for ans, prompt in zip(answers,prompts):
@@ -414,9 +422,11 @@ class AnswerBox(object):
             self.require_args(['src','width','height','rectangle'])
             rect = abargs.get('rectangle')
             if re.match('\(\d+\,\d+\)\-\(\d+,\d+\)',rect) is None: #check for rectangle syntax
-                print "[abox.py] ERROR: imageresponse rectancle %s has wrong syntax" % rect
-                print "[abox.py] Answer box string is \"%s\"" % self.aboxstr
-                sys.exit(0)
+                msg = "[abox.py] ERROR: imageresponse rectancle %s has wrong syntax\n" % rect
+                msg += "Answer box string is \"%s\"\n" % self.aboxstr
+                msg += "abox located: %s\n" %  self.context
+                raise Exception(msg)
+                # sys.exit(-1)
             ii = etree.Element('imageinput')
             self.copy_attrib(abargs,'src',ii)
             self.copy_attrib(abargs,'width',ii)
@@ -460,11 +470,13 @@ class AnswerBox(object):
     def require_args(self,argnames):
         for argname in argnames:
             if argname not in self.abargs:
-                print "\n============================================================"
-                print "Error - abox requires %s argument" % argname
-                print "Answer box string is \"%s\"" % self.aboxstr
+                msg = "============================================================\n"
+                msg += "Error - abox requires %s argument\n" % argname
+                msg += "Answer box string is \"%s\"\n" % self.aboxstr
+                msg += "abox located: %s\n" %  self.context
                 # raise Exception, "Bad abox"
-                sys.exit(0)
+                raise Exception(msg)
+                # sys.exit(-1)
             
     def abox_args(self,s):
         '''
