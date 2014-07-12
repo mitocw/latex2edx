@@ -4,6 +4,7 @@ import unittest
 import tempfile
 import shutil
 from path import path	# needs path.py
+from lxml import etree
 import latex2edx as l2emod
 from latex2edx.main import latex2edx
 from StringIO import StringIO
@@ -29,14 +30,26 @@ class TestExamples(unittest.TestCase):
             xbfn = nfn[:-4]+'.xbundle'
             self.assertTrue(os.path.exists(xbfn))
             xb = open(xbfn).read()
-            self.assertIn('<chapter display_name="Unit 1" start="2013-11-22" url_name="Unit_1">', xb)
+
+            # self.assertIn('<chapter display_name="Unit 1" start="2013-11-22" url_name="Unit_1">', xb)
+            xml = etree.parse(xbfn).getroot()
+            chapter = xml.find('.//chapter')
+            self.assertTrue(chapter.get('display_name')=='Unit 1')
+            self.assertTrue(chapter.get('start')=='2013-11-22')
+            self.assertTrue(chapter.get('url_name')=='Unit_1')
+
             cfn = path(tmdir) / 'course/2013_Fall.xml'
             self.assertTrue(os.path.exists(cfn))
 
             cfn = path(tmdir) / 'chapter/Unit_1.xml'
             self.assertTrue(os.path.exists(cfn))
 
-            self.assertIn('<sequential display_name="Introduction" due="2013-11-22" url_name="Introduction">', open(cfn).read())
+            #self.assertIn('<sequential display_name="Introduction" due="2013-11-22" url_name="Introduction"', open(cfn).read())
+            xml = etree.parse(cfn).getroot()
+            seq = xml.find('.//sequential')
+            self.assertTrue(seq.get('display_name')=='Introduction')
+            self.assertTrue(seq.get('due')=='2013-11-22')
+            self.assertTrue(seq.get('url_name')=='Introduction')
 
             self.assertIn('<problem url_name="p1"/>', open(cfn).read())
 
@@ -60,8 +73,8 @@ class TestExamples(unittest.TestCase):
             cfn = path(tmdir) / 'course/2013_Fall.xml'
             self.assertTrue(os.path.exists(cfn))
 
-            self.assertIn('<chapter url_name="Unit_1"/>', open(cfn).read())
-            self.assertIn('<chapter url_name="Unit_2"/>', open(cfn).read())
+            self.assertIn('<chapter url_name="Unit_1"', open(cfn).read())
+            self.assertIn('<chapter url_name="Unit_2"', open(cfn).read())
 
             cfn = path(tmdir) / 'chapter/Unit_1.xml'
             self.assertTrue(os.path.exists(cfn))

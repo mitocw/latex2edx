@@ -18,13 +18,19 @@ class MyBaseVerbatim(Base.verbatim):	# add filename and linenum attributes
         self.attributes['linenum'] = tex.lineNumber
         return Base.verbatim.invoke(self, tex)
 
+class MyBaseEnvironment(Base.Environment):	# add filename and linenum attributes
+    def invoke(self, tex):
+        self.attributes['filename'] = tex.filename
+        self.attributes['linenum'] = tex.lineNumber
+        return Base.Environment.invoke(self, tex)
+
 class edXcourse(Base.Environment):
     args = '{ number } { display_name } [ attrib_string:str ] self'
 
-class edXchapter(Base.Environment):
+class edXchapter(MyBaseEnvironment):
     args = '{ display_name } [ attrib_string:str ] self'
 
-class edXsection(Base.Environment):
+class edXsection(MyBaseEnvironment):
     # turns into edXsequential
     args = '{ display_name } [ attrib_string:str ] self'
 
@@ -98,13 +104,13 @@ class endedXmath(Base.endverbatim):
 class edXxml(Base.Command):
     args = 'self'
 
-class edXproblem(Base.Environment):
+class edXproblem(MyBaseEnvironment):
     args = '{ display_name } { attrib_string } self'
 
-class edXtext(Base.Environment):	# indicates HTML file to be included (ie <html...> in course.xml)
+class edXtext(MyBaseEnvironment):	# indicates HTML file to be included (ie <html...> in course.xml)
     args = '{ display_name } [ attrib_string:str ] self'
 
-class edXsolution(Base.Environment):
+class edXsolution(MyBaseEnvironment):
     args = 'self'
     # note: cannot have \[ immediately after \begin{edXsolution}
 

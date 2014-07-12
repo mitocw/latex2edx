@@ -103,6 +103,7 @@ class latex2edx(object):
                  suppress_verticals=False,
                  section_only=False,
                  xml_only=False,
+                 units_only=False,
                  ):
         '''
         extra_xml_filters = list of functions acting on XML, applied to XHTML
@@ -136,6 +137,7 @@ class latex2edx(object):
         self.section_only = section_only
         self.suppress_verticals = suppress_verticals
         self.xml_only = xml_only
+        self.units_only = units_only
         self.the_xml = None
 
         if output_fn is None or not output_fn:
@@ -183,7 +185,7 @@ class latex2edx(object):
         xb = xbundle.XBundle(force_studio_format=(not self.suppress_verticals), keep_urls=True)
         xb.dir = self.output_dir
 
-        tags = ['sequential', 'problem', 'html']
+        tags = ['sequential', 'problem', 'html', 'video']
         for tag in tags:
             print "    %s: %d" % (tag, len(self.xml.findall('.//%s' % tag)))
 
@@ -194,6 +196,25 @@ class latex2edx(object):
                                                                          nprob, nhtml)
             xb.add_descriptors(seq)
             xb.export_xml_to_directory(seq, dowrite=True)
+
+    def export_units_only(self):
+        '''
+        Export units (problem, html, video) only (no course, no chapters).
+        Also save the initial XML as the xbundle file
+        '''
+        self.save_xml()
+        xb = xbundle.XBundle(force_studio_format=(not self.suppress_verticals), keep_urls=True)
+        xb.dir = self.output_dir
+
+        tags = ['problem', 'html', 'video']
+        for tag in tags:
+            print "    %s: %d" % (tag, len(self.xml.findall('.//%s' % tag)))
+
+        for tag in tags:
+            for unit in self.xml.findall('.//%s' % tag):
+                print "--> exporting %s %s" % (unit.get('display_name', '<unknown display_name>'))
+                xb.add_descriptors(unit)
+                xb.export_xml_to_directory(unit, dowrite=True)
 
 
     @property
@@ -212,27 +233,26 @@ class latex2edx(object):
         return self.the_xml
 
 
-    def convert(self, section_only=None):
+    def convert(self):
         '''
         Convert xhtml to xbundle and then xbundle to directory of XML files.
         if self.do_merge then do not overwrite course files; attempt to merge them.
-        
-        if section_only then only export edXsections (sequentials)
         '''
-        if section_only is None:
-            section_only = self.section_only
-
-        if section_only and self.xml_only:
+        if self.section_only and self.xml_only:
             print "Saving XML to file %s" % self.output_fn
             return self.save_xml()
 
-        if section_only:
+        if self.section_only:
+            # if section_only then only export edXsections (sequentials)
             return self.export_sections_only()
+
+        if self.units_only:
+            return self.export_units_only()
 
         self.xhtml2xbundle()
         self.xb.save(self.output_fn)
         print "xbundle generated (%s): " % self.output_fn
-        tags = ['chapter', 'sequential', 'problem', 'html']
+        tags = ['chapter', 'sequential', 'problem', 'html', 'video']
         for tag in tags:
             print "    %s: %d" % (tag, len(self.xb.course.findall('.//%s' % tag)))
         if self.xml_only:
@@ -966,6 +986,11 @@ def CommandLine():
                       dest="xml_only",
                       default=False,
                       help="export only xbundle xml file -- no separate course content",)
+    parser.add_option("--units-only",
+                      action="store_true",
+                      dest="units_only",
+                      default=False,
+                      help="export only units, including problem, html -- no course, chapter, section",)
     (opts, args) = parser.parse_args()
 
     if len(args)<1:
@@ -988,6 +1013,7 @@ def CommandLine():
                   suppress_verticals=opts.suppress_verticals,
                   section_only=opts.section_only,
                   xml_only=opts.xml_only,
+                  units_only=opts.units_only,
         )
     c.convert()
     
