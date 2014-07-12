@@ -2,10 +2,10 @@ name: edXcourse
 <course tal:attributes='number self/attributes/number; display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}' tal:content='self'></course>
 
 name: edXchapter
-<chapter tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}; linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}' tal:content='self'></chapter>
+<chapter tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}; linenum string:${self/attributes/linenum}; tex_filename string:${self/attributes/filename}' tal:content='self'></chapter>
 
 name: edXsection
-<sequential tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}; linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}' tal:content='self'></sequential>
+<sequential tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}; linenum string:${self/attributes/linenum}; tex_filename string:${self/attributes/filename}' tal:content='self'></sequential>
 
 name: edXvertical
 <vertical tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}' tal:content='self'></vertical>
@@ -14,10 +14,10 @@ name: edXsequential
 <sequential tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}' tal:content='self'></sequential>
 
 name: edXproblem
-<problem tal:attributes='display_name self/attributes/display_name; attrib_string self/attributes/attrib_string; linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}'><text tal:content='self'></text></problem>
+<problem tal:attributes='display_name self/attributes/display_name; attrib_string self/attributes/attrib_string; linenum string:${self/attributes/linenum}; tex_filename string:${self/attributes/filename}'><text tal:content='self'></text></problem>
 
 name: edXtext
-<html tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}; linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}' tal:content='self'></html>
+<html tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}; linenum string:${self/attributes/linenum}; tex_filename string:${self/attributes/filename}' tal:content='self'></html>
 
 name: edXinline
 <p style="display:inline" tal:content='self'></p>

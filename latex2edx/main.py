@@ -716,7 +716,7 @@ class latex2edx(object):
     @staticmethod
     def get_filename_and_linenum(elem):
         linenum = elem.get('linenum','<unavailable>')
-        texfn = elem.get('filename','<unavailable>')
+        texfn = elem.get('tex_filename', elem.get('filename', '<unavailable>'))
         return "file %s line %s" % (texfn, linenum)
 
     def standard_error_msg(self, elem):
