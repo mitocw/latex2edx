@@ -18,7 +18,15 @@ via pattern matching, based on matching strings, numerical value ranges,
 mathematical symbols and functions, and arbitrary boolean combinations of
 patterns.
 
-Version 1.3 adds documentation, and the edXvideo and edXdiscussion macros.
+Version 1.3 adds documentation, and the edXvideo, edXdiscussion, and edXdndtex macros.  
+It also provides regexp matching for string-match hints, textbox for customresponse,
+fixes edXmath, and provides filename and text file line number output for most
+error messages.  For example, when the syntax of an included python script is 
+found to be bad, you'll be told which file.tex the error is in, and the line
+number of the edXinclude statement.  This version also adds new --section-only,
+--xml-only, and --units-only output formats, enabling different workflows.  Using these flags
+allows processing of input tex files which do not specify edXcourse, or edXsection,
+for example.  
 
 See project homepage: 
 
@@ -45,6 +53,14 @@ Options::
                           update policy.json from settings in latex file
     --suppress-policy-settings
                           suppress policy settings from XML files
+    --suppress-verticals  do not automatically add extra verticals needed for
+                          Studio compatibility
+    -S, --section-only    export only edXsections (sequentials) -- no course or
+                          chapters
+    -x, --xml-only        export only xbundle xml file -- no separate course
+                          content
+    --units-only          export only units, including problem, html -- no
+                          course, chapter, section
 
 Quick Example
 -------------
@@ -91,4 +107,3 @@ Here is an annotated input tex file which generates the source for an edX course
     \end{document}
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-

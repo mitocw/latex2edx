@@ -223,14 +223,18 @@ dictionary may include the following key, value pairs:</p>
 <td rowspan="2">text to display when the hint rule matches</td>
 </tr>
 <tr class="row-odd"></tr>
-<tr class="row-even"><td rowspan="4">string</td>
-<td rowspan="4">string
-dict
-dict</td>
-<td rowspan="4">match on this string present (exact or substring) in the student&#8217;s answer
-{&#8216;regexp&#8217;: regular-expression-string }
-{&#8216;nospaces&#8217;: string-to-match-in-answer-after-spaces-removed-from-answer}</td>
+<tr class="row-even"><td rowspan="6">string</td>
+<td rowspan="6"><p class="first">string</p>
+<p>dict</p>
+<p class="last">dict</p>
+</td>
+<td rowspan="6"><p class="first">match on this string present (exact or substring) in the student&#8217;s answer</p>
+<p>{&#8216;regexp&#8217;: regular-expression-string }</p>
+<p class="last">{&#8216;nospaces&#8217;: string-to-match-in-answer-after-spaces-removed-from-answer}</p>
+</td>
 </tr>
+<tr class="row-odd"></tr>
+<tr class="row-even"></tr>
 <tr class="row-odd"></tr>
 <tr class="row-even"></tr>
 <tr class="row-odd"></tr>
@@ -249,20 +253,26 @@ dict</td>
 <td rowspan="2">match on answer being numerical (value ignored)</td>
 </tr>
 <tr class="row-odd"></tr>
-<tr class="row-even"><td rowspan="3">val</td>
-<td rowspan="3">float
-dict</td>
-<td rowspan="3">match on numerical value of student&#8217;s answer
-{&#8216;expect&#8217;: number, &#8216;tolerance&#8217;: tolerance}</td>
+<tr class="row-even"><td rowspan="4">val</td>
+<td rowspan="4"><p class="first">float</p>
+<p class="last">dict</p>
+</td>
+<td rowspan="4"><p class="first">match on numerical value of student&#8217;s answer</p>
+<p class="last">{&#8216;expect&#8217;: number, &#8216;tolerance&#8217;: tolerance}</p>
+</td>
 </tr>
 <tr class="row-odd"></tr>
 <tr class="row-even"></tr>
-<tr class="row-odd"><td rowspan="3">magdif</td>
-<td rowspan="3">float
-dict</td>
-<td rowspan="3">match on difference in magnitude between given &amp; expected numerical values being too large
-{&#8216;expect&#8217;: number, &#8216;max&#8217;: maximum_magnitude_difference_in_log10}</td>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="4">magdif</td>
+<td rowspan="4"><p class="first">float</p>
+<p class="last">dict</p>
+</td>
+<td rowspan="4"><p class="first">match on difference in magnitude between given &amp; expected numerical values being too large</p>
+<p class="last">{&#8216;expect&#8217;: number, &#8216;max&#8217;: maximum_magnitude_difference_in_log10}</p>
+</td>
 </tr>
+<tr class="row-odd"></tr>
 <tr class="row-even"></tr>
 <tr class="row-odd"></tr>
 <tr class="row-even"><td rowspan="2">range</td>
@@ -270,23 +280,27 @@ dict</td>
 <td rowspan="2">[min, max] match on numerical answer being within a certain range</td>
 </tr>
 <tr class="row-odd"></tr>
-<tr class="row-even"><td rowspan="3">formula</td>
-<td rowspan="3">string</td>
-<td rowspan="3">match on formula equality (via numerical sampling), specified by expression of the form:
-&lt;expr&gt;!&lt;variables&gt;&#64;&lt;lower_range&gt;:&lt;upper_range&gt;*yyyyyyyyyyyynyyyy&lt;num_samples&gt;</td>
+<tr class="row-even"><td rowspan="4">formula</td>
+<td rowspan="4">string</td>
+<td rowspan="4"><p class="first">match on formula equality (via numerical sampling), specified by expression of the form:</p>
+<p class="last">&lt;expr&gt;!&lt;variables&gt;&#64;&lt;lower_range&gt;:&lt;upper_range&gt;*yyyyyyyyyyyynyyyy&lt;num_samples&gt;</p>
+</td>
 </tr>
 <tr class="row-odd"></tr>
 <tr class="row-even"></tr>
-<tr class="row-odd"><td rowspan="2">parens</td>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="2">parens</td>
 <td rowspan="2">&nbsp;</td>
 <td rowspan="2">match on un-balanced parentheses (value ignored)</td>
 </tr>
-<tr class="row-even"></tr>
-<tr class="row-odd"><td rowspan="3">eval</td>
-<td rowspan="3">string</td>
-<td rowspan="3">match on evaluated expression, which may contain calls to other hint functions
-value = expression to evaluate, e.g. &#8220;not string(&#8216;*&#8217;) and string(&#8216;x&#8217;)&#8221;</td>
+<tr class="row-odd"></tr>
+<tr class="row-even"><td rowspan="4">eval</td>
+<td rowspan="4">string</td>
+<td rowspan="4"><p class="first">match on evaluated expression, which may contain calls to other hint functions</p>
+<p class="last">value = expression to evaluate, e.g. &#8220;not string(&#8216;*&#8217;) and string(&#8216;x&#8217;)&#8221;</p>
+</td>
 </tr>
+<tr class="row-odd"></tr>
 <tr class="row-even"></tr>
 <tr class="row-odd"></tr>
 <tr class="row-even"><td rowspan="2">debug</td>

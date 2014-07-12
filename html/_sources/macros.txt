@@ -287,13 +287,13 @@ type of answer box:
 Key           Value       Description
 ============= =========== ============================================================
 type          option      Option response question
-              string      String response question
-	      multichoice Multiple choice input question
-	      numerical   Numerical response question
-	      formula     Formula response question
-              custom      Custom response question
-	      jsinput     Javascript input response question
-	      image       Image response question
+\             string      String response question
+\ 	      multichoice Multiple choice input question
+\ 	      numerical   Numerical response question
+\ 	      formula     Formula response question
+\             custom      Custom response question
+\ 	      jsinput     Javascript input response question
+\ 	      image       Image response question
 ============= =========== ============================================================
 
 Each of these problem types is `documented by edX
@@ -535,18 +535,22 @@ explicit examples constructed by the instructor.
 
 Custom response problems are specified by the following key, value pairs:
 
-============= ========================================================================
-Key           Description of value
-============= ========================================================================
-expect        a double-quoted string giving the "correct" answer, when appropriate
-cfn           name of the python function to use as the "check" function
-prompts       comma-delimited list of double-quoted strings specifying prompts
-answers       comma-delimited list of double-quoted strings specifying answers
-options       a comma-delimited list of double-quoted strings
-math          1: display mathjax rendering of formula below the input box
-size          width of the input box displayed
-inline        1: display input box inline (default is not inline, i.e. block display)
-============= ========================================================================
+===================== ========================================================================
+Key                   Description of value
+===================== ========================================================================
+expect                a double-quoted string giving the "correct" answer, when appropriate
+cfn                   name of the python function to use as the "check" function
+prompts               comma-delimited list of double-quoted strings specifying prompts
+answers               comma-delimited list of double-quoted strings specifying answers
+options               a comma-delimited list of double-quoted strings
+math                  1: display mathjax rendering of formula below the input box
+size                  width of the input box displayed
+inline                1: display input box inline (default is not inline, i.e. block display)
+preprocessorSrc       name of javascript file to load for mathjax pre-processing
+preprocessorClassName javascript function name within the js file, for mathjax pre-processing
+rows                  an integer, specifying number of rows to use for text area input
+cols                  an integer, specifying number of columns to use for text area input
+===================== ========================================================================
 
 ``prompts`` and ``answers`` are only used in multiple-input-box
 problems.  When used, the number of input boxes corresponds to the
@@ -596,9 +600,52 @@ Output XML::
       <p style="display:inline">y =<textline correct_answer="9" inline="1"/></p>
     </customresponse>
 
-| Add more about the python check function
+Another example, demonstrating multiple input boxes, with prompts, and javascript pre-processing::
 
-| Add more examples
+    \edXabox{type="custom" 
+      size=70 
+      prompts="$|\phi_2\> = $","$|\phi_3\> = $","$|\phi_4\> = $"
+      answers="(sqrt(2)*exp(-  i*pi/3)*|0>+|1>)/sqrt(3)","(sqrt(2)*exp(-  i*pi  )*|0>+|1>)/sqrt(3)","(sqrt(2)*exp(-5*i*pi/3)*|0>+|1>)/sqrt(3)"
+      expect="See solutions" 
+      cfn="check_tetra_holevo" 
+      preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"
+      math=1
+      inline="1"
+    }
+
+Output XML::
+
+          <customresponse cfn="check_tetra_holevo" inline="1" expect="See solutions">
+            <p style="display:inline">[mathjaxinline]|\phi _2\rangle  =[/mathjaxinline]<textline size="70" correct_answer="(sqrt(2)*exp(- i*pi/3)*|0&amp;gt;+|1&amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/></p>
+            <br/>
+            <p style="display:inline">[mathjaxinline]|\phi _3\rangle  =[/mathjaxinline]<textline size="70" correct_answer="(sqrt(2)*exp(- i*pi )*|0&amp;gt;+|1&amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/></p>
+            <br/>
+            <p style="display:inline">[mathjaxinline]|\phi _4\rangle  =[/mathjaxinline]<textline size="70" correct_answer="(sqrt(2)*exp(-5*i*pi/3)*|0&amp;gt;+|1&amp;gt;)/sqrt(3)" inline="1" math="1" preprocessorClassName="MathjaxPreprocessorForQM" preprocessorSrc="/static/mathjax_preprocessor_for_QM_H.js"/></p>
+          </customresponse>
+
+Here's another example, which specifies the "rows" attribute, thus triggering the input element to be a text 
+area instead of just a text line.  This example also illustrates how "options" may be specified as an additional
+attribute::
+
+    \edXabox{type="custom" rows=30 cols=90 expect="See solutions" options="none" cfn=check_ft_threshold}
+
+The XML produced by this example is::
+
+          <customresponse cfn="check_ft_threshold" expect="See solutions" options="none" cfn_extra_args="options">
+            <textbox rows="30" cols="90" correct_answer="See solutions"/>
+          </customresponse>
+
+Note the extra "cfn_extra_args" which is automatically included, causing the "options" variable to be 
+passed as an argument to the python check function.  This means the python check function would be defined 
+like this::
+
+    def check_ft_threshold(expect, ans, options=None):
+       ...
+
+where the "options" argument will, in this case, be set to the string "none".  It is very convenient to
+use the "options" attribute to pass arbitrary parameters to the python check function.  For example,
+the sympy_check.py symbolic mathematical expression checking library uses "options" to specify tolerances,
+numerical sampling ranges for equality testing, and alternate acceptable answers, among other things.
 
 Javascript response problem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -624,19 +671,20 @@ Javascript input response problems are specified by all the usual key,
 value pairs for custom response problems, and in addition several
 needed to specify the javascript interface:
 
-============= ========================================================================
+============= ======================================================================================
 Key           Description of value
-============= ========================================================================
+============= ======================================================================================
 expect        a double-quoted string giving the "correct" answer, when appropriate
 cfn           name of the python function to use as the "check" function
 options       a comma-delimited list of double-quoted strings
 width         width of the iframe window used for display of the problem
 height        height of the iframe window used for display of the problem
 gradefn       name of the javascript function used to get the grading input
+initial_state initial state to send to the js problem (JSON) -- only in edX platform after ~7/1/14
 get_statefn   name of the javascript function used to get the js problem state
 set_statefn   name of the javascript function used to set the js problem state
 html_file     name of the HTML file with the javascript, to be displayed in the iframe
-============= ========================================================================
+============= ======================================================================================
 
 Example input (suppressing the python function)::
 
@@ -644,6 +692,7 @@ Example input (suppressing the python function)::
       width="650"
       height="555"
       gradefn="getinput"
+      initial_state="some-json-state-string"
       get_statefn="getstate"
       set_statefn="setstate"
       html_file="/static/html/ps3plot_btran1.html"
@@ -654,6 +703,27 @@ Output XML::
     <customresponse cfn="test_findep" expect="">
       <jsinput width="650" height="555" gradefn="getinput" get_statefn="getstate" set_statefn="setstate" html_file="/static/html/ps3plot_btran1.html"/>
     </customresponse>
+
+A hint on encoding: often, it is the case that the initial state (or some other argument
+to a custom response \edXabox) needs to contain non-alphanumeric characters, such as quotes
+or greater-than and less-than symbols, which typically need to be escaped.  A convenient way
+to set such arguments is to define them as variables within an edXscript, then use the
+"dollar sign" text replacement feature built into edX's capa problems, to effect a variable
+substitution.  Specifically, for example::
+
+    \begin{edXscript}
+    
+    import cgi
+    import json
+
+    istate = cgi.escape(json.dumps(_state_),True)
+    
+    \end{edXscript}
+    
+    \edXabox{...
+      initial_state=\$istate
+      ...
+    }
 
 
 Auxilliary Macros
@@ -679,6 +749,7 @@ edXinclude    Command     { filename }
 edXincludepy  Command     { filename }
 edXaskta      Command     { arguments }
 edXbr         Command     None
+edXmath       Environment None
 ============= =========== ============================================================
 
 edXsolution
@@ -727,9 +798,10 @@ Example::
 edXdndtex
 ^^^^^^^^^
 
-This macro causes the specified latex2dnd tex file to be included at the point
-where the macro is located.  The tex file will automatically be compiled, using
-latex2dnd (https://github.com/mitocw/latex2dnd), to generate the XML and images
+This macro causes the specified latex2dnd ("drag-and-drop") tex file
+to be included at the point where the macro is located.  The tex file
+will automatically be compiled, using latex2dnd
+(https://github.com/mitocw/latex2dnd), to generate the XML and images
 needed for the drag-and-drop problem.
 
 .. image:: images/dnd-problem.png
@@ -791,6 +863,64 @@ Example::
     \item \edXinline{\tt 5.2~~~} \edXabox{expect="float" options="noneType","int","float" type="option" inline="1"}
     \end{itemize}
 
+
+edXmath
+^^^^^^^
+
+Forces contents to be rendered as mathjax.  This is a convenient way to sidestep the fact that some 
+math formatting is changed by plastex.  In particular, plastex renders eqnarray using html tables, 
+rather than relying on mathjax's ability to render eqnarray properly.  
+
+Example::
+
+    \begin{edXmath}
+    \begin{eqnarray}
+    S(\rho) &=&  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+            &=&  H((1+r)/2)
+    \end{eqnarray}
+    \end{edXmath}
+
+This produces the XML::
+
+    [mathjax]\begin{eqnarray}
+    S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+            &amp;=&amp;  H((1+r)/2)
+    \end{eqnarray}[/mathjax]
+
+which renders as:
+
+.. image:: images/mathjax-render-example.png
+           :width: 300 px
+
+Contrast that with::
+
+    \begin{eqnarray}
+    S(\rho) &=&  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+            &=&  H((1+r)/2)
+    \end{eqnarray}
+
+(no edXmath, just native math) which plastex renders using an HTML table, producing this XML::
+
+    <table id="a0000000002" cellpadding="7" width="100%" cellspacing="0" class="eqnarray" style="table-layout:auto"><tr id="a0000000003"><td style="width:40%; border:none">&#xA0;</td><td style="vertical-align:middle;                                    text-align:right; border:none">
+	    [mathjaxinline]\displaystyle  S(\rho )[/mathjaxinline]
+        </td><td style="vertical-align:middle;                                    text-align:center; border:none">
+	    [mathjaxinline]\displaystyle =[/mathjaxinline]
+        </td><td style="vertical-align:middle;                                    text-align:left; border:none">
+	    [mathjaxinline]\displaystyle  -\lambda _{1} \log \lambda _{1} -\lambda _{2} \log \lambda _{2}[/mathjaxinline]
+        </td><td style="width:40%; border:none">&#xA0;</td><td style="width:20%; border:none" class="eqnnum"><span>(<span>1</span>)</span></td></tr><tr id="a0000000004"><td style="width:40%; border:none">&#xA0;</td><td style="vertical-align:middle;                                    text-align:right; border:none">
+	    &#xA0;
+        </td><td style="vertical-align:middle;                                    text-align:center; border:none">
+	    [mathjaxinline]\displaystyle =[/mathjaxinline]
+        </td><td style="vertical-align:middle;                                    text-align:left; border:none">
+	    [mathjaxinline]\displaystyle  H((1+r)/2)[/mathjaxinline]
+        </td><td style="width:40%; border:none">&#xA0;</td><td style="width:20%; border:none" class="eqnnum"><span>(<span>2</span>)</span></td></tr></table>
+
+which renders as:
+
+.. image:: images/mathjax-render-plastex.png
+           :width: 850 px
+
+Note that this includes equation numbers (!), and is centered.
 
 edXbr
 ^^^^^

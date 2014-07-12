@@ -26,7 +26,7 @@
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="latex2edx 1.3 documentation" href="index.html" />
     <link rel="next" title="The General Hints System" href="hints.html" />
-    <link rel="prev" title="Installation" href="install.html" /> 
+    <link rel="prev" title="Workflows" href="workflows.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,7 +39,7 @@
           <a href="hints.html" title="The General Hints System"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="install.html" title="Installation"
+          <a href="workflows.html" title="Workflows"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">latex2edx 1.3 documentation</a> &raquo;</li> 
       </ul>
@@ -399,22 +399,36 @@ type of answer box:</p>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>type</td>
-<td>option
-string
-multichoice
-numerical
-formula
-custom
-jsinput
-image</td>
-<td>Option response question
-String response question
-Multiple choice input question
-Numerical response question
-Formula response question
-Custom response question
-Javascript input response question
-Image response question</td>
+<td>option</td>
+<td>Option response question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>string</td>
+<td>String response question</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>multichoice</td>
+<td>Multiple choice input question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>numerical</td>
+<td>Numerical response question</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>formula</td>
+<td>Formula response question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>custom</td>
+<td>Custom response question</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>jsinput</td>
+<td>Javascript input response question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>image</td>
+<td>Image response question</td>
 </tr>
 </tbody>
 </table>
@@ -716,8 +730,8 @@ explicit examples constructed by the instructor.</p>
 <p>Custom response problems are specified by the following key, value pairs:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="15%" />
-<col width="85%" />
+<col width="23%" />
+<col width="77%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Key</th>
@@ -748,6 +762,18 @@ explicit examples constructed by the instructor.</p>
 </tr>
 <tr class="row-odd"><td>inline</td>
 <td>1: display input box inline (default is not inline, i.e. block display)</td>
+</tr>
+<tr class="row-even"><td>preprocessorSrc</td>
+<td>name of javascript file to load for mathjax pre-processing</td>
+</tr>
+<tr class="row-odd"><td>preprocessorClassName</td>
+<td>javascript function name within the js file, for mathjax pre-processing</td>
+</tr>
+<tr class="row-even"><td>rows</td>
+<td>an integer, specifying number of rows to use for text area input</td>
+</tr>
+<tr class="row-odd"><td>cols</td>
+<td>an integer, specifying number of columns to use for text area input</td>
 </tr>
 </tbody>
 </table>
@@ -797,12 +823,52 @@ def sumtest(expect,ans):
 &lt;/customresponse&gt;
 </pre></div>
 </div>
-<div class="line-block">
-<div class="line">Add more about the python check function</div>
+<p>Another example, demonstrating multiple input boxes, with prompts, and javascript pre-processing:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{type=&quot;custom&quot;
+  size=70
+  prompts=&quot;$|\phi_2\&gt; = $&quot;,&quot;$|\phi_3\&gt; = $&quot;,&quot;$|\phi_4\&gt; = $&quot;
+  answers=&quot;(sqrt(2)*exp(-  i*pi/3)*|0&gt;+|1&gt;)/sqrt(3)&quot;,&quot;(sqrt(2)*exp(-  i*pi  )*|0&gt;+|1&gt;)/sqrt(3)&quot;,&quot;(sqrt(2)*exp(-5*i*pi/3)*|0&gt;+|1&gt;)/sqrt(3)&quot;
+  expect=&quot;See solutions&quot;
+  cfn=&quot;check_tetra_holevo&quot;
+  preprocessorClassName=&quot;MathjaxPreprocessorForQM&quot; preprocessorSrc=&quot;/static/mathjax_preprocessor_for_QM_H.js&quot;
+  math=1
+  inline=&quot;1&quot;
+}
+</pre></div>
 </div>
-<div class="line-block">
-<div class="line">Add more examples</div>
+<p>Output XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;customresponse cfn=&quot;check_tetra_holevo&quot; inline=&quot;1&quot; expect=&quot;See solutions&quot;&gt;
+  &lt;p style=&quot;display:inline&quot;&gt;[mathjaxinline]|\phi _2\rangle  =[/mathjaxinline]&lt;textline size=&quot;70&quot; correct_answer=&quot;(sqrt(2)*exp(- i*pi/3)*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)&quot; inline=&quot;1&quot; math=&quot;1&quot; preprocessorClassName=&quot;MathjaxPreprocessorForQM&quot; preprocessorSrc=&quot;/static/mathjax_preprocessor_for_QM_H.js&quot;/&gt;&lt;/p&gt;
+  &lt;br/&gt;
+  &lt;p style=&quot;display:inline&quot;&gt;[mathjaxinline]|\phi _3\rangle  =[/mathjaxinline]&lt;textline size=&quot;70&quot; correct_answer=&quot;(sqrt(2)*exp(- i*pi )*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)&quot; inline=&quot;1&quot; math=&quot;1&quot; preprocessorClassName=&quot;MathjaxPreprocessorForQM&quot; preprocessorSrc=&quot;/static/mathjax_preprocessor_for_QM_H.js&quot;/&gt;&lt;/p&gt;
+  &lt;br/&gt;
+  &lt;p style=&quot;display:inline&quot;&gt;[mathjaxinline]|\phi _4\rangle  =[/mathjaxinline]&lt;textline size=&quot;70&quot; correct_answer=&quot;(sqrt(2)*exp(-5*i*pi/3)*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)&quot; inline=&quot;1&quot; math=&quot;1&quot; preprocessorClassName=&quot;MathjaxPreprocessorForQM&quot; preprocessorSrc=&quot;/static/mathjax_preprocessor_for_QM_H.js&quot;/&gt;&lt;/p&gt;
+&lt;/customresponse&gt;
+</pre></div>
 </div>
+<p>Here&#8217;s another example, which specifies the &#8220;rows&#8221; attribute, thus triggering the input element to be a text
+area instead of just a text line.  This example also illustrates how &#8220;options&#8221; may be specified as an additional
+attribute:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{type=&quot;custom&quot; rows=30 cols=90 expect=&quot;See solutions&quot; options=&quot;none&quot; cfn=check_ft_threshold}
+</pre></div>
+</div>
+<p>The XML produced by this example is:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;customresponse cfn=&quot;check_ft_threshold&quot; expect=&quot;See solutions&quot; options=&quot;none&quot; cfn_extra_args=&quot;options&quot;&gt;
+  &lt;textbox rows=&quot;30&quot; cols=&quot;90&quot; correct_answer=&quot;See solutions&quot;/&gt;
+&lt;/customresponse&gt;
+</pre></div>
+</div>
+<p>Note the extra &#8220;cfn_extra_args&#8221; which is automatically included, causing the &#8220;options&#8221; variable to be
+passed as an argument to the python check function.  This means the python check function would be defined
+like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">check_ft_threshold</span><span class="p">(</span><span class="n">expect</span><span class="p">,</span> <span class="n">ans</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+   <span class="o">...</span>
+</pre></div>
+</div>
+<p>where the &#8220;options&#8221; argument will, in this case, be set to the string &#8220;none&#8221;.  It is very convenient to
+use the &#8220;options&#8221; attribute to pass arbitrary parameters to the python check function.  For example,
+the sympy_check.py symbolic mathematical expression checking library uses &#8220;options&#8221; to specify tolerances,
+numerical sampling ranges for equality testing, and alternate acceptable answers, among other things.</p>
 </div>
 <div class="section" id="javascript-response-problem">
 <h3>Javascript response problem<a class="headerlink" href="#javascript-response-problem" title="Permalink to this headline">¶</a></h3>
@@ -824,8 +890,8 @@ value pairs for custom response problems, and in addition several
 needed to specify the javascript interface:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="15%" />
-<col width="85%" />
+<col width="13%" />
+<col width="87%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Key</th>
@@ -851,13 +917,16 @@ needed to specify the javascript interface:</p>
 <tr class="row-odd"><td>gradefn</td>
 <td>name of the javascript function used to get the grading input</td>
 </tr>
-<tr class="row-even"><td>get_statefn</td>
+<tr class="row-even"><td>initial_state</td>
+<td>initial state to send to the js problem (JSON) &#8211; only in edX platform after ~7/1/14</td>
+</tr>
+<tr class="row-odd"><td>get_statefn</td>
 <td>name of the javascript function used to get the js problem state</td>
 </tr>
-<tr class="row-odd"><td>set_statefn</td>
+<tr class="row-even"><td>set_statefn</td>
 <td>name of the javascript function used to set the js problem state</td>
 </tr>
-<tr class="row-even"><td>html_file</td>
+<tr class="row-odd"><td>html_file</td>
 <td>name of the HTML file with the javascript, to be displayed in the iframe</td>
 </tr>
 </tbody>
@@ -867,6 +936,7 @@ needed to specify the javascript interface:</p>
   width=&quot;650&quot;
   height=&quot;555&quot;
   gradefn=&quot;getinput&quot;
+  initial_state=&quot;some-json-state-string&quot;
   get_statefn=&quot;getstate&quot;
   set_statefn=&quot;setstate&quot;
   html_file=&quot;/static/html/ps3plot_btran1.html&quot;
@@ -877,6 +947,27 @@ needed to specify the javascript interface:</p>
 <div class="highlight-python"><div class="highlight"><pre>&lt;customresponse cfn=&quot;test_findep&quot; expect=&quot;&quot;&gt;
   &lt;jsinput width=&quot;650&quot; height=&quot;555&quot; gradefn=&quot;getinput&quot; get_statefn=&quot;getstate&quot; set_statefn=&quot;setstate&quot; html_file=&quot;/static/html/ps3plot_btran1.html&quot;/&gt;
 &lt;/customresponse&gt;
+</pre></div>
+</div>
+<p>A hint on encoding: often, it is the case that the initial state (or some other argument
+to a custom response edXabox) needs to contain non-alphanumeric characters, such as quotes
+or greater-than and less-than symbols, which typically need to be escaped.  A convenient way
+to set such arguments is to define them as variables within an edXscript, then use the
+&#8220;dollar sign&#8221; text replacement feature built into edX&#8217;s capa problems, to effect a variable
+substitution.  Specifically, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXscript}
+
+import cgi
+import json
+
+istate = cgi.escape(json.dumps(_state_),True)
+
+\end{edXscript}
+
+\edXabox{...
+  initial_state=\$istate
+  ...
+}
 </pre></div>
 </div>
 </div>
@@ -941,6 +1032,10 @@ among other things.</p>
 <td>Command</td>
 <td>None</td>
 </tr>
+<tr class="row-even"><td>edXmath</td>
+<td>Environment</td>
+<td>None</td>
+</tr>
 </tbody>
 </table>
 <div class="section" id="edxsolution">
@@ -983,9 +1078,10 @@ def sumtest(expect,ans):
 </div>
 <div class="section" id="edxdndtex">
 <h3>edXdndtex<a class="headerlink" href="#edxdndtex" title="Permalink to this headline">¶</a></h3>
-<p>This macro causes the specified latex2dnd tex file to be included at the point
-where the macro is located.  The tex file will automatically be compiled, using
-latex2dnd (<a class="reference external" href="https://github.com/mitocw/latex2dnd">https://github.com/mitocw/latex2dnd</a>), to generate the XML and images
+<p>This macro causes the specified latex2dnd (&#8220;drag-and-drop&#8221;) tex file
+to be included at the point where the macro is located.  The tex file
+will automatically be compiled, using latex2dnd
+(<a class="reference external" href="https://github.com/mitocw/latex2dnd">https://github.com/mitocw/latex2dnd</a>), to generate the XML and images
 needed for the drag-and-drop problem.</p>
 <a class="reference internal image-reference" href="_images/dnd-problem.png"><img alt="_images/dnd-problem.png" src="_images/dnd-problem.png" style="width: 600px;" /></a>
 <p>Allowed attributes for <tt class="docutils literal"><span class="pre">edXdndtex</span></tt> include:</p>
@@ -1047,6 +1143,56 @@ answer box.</p>
 \end{itemize}
 </pre></div>
 </div>
+</div>
+<div class="section" id="edxmath">
+<h3>edXmath<a class="headerlink" href="#edxmath" title="Permalink to this headline">¶</a></h3>
+<p>Forces contents to be rendered as mathjax.  This is a convenient way to sidestep the fact that some
+math formatting is changed by plastex.  In particular, plastex renders eqnarray using html tables,
+rather than relying on mathjax&#8217;s ability to render eqnarray properly.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXmath}
+\begin{eqnarray}
+S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+        &amp;=&amp;  H((1+r)/2)
+\end{eqnarray}
+\end{edXmath}
+</pre></div>
+</div>
+<p>This produces the XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>[mathjax]\begin{eqnarray}
+S(\rho) &amp;amp;=&amp;amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+        &amp;amp;=&amp;amp;  H((1+r)/2)
+\end{eqnarray}[/mathjax]
+</pre></div>
+</div>
+<p>which renders as:</p>
+<a class="reference internal image-reference" href="_images/mathjax-render-example.png"><img alt="_images/mathjax-render-example.png" src="_images/mathjax-render-example.png" style="width: 300px;" /></a>
+<p>Contrast that with:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{eqnarray}
+S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+        &amp;=&amp;  H((1+r)/2)
+\end{eqnarray}
+</pre></div>
+</div>
+<p>(no edXmath, just native math) which plastex renders using an HTML table, producing this XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;table id=&quot;a0000000002&quot; cellpadding=&quot;7&quot; width=&quot;100%&quot; cellspacing=&quot;0&quot; class=&quot;eqnarray&quot; style=&quot;table-layout:auto&quot;&gt;&lt;tr id=&quot;a0000000003&quot;&gt;&lt;td style=&quot;width:40%; border:none&quot;&gt;&amp;#xA0;&lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:right; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle  S(\rho )[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:center; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle =[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:left; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle  -\lambda _{1} \log \lambda _{1} -\lambda _{2} \log \lambda _{2}[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;width:40%; border:none&quot;&gt;&amp;#xA0;&lt;/td&gt;&lt;td style=&quot;width:20%; border:none&quot; class=&quot;eqnnum&quot;&gt;&lt;span&gt;(&lt;span&gt;1&lt;/span&gt;)&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr id=&quot;a0000000004&quot;&gt;&lt;td style=&quot;width:40%; border:none&quot;&gt;&amp;#xA0;&lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:right; border:none&quot;&gt;
+        &amp;#xA0;
+    &lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:center; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle =[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:left; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle  H((1+r)/2)[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;width:40%; border:none&quot;&gt;&amp;#xA0;&lt;/td&gt;&lt;td style=&quot;width:20%; border:none&quot; class=&quot;eqnnum&quot;&gt;&lt;span&gt;(&lt;span&gt;2&lt;/span&gt;)&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+</pre></div>
+</div>
+<p>which renders as:</p>
+<a class="reference internal image-reference" href="_images/mathjax-render-plastex.png"><img alt="_images/mathjax-render-plastex.png" src="_images/mathjax-render-plastex.png" style="width: 850px;" /></a>
+<p>Note that this includes equation numbers (!), and is centered.</p>
 </div>
 <div class="section" id="edxbr">
 <h3>edXbr<a class="headerlink" href="#edxbr" title="Permalink to this headline">¶</a></h3>
@@ -1130,6 +1276,7 @@ stored on github, then use something like this example:</p>
 <li><a class="reference internal" href="#edxinclude">edXinclude</a></li>
 <li><a class="reference internal" href="#edxincludepy">edXincludepy</a></li>
 <li><a class="reference internal" href="#edxinline">edXinline</a></li>
+<li><a class="reference internal" href="#edxmath">edXmath</a></li>
 <li><a class="reference internal" href="#edxbr">edXbr</a></li>
 <li><a class="reference internal" href="#edxaskta">edXaskta</a></li>
 <li><a class="reference internal" href="#edxgitlink">edXgitlink</a></li>
@@ -1140,8 +1287,8 @@ stored on github, then use something like this example:</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="install.html"
-                        title="previous chapter">Installation</a></p>
+  <p class="topless"><a href="workflows.html"
+                        title="previous chapter">Workflows</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="hints.html"
                         title="next chapter">The General Hints System</a></p>
@@ -1177,7 +1324,7 @@ stored on github, then use something like this example:</p>
           <a href="hints.html" title="The General Hints System"
              >next</a> |</li>
         <li class="right" >
-          <a href="install.html" title="Installation"
+          <a href="workflows.html" title="Workflows"
              >previous</a> |</li>
         <li><a href="index.html">latex2edx 1.3 documentation</a> &raquo;</li> 
       </ul>
