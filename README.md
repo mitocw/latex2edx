@@ -143,5 +143,5 @@ History
 * v1.3.0: Add documentation, abox unit tests, edXvideo, edXdiscussion
 *     .1: Add regexp mapping to hints; add \edXdndtex command; allow texbox for customresponse
 *     .2: Fix edXmath environment to use verbatim
-*     .3: Ensure edXinclude doesn't leave contents within a <p>; nicer error messages for include, with linenum
+*     .3: Ensure edXinclude doesn't leave contents within a p; nicer error messages for include, with linenum
 *     .4: Include linenum, filename in more error msgs; add --section-only, --xml-only, --units-only output fmts
