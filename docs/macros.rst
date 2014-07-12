@@ -956,6 +956,30 @@ Locate the actual AskTA! buttons using this syntax::
 typically right before ``\end{edXproblem}``.
 
 
+edXshowhide
+^^^^^^^^^^^
+
+Use this macro to make a block of text initially hidden, e.g.:
+
+.. image:: images/showhide-example.png
+           :width: 650 px
+
+The user can then click on "show" to reveal the hidden text.
+
+The id field can be any alphanumerical string with no spaces; it's
+used as the DOM element ID for the text being hidden.  Each "id"
+string must be unique, at least within each edXchapter.
+
+The description can be any latex string, used to describe the text
+being hidden.
+
+Example::
+
+    \begin{edXshowhide}{hint3}{Dimension bounds}
+    First bound $\dim \vee^n\C^d$, where $\vee^n\C^d:={\rm                                                                                                                       span}\{\ket{\psi}^{\otimes n}:\psi\in\C^d\}$.
+    \end{edXshowhide}
+
+
 edXgitlink
 ^^^^^^^^^^
 
