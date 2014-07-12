@@ -1,0 +1,1337 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>latex2edx TeX Macros &mdash; latex2edx 1.3 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="latex2edx 1.3 documentation" href="index.html" />
+    <link rel="next" title="The General Hints System" href="hints.html" />
+    <link rel="prev" title="Workflows" href="workflows.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="hints.html" title="The General Hints System"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="workflows.html" title="Workflows"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">latex2edx 1.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="latex2edx-tex-macros">
+<h1>latex2edx TeX Macros<a class="headerlink" href="#latex2edx-tex-macros" title="Permalink to this headline">¶</a></h1>
+<p>latex2edx takes a latex file as input, and generates as output XML
+files for an edX course.  The output may also include JSON files which
+specify start, end, and due dates for course content.</p>
+<p>The edX XML file format is <a class="reference external" href="http://edx.readthedocs.org/en/latest/course_data_formats/course_xml.html">documented separately</a>.</p>
+<p>The latex files should employ a special set of TeX macros, to specify
+the course structure (course, chapter, section, vertical, sequential)
+and the content elements (video, text, problem, discussion).</p>
+<p>Problem elements should also include special macros to specify
+interactive questions, via &#8220;answer boxes,&#8221; defined using an &#8220;abox&#8221;
+macro.  Answer boxes come in many forms, defining e.g. multiple
+choice, option list, numerical, string, formula, image, javascript,
+drag-and-drop, and custom response questions.</p>
+<p>Some auxilliary macros may also be used, e.g. to define solution text
+(shown when problems are done), and to indicate inclusion of external
+XML, or python code.  Auxilliary macros also include some used for
+fine-tuning of layout, e.g. specifying text which is to be inline with
+answer boxes, and boxes of text which may be optionally shown or
+hidden.</p>
+<p>In the documentation below, macros are specified as being one of two
+types.  <em>Environment</em> macros are used as:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{MacroName}
+...
+\end{MacroName}
+</pre></div>
+</div>
+<p>whereas <em>Command</em> macros are used as:</p>
+<div class="highlight-python"><div class="highlight"><pre>\MacroName{...}
+</pre></div>
+</div>
+<div class="section" id="structural-macros">
+<h2>Structural Macros<a class="headerlink" href="#structural-macros" title="Permalink to this headline">¶</a></h2>
+<p>edX courses are structured heirarchically, by chapter, section, then
+sequential.  Each sequential unit may have several Vertical elements
+within it.  In addition, the course itself is defined with certain properties.</p>
+<img alt="_images/course-structure-labeled.png" src="_images/course-structure-labeled.png" />
+<p>These are the structural macros defined for use in latex2edx:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="13%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Macro Name</th>
+<th class="head">Type</th>
+<th class="head">Arguments</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>edXcourse</td>
+<td>Environment</td>
+<td>{ course_number } { display_name } [ attributes ]</td>
+</tr>
+<tr class="row-odd"><td>edXchapter</td>
+<td>Environment</td>
+<td>{ display_name } [ attributes ]</td>
+</tr>
+<tr class="row-even"><td>edXsection</td>
+<td>Environment</td>
+<td>{ display_name } [ attributes ]</td>
+</tr>
+<tr class="row-odd"><td>edXsequential</td>
+<td>Environment</td>
+<td>{ display_name } [ attributes ]</td>
+</tr>
+<tr class="row-even"><td>edXvertical</td>
+<td>Environment</td>
+<td>{ display_name } [ attributes ]</td>
+</tr>
+</tbody>
+</table>
+<p>Each of these macros may have optional &#8220;attributes&#8221; defined, which
+specify content metadata.  Each &#8220;attributes&#8221; string should be a
+sequence of <tt class="docutils literal"><span class="pre">key=value</span></tt> separated by spaces.  If <tt class="docutils literal"><span class="pre">value</span></tt> has
+spaces, then it should be quoted (with double-quotes).</p>
+<p>Some attributes are special and specific to each macro.  The following
+common attributes may be used with any of these macros:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>url_name</td>
+<td>Unique database ID key; also used in the XML as the filename prefix</td>
+</tr>
+<tr class="row-odd"><td>start</td>
+<td>Start date, specifying when content is made visible to students</td>
+</tr>
+</tbody>
+</table>
+<p><tt class="docutils literal"><span class="pre">url_name</span></tt> is handy to specify, since it fixes the name of the file
+which is generated for the element, in the output XML, if the element is a
+separate file.  For example, in the output XML, each chapter is
+separate file, as generated by latex2edx.  Problem, text, and video
+elements are also each stored as individual XML files in the
+output XML.</p>
+<p>Note that <tt class="docutils literal"><span class="pre">url_name</span></tt> may only contain uppercase and lowercase
+letters, numbers, and the underbar character (<tt class="docutils literal"><span class="pre">_</span></tt>).  It may not
+contain other characters; in particular, no spaces, dashes, or periods
+are allowed.</p>
+<div class="section" id="edxcourse">
+<h3>edXcourse<a class="headerlink" href="#edxcourse" title="Permalink to this headline">¶</a></h3>
+<p>This macro defines the course; it is the highest level container,
+should only be used once within the latex files input to latex2edx.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXcourse}{1.00x}{Introduction to latex2edx}[url_name=2013_Fall showanswer=always start=2014-05-11T12:00]
+...
+\end{edXcourse}
+</pre></div>
+</div>
+<p>Each course needs a course number (e.g. <tt class="docutils literal"><span class="pre">1.00x</span></tt>) and a name (e.g. <tt class="docutils literal"><span class="pre">Introduction</span> <span class="pre">to</span> <span class="pre">latex2edx</span></tt>).</p>
+<p>It is conventional to also specify the <tt class="docutils literal"><span class="pre">url_name</span></tt> for a course, as
+being the semester in which the course is run.</p>
+</div>
+<div class="section" id="edxchapter">
+<h3>edXchapter<a class="headerlink" href="#edxchapter" title="Permalink to this headline">¶</a></h3>
+<p>This is the second highest level container element.  Each chapter
+appears in an edX course as a high-level block in the left-hand
+navigator, when using edX platform to render edX XML.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXchapter}{Unit 2}[start=&quot;2013-11-22&quot;]
+...
+\end{edXchapter}
+</pre></div>
+</div>
+<p>It is convenient (and often conventional) to think of each chapter as
+being one week of the course.</p>
+<p>Chapters should be within a course.</p>
+</div>
+<div class="section" id="edxsection">
+<h3>edXsection<a class="headerlink" href="#edxsection" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXsection}{A second section}[due=&quot;2016-11-22 13:30&quot; graded=true]
+...
+\end{edXsection}
+</pre></div>
+</div>
+<p>Each section may have specified a &#8220;due&#8221; attribute; this specifies the
+date upon which problems within the section are due, i.e. they must be
+submitted before the due date.  The format is &#8220;year-month-day
+hour:minute&#8221;.</p>
+<p>Each section may also have specified a boolean flag &#8220;graded&#8221;, which
+indicates whether problems within the section are to count towards an
+assignment (an aggregated set of problems) or not.</p>
+<p>Sections should be within a chapter.</p>
+</div>
+<div class="section" id="edxvertical">
+<h3>edXvertical<a class="headerlink" href="#edxvertical" title="Permalink to this headline">¶</a></h3>
+<p>Eample:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXvertical}
+...
+\end{edXvertical}
+</pre></div>
+</div>
+<p>A vertical element groups a set of one or more text, video, and
+problem elements together, such that they are displayed as one
+vertical unit, when using the edX platform to render edX course
+content.</p>
+</div>
+</div>
+<div class="section" id="content-macros">
+<h2>Content Macros<a class="headerlink" href="#content-macros" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="13%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Macro Name</th>
+<th class="head">Type</th>
+<th class="head">Arguments</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>edXproblem</td>
+<td>Environment</td>
+<td>{ display_name }{ attributes }</td>
+</tr>
+<tr class="row-odd"><td>edXtext</td>
+<td>Environment</td>
+<td>{ display_name } [ attributes ]</td>
+</tr>
+<tr class="row-even"><td>edXvideo</td>
+<td>Command</td>
+<td>{ display_name } { youtube_id } [ attrib_string ]</td>
+</tr>
+<tr class="row-odd"><td>edXdiscussion</td>
+<td>Command</td>
+<td>{ topic_name } [ attrib_string ]</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="edxproblem">
+<h3>edXproblem<a class="headerlink" href="#edxproblem" title="Permalink to this headline">¶</a></h3>
+<p>A problem is the central interactive element of an edX course.  It
+provides a document with interactive questions (specified by
+<tt class="docutils literal"><span class="pre">edXabox</span></tt> &#8220;answer boxes&#8221;).</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXproblem}{Example problem with hints}{url_name=&quot;p1&quot; attempts=10 weight=5}
+...
+\end{edXproblem}
+</pre></div>
+</div>
+<p>Note that the attributes for an <tt class="docutils literal"><span class="pre">edXproblem</span></tt> are <em>mandatory</em>.
+This is because basic metadata about a problem, such as the number of
+allowed attempts, or the total number of points, need to be defined
+for an edXproblem.</p>
+<p>Because attributes to <tt class="docutils literal"><span class="pre">edXproblem</span></tt> are mandatory, they are specified
+in curly braces, <tt class="docutils literal"><span class="pre">{}</span></tt>, instead of square braces, as is cannonical
+elsewhere.</p>
+<p>Allowed attributes for <tt class="docutils literal"><span class="pre">edXproblem</span></tt> include:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>url_name</td>
+<td>Unique database ID key; also used in the XML as the filename prefix</td>
+</tr>
+<tr class="row-odd"><td>attempts</td>
+<td>number of allowed attempts (set to zero, for a survey problem)</td>
+</tr>
+<tr class="row-even"><td>weight</td>
+<td>total number of points to award for this problem</td>
+</tr>
+<tr class="row-odd"><td>showanswer</td>
+<td>when to show answer, e.g. after due, when corrrect, etc. (see edX docs)</td>
+</tr>
+</tbody>
+</table>
+<p>A problem may be within a sequential or vertical; it cannot be placed
+directly within a chapter (or unpredictable things may happen).</p>
+<p>Complete example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXproblem}{Numerical response}{}
+\section{Example of numerical response}
+
+What is the numerical value of $\pi$?
+
+\edXabox{expect=&quot;3.14159&quot; type=&quot;numerical&quot; tolerance=&#39;0.01&#39; }
+\end{edXproblem}
+</pre></div>
+</div>
+</div>
+<div class="section" id="edxtext">
+<h3>edXtext<a class="headerlink" href="#edxtext" title="Permalink to this headline">¶</a></h3>
+<p>A &#8220;text&#8221; element is a static HTML page.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXtext}{The Magna Carta}[url_name=&quot;magna_carta&quot;]
+
+{\Large The Magna Carta and $\gamma=\sqrt{\alpha+1}$}
+...
+\end{edXtext}
+</pre></div>
+</div>
+<p>Note that unlike a problem, text elements do not automatically begin
+with the <tt class="docutils literal"><span class="pre">display_name</span></tt> shown as a header, in the displayed
+content (so it goes with edX platform).  Thus, it is typical to show
+titles by hand.  This is not unreasonable, as the <tt class="docutils literal"><span class="pre">display_name</span></tt>
+string cannot contain math, whereas sometimes it is desirable for the
+header to contain math, e.g. as in the example.</p>
+<p>A text element may be within a sequential or vertical, placed in
+parallel with problem and video.</p>
+</div>
+<div class="section" id="edxvideo">
+<h3>edXvideo<a class="headerlink" href="#edxvideo" title="Permalink to this headline">¶</a></h3>
+<p>A video element embeds a you-tube video player.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXvideo{A sample video}{u23ZUSu7-HY}[source=test]
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line">TODO: add information about how to use non-youtube video sources</div>
+</div>
+<p>A video element may be within a sequential or vertical, placed in
+parallel with problem and text.</p>
+</div>
+<div class="section" id="edxdiscussion">
+<h3>edXdiscussion<a class="headerlink" href="#edxdiscussion" title="Permalink to this headline">¶</a></h3>
+<p>A discussion element (not used very often) embeds a link to an edX
+forum discussion topic.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXdiscussion{Discuss this question}{forumid=discuss2}
+</pre></div>
+</div>
+<div class="line-block">
+<div class="line">TODO: explain</div>
+</div>
+<p>A discussion element may be within a sequential or vertical, placed in
+parallel with problem and text.</p>
+</div>
+</div>
+<div class="section" id="the-answer-box-macro">
+<h2>The Answer Box Macro<a class="headerlink" href="#the-answer-box-macro" title="Permalink to this headline">¶</a></h2>
+<p>The answer box macro <tt class="docutils literal"><span class="pre">edXabox</span></tt> is probably the single most important construct
+within latex2edx, as it defines the central interactive element in an
+edX course: a question, and how the question is to be graded.</p>
+<p>The format of the <tt class="docutils literal"><span class="pre">edXabox</span></tt> macro is simple; it is a command, with a
+single argument, and no optional arguments:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="13%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Macro Name</th>
+<th class="head">Type</th>
+<th class="head">Arguments</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>edXabox</td>
+<td>Command</td>
+<td>{ arguments_string }</td>
+</tr>
+</tbody>
+</table>
+<p><tt class="docutils literal"><span class="pre">arguments_string</span></tt> is a space delimited set of <tt class="docutils literal"><span class="pre">key=value</span></tt>
+definitions.  The most important key is <tt class="docutils literal"><span class="pre">type</span></tt>, which specifies the
+type of answer box:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="13%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Value</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>type</td>
+<td>option</td>
+<td>Option response question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>string</td>
+<td>String response question</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>multichoice</td>
+<td>Multiple choice input question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>numerical</td>
+<td>Numerical response question</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>formula</td>
+<td>Formula response question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>custom</td>
+<td>Custom response question</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>jsinput</td>
+<td>Javascript input response question</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>image</td>
+<td>Image response question</td>
+</tr>
+</tbody>
+</table>
+<p>Each of these problem types is <a class="reference external" href="http://edx.readthedocs.org/en/latest/course_data_formats/course_xml.html">documented by edX</a>;
+here, specific issues relating to latex2edx are documented.</p>
+<div class="section" id="option-response-problem">
+<h3>Option response problem<a class="headerlink" href="#option-response-problem" title="Permalink to this headline">¶</a></h3>
+<p>Option response provides a menu of choices:</p>
+<img alt="_images/option-response.png" src="_images/option-response.png" />
+<p>These are specified by the following key, value pairs:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Description of value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>options</td>
+<td>comma delimited set of double-quoted strings</td>
+</tr>
+<tr class="row-odd"><td>expect</td>
+<td>the &#8220;correct&#8221; answer: one of the double-quoted option strings</td>
+</tr>
+<tr class="row-even"><td>inline</td>
+<td>1: display input box inline (default is not inline, i.e. block display)</td>
+</tr>
+</tbody>
+</table>
+<p>Example input:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{type=&quot;option&quot; expect=&quot;int&quot; options=&quot;noneType&quot;,&quot;int&quot;,&quot;float&quot;}
+</pre></div>
+</div>
+<p>Output XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;optionresponse&gt;
+  &lt;optioninput options=&quot;(&#39;noneType&#39;,&#39;int&#39;,&#39;float&#39;)&quot; correct=&quot;int&quot;/&gt;
+&lt;/optionresponse&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="string-response-problem">
+<h3>String response problem<a class="headerlink" href="#string-response-problem" title="Permalink to this headline">¶</a></h3>
+<p>String response questions ask for text input:</p>
+<img alt="_images/string-response.png" src="_images/string-response.png" />
+<p>These are specified by the following key, value pairs:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Description of value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>options</td>
+<td>&#8220;ci&#8221;: case-insensitive grading, &#8220;regexp&#8221;: expect is a regular expression</td>
+</tr>
+<tr class="row-odd"><td>expect</td>
+<td>a string giving the &#8220;correct&#8221; answer</td>
+</tr>
+<tr class="row-even"><td>size</td>
+<td>width of the input box displayed</td>
+</tr>
+<tr class="row-odd"><td>inline</td>
+<td>1: display input box inline (default is not inline, i.e. block display)</td>
+</tr>
+</tbody>
+</table>
+<p>Example input:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{type=&quot;string&quot; expect=&quot;Michigan&quot; size=&quot;20&quot; options=&quot;ci regexp&quot;}
+</pre></div>
+</div>
+<p>Output XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;stringresponse answer=&quot;Michigan&quot; type=&quot;ci regexp&quot;&gt;
+  &lt;textline size=&quot;20&quot;/&gt;
+&lt;/stringresponse&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="numerical-response-problem">
+<h3>Numerical response problem<a class="headerlink" href="#numerical-response-problem" title="Permalink to this headline">¶</a></h3>
+<p>Numerical response questions ask for a number, and are graded with a
+specified input value tolerance:</p>
+<img alt="_images/numerical-response.png" src="_images/numerical-response.png" />
+<p>These are specified by the following key, value pairs:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Description of value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>tolerance</td>
+<td>tolerance for accepting answer, as percentage or as absolute number</td>
+</tr>
+<tr class="row-odd"><td>expect</td>
+<td>a double-quoted string giving the numerically &#8220;correct&#8221; answer</td>
+</tr>
+<tr class="row-even"><td>size</td>
+<td>width of the input box displayed</td>
+</tr>
+<tr class="row-odd"><td>inline</td>
+<td>1: display input box inline (default is not inline, i.e. block display)</td>
+</tr>
+</tbody>
+</table>
+<p>Example input:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{expect=&quot;3.14159&quot; type=&quot;numerical&quot; tolerance=&quot;0.01&quot; inline=1}
+</pre></div>
+</div>
+<p>Output XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;numericalresponse inline=&quot;1&quot; answer=&quot;3.14159&quot;&gt;
+  &lt;textline inline=&quot;1&quot;&gt;
+    &lt;responseparam type=&quot;tolerance&quot; default=&quot;0.01&quot;/&gt;
+  &lt;/textline&gt;
+&lt;/numericalresponse&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="formula-response-problem">
+<h3>Formula response problem<a class="headerlink" href="#formula-response-problem" title="Permalink to this headline">¶</a></h3>
+<p>Formula response questions ask for a symbolic math formula as input.
+The formula is graded using random numerical sampling.  Only a
+pre-specified set of variables is allowed.  The instructor must
+specify the allowed varaiables, the numerical sampling ranges for each
+variable, and the number of random samples to take.</p>
+<img alt="_images/numerical-response.png" src="_images/numerical-response.png" />
+<p>These are specified by the following key, value pairs:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Description of value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>expect</td>
+<td>a double-quoted string giving the &#8220;correct&#8221; answer</td>
+</tr>
+<tr class="row-odd"><td>samples</td>
+<td>a double-quoted string specifying variables and sampling ranges</td>
+</tr>
+<tr class="row-even"><td>math</td>
+<td>1: display mathjax rendering of formula below the input box</td>
+</tr>
+<tr class="row-odd"><td>tolerance</td>
+<td>tolerance to use in testing numerical samples for equality</td>
+</tr>
+<tr class="row-even"><td>size</td>
+<td>width of the input box displayed</td>
+</tr>
+<tr class="row-odd"><td>inline</td>
+<td>1: display input box inline (default is not inline, i.e. block display)</td>
+</tr>
+<tr class="row-even"><td>feqin</td>
+<td>1: use formulaequationinput instead of textline</td>
+</tr>
+</tbody>
+</table>
+<p>The <tt class="docutils literal"><span class="pre">samples</span></tt> attribute is a string which should have this format:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;variables&gt;@&lt;lower_bounds&gt;:&lt;upper_bound&gt;#&lt;num_samples
+</pre></div>
+</div>
+<p>where:</p>
+<blockquote>
+<div><ul>
+<li><p class="first">variables    - a set of variables that are allowed as student input</p>
+</li>
+<li><dl class="first docutils">
+<dt>lower_bounds - for every variable defined in variables, a lower</dt>
+<dd><p class="first last">bound on the numerical tests to use for that variable</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>upper_bounds - for every variable defined in variables, an upper</dt>
+<dd><p class="first last">bound on the numerical tests to use for that variable</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<p>If <tt class="docutils literal"><span class="pre">feqin</span></tt> is set, then a more sophisticated input element is used
+(rather than a simple text input line).  This &#8220;formulaequation input&#8221;
+element uses the server to provide somewhat real-time syntax checking
+of the input string, so that the student is told whether the input is
+syntatically legal or not, up to the current point of input.</p>
+<p>The formulaequation input method has advantages and disadvantages.</p>
+<p>Advantages include the fact that feedback is given freely, without
+having to consume a problem &#8220;check&#8221;.</p>
+<p>Disadvantages include the fact that the feedback is slow (it needs a
+round-trip to the server); also, partially entered equations are
+marked as syntatically incorrect, and partial input is not displayed.</p>
+<p>Example input:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{expect=&quot;(-b + sqrt(b^2-4*a*c))/(2*a)&quot; type=&quot;formula&quot;
+  samples=&quot;a,b,c@1,16,1:3,20,3#50&quot; size=&quot;60&quot; tolerance=&#39;0.01&#39; inline=&#39;1&#39;
+  math=&quot;1&quot; feqin=&quot;1&quot; }%
+</pre></div>
+</div>
+<p>Output XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;formularesponse inline=&quot;1&quot; type=&quot;cs&quot; samples=&quot;a,b,c@1,16,1:3,20,3#50&quot; answer=&quot;(-b + sqrt(b^2-4*a*c))/(2*a)&quot;&gt;
+  &lt;formulaequationinput size=&quot;60&quot; inline=&quot;1&quot; math=&quot;1&quot;&gt;
+    &lt;responseparam type=&quot;tolerance&quot; default=&quot;0.01&quot;/&gt;
+  &lt;/formulaequationinput&gt;
+&lt;/formularesponse&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="multiple-choice-problem">
+<h3>Multiple choice problem<a class="headerlink" href="#multiple-choice-problem" title="Permalink to this headline">¶</a></h3>
+<p>A multiple choice problem presents a list of choices for the student,
+and asks the student to select one or more of the choices.</p>
+<img alt="_images/multiplechoice-response.png" src="_images/multiplechoice-response.png" />
+<p>These are specified by the following key, value pairs:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Description of value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>expect</td>
+<td>a double-quoted string giving the &#8220;correct&#8221; answer, or a list of such</td>
+</tr>
+<tr class="row-odd"><td>options</td>
+<td>a comma-delimited list of double-quoted strings</td>
+</tr>
+</tbody>
+</table>
+<p>If the value for <tt class="docutils literal"><span class="pre">expect</span></tt> is a single double-quoted string, then the
+question is a single-choice problem.</p>
+<p>If the value for <tt class="docutils literal"><span class="pre">expect</span></tt> is a comma-delimited list of more than one
+double-quoted string, then the question is a multiple-choice problem.</p>
+<p>Example input:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{type=&quot;multichoice&quot;
+  expect=&quot;Python&quot;,&quot;C++&quot;
+  options=&quot;Cobol&quot;,&quot;Pascal&quot;,&quot;Python&quot;,&quot;C++&quot;,&quot;Clu&quot;,&quot;Forth&quot;
+ }
+</pre></div>
+</div>
+<p>Output XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;choiceresponse&gt;
+  &lt;checkboxgroup direction=&quot;vertical&quot;&gt;
+    &lt;choice correct=&quot;false&quot; name=&quot;1&quot;&gt;
+      &lt;text&gt; Cobol&lt;/text&gt;
+    &lt;/choice&gt;
+    &lt;choice correct=&quot;false&quot; name=&quot;2&quot;&gt;
+      &lt;text&gt; Pascal&lt;/text&gt;
+    &lt;/choice&gt;
+    &lt;choice correct=&quot;true&quot; name=&quot;3&quot;&gt;
+      &lt;text&gt; Python&lt;/text&gt;
+    &lt;/choice&gt;
+    &lt;choice correct=&quot;true&quot; name=&quot;4&quot;&gt;
+      &lt;text&gt; C++&lt;/text&gt;
+    &lt;/choice&gt;
+    &lt;choice correct=&quot;false&quot; name=&quot;5&quot;&gt;
+      &lt;text&gt; Clu&lt;/text&gt;
+    &lt;/choice&gt;
+    &lt;choice correct=&quot;false&quot; name=&quot;6&quot;&gt;
+      &lt;text&gt; Forth&lt;/text&gt;
+    &lt;/choice&gt;
+  &lt;/checkboxgroup&gt;
+&lt;/choiceresponse&gt;
+</pre></div>
+</div>
+</div>
+<div class="section" id="custom-response-problem">
+<h3>Custom response problem<a class="headerlink" href="#custom-response-problem" title="Permalink to this headline">¶</a></h3>
+<p>Custom response problems accept text input (which may be formulas, or
+other kind of strings), and grades the input using a custom python
+script.  This is a very sophisticated and powerful means of evaluating
+student responses, because it can test one or more inputs for various
+properties.</p>
+<img alt="_images/custom-response.png" src="_images/custom-response.png" />
+<p>For example, a custom response problem can ask students to enter two
+numbers which sum to 10.  Or it could ask students to enter the
+specification for an electrical circuit with a certain desired
+property.  Or it could ask students to enter a musical phrase with a
+certain deisred motif.</p>
+<p>The response can then be evaluated by testing for the property; this
+allows the student&#8217;s response to include answers outside of the
+explicit examples constructed by the instructor.</p>
+<p>Custom response problems are specified by the following key, value pairs:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Description of value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>expect</td>
+<td>a double-quoted string giving the &#8220;correct&#8221; answer, when appropriate</td>
+</tr>
+<tr class="row-odd"><td>cfn</td>
+<td>name of the python function to use as the &#8220;check&#8221; function</td>
+</tr>
+<tr class="row-even"><td>prompts</td>
+<td>comma-delimited list of double-quoted strings specifying prompts</td>
+</tr>
+<tr class="row-odd"><td>answers</td>
+<td>comma-delimited list of double-quoted strings specifying answers</td>
+</tr>
+<tr class="row-even"><td>options</td>
+<td>a comma-delimited list of double-quoted strings</td>
+</tr>
+<tr class="row-odd"><td>math</td>
+<td>1: display mathjax rendering of formula below the input box</td>
+</tr>
+<tr class="row-even"><td>size</td>
+<td>width of the input box displayed</td>
+</tr>
+<tr class="row-odd"><td>inline</td>
+<td>1: display input box inline (default is not inline, i.e. block display)</td>
+</tr>
+<tr class="row-even"><td>preprocessorSrc</td>
+<td>name of javascript file to load for mathjax pre-processing</td>
+</tr>
+<tr class="row-odd"><td>preprocessorClassName</td>
+<td>javascript function name within the js file, for mathjax pre-processing</td>
+</tr>
+<tr class="row-even"><td>rows</td>
+<td>an integer, specifying number of rows to use for text area input</td>
+</tr>
+<tr class="row-odd"><td>cols</td>
+<td>an integer, specifying number of columns to use for text area input</td>
+</tr>
+</tbody>
+</table>
+<p><tt class="docutils literal"><span class="pre">prompts</span></tt> and <tt class="docutils literal"><span class="pre">answers</span></tt> are only used in multiple-input-box
+problems.  When used, the number of input boxes corresponds to the
+number of prompts (and should be equal to the number of answers).</p>
+<p>A custom response problem requires a python script, which checks the
+answer for correctness.  This python script may be specified in an
+<tt class="docutils literal"><span class="pre">edXscript</span></tt> environment, as illustrated in this example:</p>
+<p>Example input:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXscript}
+
+def sumtest(expect,ans):
+    try:
+        (a1,a2) = map(float,ans)
+        return (a1+a2)==10
+    except Exception as err:
+        return {&#39;ok&#39;: False, &#39;msg&#39;: &#39;Sorry, cannot evaluate your input &#39; + str(ans)}
+
+\end{edXscript}
+
+\edXabox{expect=&quot;&quot;
+  type=&quot;custom&quot;
+  answers=&quot;1,9&quot;
+  prompts=&quot;x = &quot;,&quot;y = &quot;
+  cfn=&quot;sumtest&quot;
+  inline=&quot;1&quot;
+}
+</pre></div>
+</div>
+<p>Output XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;script type=&quot;text/python&quot; system_path=&quot;python_lib&quot;&gt;
+
+def sumtest(expect,ans):
+    try:
+        (a1,a2) = map(float,ans)
+        return (a1+a2)==10
+    except Exception as err:
+        return {&#39;ok&#39;: False, &#39;msg&#39;: &#39;Sorry, cannot evaluate your input &#39; + str(ans)}
+
+&lt;/script&gt;
+
+&lt;customresponse cfn=&quot;sumtest&quot; inline=&quot;1&quot; expect=&quot;&quot;&gt;
+  &lt;p style=&quot;display:inline&quot;&gt;x =&lt;textline correct_answer=&quot;1&quot; inline=&quot;1&quot;/&gt;&lt;/p&gt;
+  &lt;br/&gt;
+  &lt;p style=&quot;display:inline&quot;&gt;y =&lt;textline correct_answer=&quot;9&quot; inline=&quot;1&quot;/&gt;&lt;/p&gt;
+&lt;/customresponse&gt;
+</pre></div>
+</div>
+<p>Another example, demonstrating multiple input boxes, with prompts, and javascript pre-processing:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{type=&quot;custom&quot;
+  size=70
+  prompts=&quot;$|\phi_2\&gt; = $&quot;,&quot;$|\phi_3\&gt; = $&quot;,&quot;$|\phi_4\&gt; = $&quot;
+  answers=&quot;(sqrt(2)*exp(-  i*pi/3)*|0&gt;+|1&gt;)/sqrt(3)&quot;,&quot;(sqrt(2)*exp(-  i*pi  )*|0&gt;+|1&gt;)/sqrt(3)&quot;,&quot;(sqrt(2)*exp(-5*i*pi/3)*|0&gt;+|1&gt;)/sqrt(3)&quot;
+  expect=&quot;See solutions&quot;
+  cfn=&quot;check_tetra_holevo&quot;
+  preprocessorClassName=&quot;MathjaxPreprocessorForQM&quot; preprocessorSrc=&quot;/static/mathjax_preprocessor_for_QM_H.js&quot;
+  math=1
+  inline=&quot;1&quot;
+}
+</pre></div>
+</div>
+<p>Output XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;customresponse cfn=&quot;check_tetra_holevo&quot; inline=&quot;1&quot; expect=&quot;See solutions&quot;&gt;
+  &lt;p style=&quot;display:inline&quot;&gt;[mathjaxinline]|\phi _2\rangle  =[/mathjaxinline]&lt;textline size=&quot;70&quot; correct_answer=&quot;(sqrt(2)*exp(- i*pi/3)*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)&quot; inline=&quot;1&quot; math=&quot;1&quot; preprocessorClassName=&quot;MathjaxPreprocessorForQM&quot; preprocessorSrc=&quot;/static/mathjax_preprocessor_for_QM_H.js&quot;/&gt;&lt;/p&gt;
+  &lt;br/&gt;
+  &lt;p style=&quot;display:inline&quot;&gt;[mathjaxinline]|\phi _3\rangle  =[/mathjaxinline]&lt;textline size=&quot;70&quot; correct_answer=&quot;(sqrt(2)*exp(- i*pi )*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)&quot; inline=&quot;1&quot; math=&quot;1&quot; preprocessorClassName=&quot;MathjaxPreprocessorForQM&quot; preprocessorSrc=&quot;/static/mathjax_preprocessor_for_QM_H.js&quot;/&gt;&lt;/p&gt;
+  &lt;br/&gt;
+  &lt;p style=&quot;display:inline&quot;&gt;[mathjaxinline]|\phi _4\rangle  =[/mathjaxinline]&lt;textline size=&quot;70&quot; correct_answer=&quot;(sqrt(2)*exp(-5*i*pi/3)*|0&amp;amp;gt;+|1&amp;amp;gt;)/sqrt(3)&quot; inline=&quot;1&quot; math=&quot;1&quot; preprocessorClassName=&quot;MathjaxPreprocessorForQM&quot; preprocessorSrc=&quot;/static/mathjax_preprocessor_for_QM_H.js&quot;/&gt;&lt;/p&gt;
+&lt;/customresponse&gt;
+</pre></div>
+</div>
+<p>Here&#8217;s another example, which specifies the &#8220;rows&#8221; attribute, thus triggering the input element to be a text
+area instead of just a text line.  This example also illustrates how &#8220;options&#8221; may be specified as an additional
+attribute:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{type=&quot;custom&quot; rows=30 cols=90 expect=&quot;See solutions&quot; options=&quot;none&quot; cfn=check_ft_threshold}
+</pre></div>
+</div>
+<p>The XML produced by this example is:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;customresponse cfn=&quot;check_ft_threshold&quot; expect=&quot;See solutions&quot; options=&quot;none&quot; cfn_extra_args=&quot;options&quot;&gt;
+  &lt;textbox rows=&quot;30&quot; cols=&quot;90&quot; correct_answer=&quot;See solutions&quot;/&gt;
+&lt;/customresponse&gt;
+</pre></div>
+</div>
+<p>Note the extra &#8220;cfn_extra_args&#8221; which is automatically included, causing the &#8220;options&#8221; variable to be
+passed as an argument to the python check function.  This means the python check function would be defined
+like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">check_ft_threshold</span><span class="p">(</span><span class="n">expect</span><span class="p">,</span> <span class="n">ans</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+   <span class="o">...</span>
+</pre></div>
+</div>
+<p>where the &#8220;options&#8221; argument will, in this case, be set to the string &#8220;none&#8221;.  It is very convenient to
+use the &#8220;options&#8221; attribute to pass arbitrary parameters to the python check function.  For example,
+the sympy_check.py symbolic mathematical expression checking library uses &#8220;options&#8221; to specify tolerances,
+numerical sampling ranges for equality testing, and alternate acceptable answers, among other things.</p>
+</div>
+<div class="section" id="javascript-response-problem">
+<h3>Javascript response problem<a class="headerlink" href="#javascript-response-problem" title="Permalink to this headline">¶</a></h3>
+<p>Javascript input (<tt class="docutils literal"><span class="pre">jsinput</span></tt>) problems are perhaps the most
+sophisticated assessment problem type available within the edX
+problem.  They combine the use of javascript (executed in the user&#8217;s
+browser) to provide a nearly arbitrary user input experience, with
+python grading (executed on the edX-platform server) to evaluate
+correctness of the response.</p>
+<p>This is a powerful way to allow graphical input to be graded. For
+example, javascript widgets like sliders and graphs can be used as
+input.  Or the input could be hot spots embedded within a
+three-dimensional WebGL rendered multiplayer game.</p>
+<img alt="_images/jsinput-response.png" src="_images/jsinput-response.png" />
+<p>For details about this problem type, see <a class="reference external" href="http://ca.readthedocs.org/en/latest/exercises_tools/custom_javascript.html">the jsinput documentation by
+edX</a>.</p>
+<p>Javascript input response problems are specified by all the usual key,
+value pairs for custom response problems, and in addition several
+needed to specify the javascript interface:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="87%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Description of value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>expect</td>
+<td>a double-quoted string giving the &#8220;correct&#8221; answer, when appropriate</td>
+</tr>
+<tr class="row-odd"><td>cfn</td>
+<td>name of the python function to use as the &#8220;check&#8221; function</td>
+</tr>
+<tr class="row-even"><td>options</td>
+<td>a comma-delimited list of double-quoted strings</td>
+</tr>
+<tr class="row-odd"><td>width</td>
+<td>width of the iframe window used for display of the problem</td>
+</tr>
+<tr class="row-even"><td>height</td>
+<td>height of the iframe window used for display of the problem</td>
+</tr>
+<tr class="row-odd"><td>gradefn</td>
+<td>name of the javascript function used to get the grading input</td>
+</tr>
+<tr class="row-even"><td>initial_state</td>
+<td>initial state to send to the js problem (JSON) &#8211; only in edX platform after ~7/1/14</td>
+</tr>
+<tr class="row-odd"><td>get_statefn</td>
+<td>name of the javascript function used to get the js problem state</td>
+</tr>
+<tr class="row-even"><td>set_statefn</td>
+<td>name of the javascript function used to set the js problem state</td>
+</tr>
+<tr class="row-odd"><td>html_file</td>
+<td>name of the HTML file with the javascript, to be displayed in the iframe</td>
+</tr>
+</tbody>
+</table>
+<p>Example input (suppressing the python function):</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXabox{expect=&quot;&quot; type=&quot;jsinput&quot; cfn=&quot;check_find_dep&quot;
+  width=&quot;650&quot;
+  height=&quot;555&quot;
+  gradefn=&quot;getinput&quot;
+  initial_state=&quot;some-json-state-string&quot;
+  get_statefn=&quot;getstate&quot;
+  set_statefn=&quot;setstate&quot;
+  html_file=&quot;/static/html/ps3plot_btran1.html&quot;
+}
+</pre></div>
+</div>
+<p>Output XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;customresponse cfn=&quot;test_findep&quot; expect=&quot;&quot;&gt;
+  &lt;jsinput width=&quot;650&quot; height=&quot;555&quot; gradefn=&quot;getinput&quot; get_statefn=&quot;getstate&quot; set_statefn=&quot;setstate&quot; html_file=&quot;/static/html/ps3plot_btran1.html&quot;/&gt;
+&lt;/customresponse&gt;
+</pre></div>
+</div>
+<p>A hint on encoding: often, it is the case that the initial state (or some other argument
+to a custom response edXabox) needs to contain non-alphanumeric characters, such as quotes
+or greater-than and less-than symbols, which typically need to be escaped.  A convenient way
+to set such arguments is to define them as variables within an edXscript, then use the
+&#8220;dollar sign&#8221; text replacement feature built into edX&#8217;s capa problems, to effect a variable
+substitution.  Specifically, for example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXscript}
+
+import cgi
+import json
+
+istate = cgi.escape(json.dumps(_state_),True)
+
+\end{edXscript}
+
+\edXabox{...
+  initial_state=\$istate
+  ...
+}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="auxilliary-macros">
+<h2>Auxilliary Macros<a class="headerlink" href="#auxilliary-macros" title="Permalink to this headline">¶</a></h2>
+<p>latex2edx also provides a number of important macros which are not
+structural, main content elements, or answer boxes.  These auxilliary
+macros allow specification of solutions and definition of scripts,
+among other things.</p>
+<p>Here is a list of the auxilliary macros:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="15%" />
+<col width="13%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Macro Name</th>
+<th class="head">Type</th>
+<th class="head">Arguments</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>edXsolution</td>
+<td>Environment</td>
+<td>None</td>
+</tr>
+<tr class="row-odd"><td>edXscript</td>
+<td>Environment</td>
+<td>None</td>
+</tr>
+<tr class="row-even"><td>edXshowhide</td>
+<td>Environment</td>
+<td>{ id }{ description }</td>
+</tr>
+<tr class="row-odd"><td>edXgitlink</td>
+<td>Command</td>
+<td>{ git_url_root } { Label }</td>
+</tr>
+<tr class="row-even"><td>edXinline</td>
+<td>Command</td>
+<td>{ text }</td>
+</tr>
+<tr class="row-odd"><td>edXdndtex</td>
+<td>Command</td>
+<td>[attributes]{ filename }</td>
+</tr>
+<tr class="row-even"><td>edXinclude</td>
+<td>Command</td>
+<td>{ filename }</td>
+</tr>
+<tr class="row-odd"><td>edXincludepy</td>
+<td>Command</td>
+<td>{ filename }</td>
+</tr>
+<tr class="row-even"><td>edXaskta</td>
+<td>Command</td>
+<td>{ arguments }</td>
+</tr>
+<tr class="row-odd"><td>edXbr</td>
+<td>Command</td>
+<td>None</td>
+</tr>
+<tr class="row-even"><td>edXmath</td>
+<td>Environment</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="edxsolution">
+<h3>edXsolution<a class="headerlink" href="#edxsolution" title="Permalink to this headline">¶</a></h3>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXsolution}
+
+For the stretched states the formula is unnecessary: all the angular momenta are
+then aligned with each other and their magnetic moments just add.
+
+\end{edXsolution}
+</pre></div>
+</div>
+</div>
+<div class="section" id="edxscript">
+<h3>edXscript<a class="headerlink" href="#edxscript" title="Permalink to this headline">¶</a></h3>
+<p>This defines a python script.  The syntax of the python script will be
+checked by latex2edx.  If there is a syntax error, then latex2edx will
+abort compilation.</p>
+<p>Python scripts can be used within problems for randomization.  The
+python script is executed once before the problem is displayed, with
+text preceeded by a dollar sign being substituted with values defined
+in the global scope of the python script.</p>
+<p>Functions defined in the python script can then be called later, when
+evaluating student responses, e.g. using custom and jsinput response
+answer boxes.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXscript}
+
+def sumtest(expect,ans):
+    try:
+        (a1,a2) = map(float,ans)
+        return (a1+a2)==10
+    except Exception as err:
+        return {&#39;ok&#39;: False, &#39;msg&#39;: &#39;Sorry, cannot evaluate your input &#39; + str(ans)}
+
+\end{edXscript}
+</pre></div>
+</div>
+</div>
+<div class="section" id="edxdndtex">
+<h3>edXdndtex<a class="headerlink" href="#edxdndtex" title="Permalink to this headline">¶</a></h3>
+<p>This macro causes the specified latex2dnd (&#8220;drag-and-drop&#8221;) tex file
+to be included at the point where the macro is located.  The tex file
+will automatically be compiled, using latex2dnd
+(<a class="reference external" href="https://github.com/mitocw/latex2dnd">https://github.com/mitocw/latex2dnd</a>), to generate the XML and images
+needed for the drag-and-drop problem.</p>
+<a class="reference internal image-reference" href="_images/dnd-problem.png"><img alt="_images/dnd-problem.png" src="_images/dnd-problem.png" style="width: 600px;" /></a>
+<p>Allowed attributes for <tt class="docutils literal"><span class="pre">edXdndtex</span></tt> include:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="12%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Key</th>
+<th class="head">Value</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>resolution</td>
+<td>number giving DPI at which images should be generated</td>
+</tr>
+<tr class="row-odd"><td>can_reuse</td>
+<td>set to True to allow labels to be reused in DND problem (default False)</td>
+</tr>
+</tbody>
+</table>
+<p>If the dnd XML file does not yet exist, or has an older modification time than the
+tex file, then latex2dnd will be run.  Otherwise, it will not be re-run.</p>
+<p>Note that this means if you change an attribute, the XML and image files may not
+be re-generated.  To force recompilation, delete the dnd XML file.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXdnd[resolution=300 can_reuse=True]{dnd/quadratic.tex}
+</pre></div>
+</div>
+</div>
+<div class="section" id="edxinclude">
+<h3>edXinclude<a class="headerlink" href="#edxinclude" title="Permalink to this headline">¶</a></h3>
+<p>This macro causes the specified XML file to be included at the point
+where the macro is located.  This is useful for including
+drag-and-drop problems, e.g. created using <a class="reference external" href="https://github.com/mitocw/latex2dnd">latex2dnd</a>.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXinclude{XML/ps3_p2f3_dnd.xml}
+</pre></div>
+</div>
+</div>
+<div class="section" id="edxincludepy">
+<h3>edXincludepy<a class="headerlink" href="#edxincludepy" title="Permalink to this headline">¶</a></h3>
+<p>This macro causes the specified python script to be imported.  The
+syntax of the imported python script is checked, just as is done for <cite>edXscript</cite>.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXincludepy{python_lib/sympy_check.py}
+</pre></div>
+</div>
+</div>
+<div class="section" id="edxinline">
+<h3>edXinline<a class="headerlink" href="#edxinline" title="Permalink to this headline">¶</a></h3>
+<p>This forces the text in the argument to be placed inline with the subsequent
+answer box.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{itemize}
+\item \edXinline{\tt 3~~~}   \edXabox{expect=&quot;int&quot; options=&quot;noneType&quot;,&quot;int&quot;,&quot;float&quot; type=&quot;option&quot; inline=&quot;1&quot;}
+\item \edXinline{\tt 5.2~~~} \edXabox{expect=&quot;float&quot; options=&quot;noneType&quot;,&quot;int&quot;,&quot;float&quot; type=&quot;option&quot; inline=&quot;1&quot;}
+\end{itemize}
+</pre></div>
+</div>
+</div>
+<div class="section" id="edxmath">
+<h3>edXmath<a class="headerlink" href="#edxmath" title="Permalink to this headline">¶</a></h3>
+<p>Forces contents to be rendered as mathjax.  This is a convenient way to sidestep the fact that some
+math formatting is changed by plastex.  In particular, plastex renders eqnarray using html tables,
+rather than relying on mathjax&#8217;s ability to render eqnarray properly.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXmath}
+\begin{eqnarray}
+S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+        &amp;=&amp;  H((1+r)/2)
+\end{eqnarray}
+\end{edXmath}
+</pre></div>
+</div>
+<p>This produces the XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>[mathjax]\begin{eqnarray}
+S(\rho) &amp;amp;=&amp;amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+        &amp;amp;=&amp;amp;  H((1+r)/2)
+\end{eqnarray}[/mathjax]
+</pre></div>
+</div>
+<p>which renders as:</p>
+<a class="reference internal image-reference" href="_images/mathjax-render-example.png"><img alt="_images/mathjax-render-example.png" src="_images/mathjax-render-example.png" style="width: 300px;" /></a>
+<p>Contrast that with:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{eqnarray}
+S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
+        &amp;=&amp;  H((1+r)/2)
+\end{eqnarray}
+</pre></div>
+</div>
+<p>(no edXmath, just native math) which plastex renders using an HTML table, producing this XML:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;table id=&quot;a0000000002&quot; cellpadding=&quot;7&quot; width=&quot;100%&quot; cellspacing=&quot;0&quot; class=&quot;eqnarray&quot; style=&quot;table-layout:auto&quot;&gt;&lt;tr id=&quot;a0000000003&quot;&gt;&lt;td style=&quot;width:40%; border:none&quot;&gt;&amp;#xA0;&lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:right; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle  S(\rho )[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:center; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle =[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:left; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle  -\lambda _{1} \log \lambda _{1} -\lambda _{2} \log \lambda _{2}[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;width:40%; border:none&quot;&gt;&amp;#xA0;&lt;/td&gt;&lt;td style=&quot;width:20%; border:none&quot; class=&quot;eqnnum&quot;&gt;&lt;span&gt;(&lt;span&gt;1&lt;/span&gt;)&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr id=&quot;a0000000004&quot;&gt;&lt;td style=&quot;width:40%; border:none&quot;&gt;&amp;#xA0;&lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:right; border:none&quot;&gt;
+        &amp;#xA0;
+    &lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:center; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle =[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;vertical-align:middle;                                    text-align:left; border:none&quot;&gt;
+        [mathjaxinline]\displaystyle  H((1+r)/2)[/mathjaxinline]
+    &lt;/td&gt;&lt;td style=&quot;width:40%; border:none&quot;&gt;&amp;#xA0;&lt;/td&gt;&lt;td style=&quot;width:20%; border:none&quot; class=&quot;eqnnum&quot;&gt;&lt;span&gt;(&lt;span&gt;2&lt;/span&gt;)&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+</pre></div>
+</div>
+<p>which renders as:</p>
+<a class="reference internal image-reference" href="_images/mathjax-render-plastex.png"><img alt="_images/mathjax-render-plastex.png" src="_images/mathjax-render-plastex.png" style="width: 850px;" /></a>
+<p>Note that this includes equation numbers (!), and is centered.</p>
+</div>
+<div class="section" id="edxbr">
+<h3>edXbr<a class="headerlink" href="#edxbr" title="Permalink to this headline">¶</a></h3>
+<p>Forces insert of a one-line break.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXbr{}
+</pre></div>
+</div>
+</div>
+<div class="section" id="edxaskta">
+<h3>edXaskta<a class="headerlink" href="#edxaskta" title="Permalink to this headline">¶</a></h3>
+<p>Inserts an &#8220;Ask TA!&#8221; button, which, when clicked, brings up a
+&#8220;mailto:&#8221; window.  The mail is addressed to the TA&#8217;s specified by the
+macro, and the subject specifies the name of the problem in which the
+button is located.  The body of the message is also pre-populated with
+a direct link to the problem.</p>
+<p>This command should be used once near the top of the latex file, to
+setup the names of the TA&#8217;s to whom to send the email, e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXaskta{settings=1 to=course_TAs@mit.edu cc=instructor@mit.edu}
+</pre></div>
+</div>
+<p>Put this, for example, inside an edXtext environment.  This form of
+the macro does not produce a button.</p>
+<p>Locate the actual AskTA! buttons using this syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre>\edXaskta{}
+</pre></div>
+</div>
+<p>typically right before <tt class="docutils literal"><span class="pre">\end{edXproblem}</span></tt>.</p>
+</div>
+<div class="section" id="edxgitlink">
+<h3>edXgitlink<a class="headerlink" href="#edxgitlink" title="Permalink to this headline">¶</a></h3>
+<p>Use this macro to place a piece of text hyperlinked to the specific
+source line in the latex source file.  This works assuming your latex
+source is located on a website.  For example, if the source tex is
+stored on github, then use something like this example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\def\giturl{https://github.com/mitocw/content-mit-latex2edx-demo/blob/master/src}
+\edXgitlink{\giturl}{Source TeX}
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">latex2edx TeX Macros</a><ul>
+<li><a class="reference internal" href="#structural-macros">Structural Macros</a><ul>
+<li><a class="reference internal" href="#edxcourse">edXcourse</a></li>
+<li><a class="reference internal" href="#edxchapter">edXchapter</a></li>
+<li><a class="reference internal" href="#edxsection">edXsection</a></li>
+<li><a class="reference internal" href="#edxvertical">edXvertical</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#content-macros">Content Macros</a><ul>
+<li><a class="reference internal" href="#edxproblem">edXproblem</a></li>
+<li><a class="reference internal" href="#edxtext">edXtext</a></li>
+<li><a class="reference internal" href="#edxvideo">edXvideo</a></li>
+<li><a class="reference internal" href="#edxdiscussion">edXdiscussion</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#the-answer-box-macro">The Answer Box Macro</a><ul>
+<li><a class="reference internal" href="#option-response-problem">Option response problem</a></li>
+<li><a class="reference internal" href="#string-response-problem">String response problem</a></li>
+<li><a class="reference internal" href="#numerical-response-problem">Numerical response problem</a></li>
+<li><a class="reference internal" href="#formula-response-problem">Formula response problem</a></li>
+<li><a class="reference internal" href="#multiple-choice-problem">Multiple choice problem</a></li>
+<li><a class="reference internal" href="#custom-response-problem">Custom response problem</a></li>
+<li><a class="reference internal" href="#javascript-response-problem">Javascript response problem</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#auxilliary-macros">Auxilliary Macros</a><ul>
+<li><a class="reference internal" href="#edxsolution">edXsolution</a></li>
+<li><a class="reference internal" href="#edxscript">edXscript</a></li>
+<li><a class="reference internal" href="#edxdndtex">edXdndtex</a></li>
+<li><a class="reference internal" href="#edxinclude">edXinclude</a></li>
+<li><a class="reference internal" href="#edxincludepy">edXincludepy</a></li>
+<li><a class="reference internal" href="#edxinline">edXinline</a></li>
+<li><a class="reference internal" href="#edxmath">edXmath</a></li>
+<li><a class="reference internal" href="#edxbr">edXbr</a></li>
+<li><a class="reference internal" href="#edxaskta">edXaskta</a></li>
+<li><a class="reference internal" href="#edxgitlink">edXgitlink</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="workflows.html"
+                        title="previous chapter">Workflows</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="hints.html"
+                        title="next chapter">The General Hints System</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/macros.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="hints.html" title="The General Hints System"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="workflows.html" title="Workflows"
+             >previous</a> |</li>
+        <li><a href="index.html">latex2edx 1.3 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, I. Chuang.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
