@@ -20,6 +20,7 @@ import sys
 import re
 import string
 import glob
+import subprocess
 
 from lxml import etree
 from lxml.html.soupparser import fromstring as fsbs
@@ -544,8 +545,17 @@ class XBundle(object):
 
 
     def pp_xml(self,xml):
-        os.popen('xmllint --format -o tmp.xml -','w').write(etree.tostring(xml))
-        xml = open('tmp.xml').read()
+        # os.popen('xmllint --format -o tmp.xml -','w').write(etree.tostring(xml))
+        try:
+            p = subprocess.Popen(['xmllint', '--format', '-o', 'tmp.xml', '-'], stdin=subprocess.PIPE)
+            p.stdin.write(etree.tostring(xml))
+            p.stdin.close()
+            p.wait()
+            xml = open('tmp.xml').read()
+        except Exception as err:
+            print "[xbundle.py] Warning - no xmllint"
+            xml = etree.tostring(xml, pretty_print=True)
+
         if xml.startswith('<?xml '):
             xml = xml.split('\n', 1)[1]
         return xml

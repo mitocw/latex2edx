@@ -102,6 +102,7 @@ class latex2edx(object):
                  suppress_policy=False,
                  suppress_verticals=False,
                  section_only=False,
+                 xml_only=False,
                  ):
         '''
         extra_xml_filters = list of functions acting on XML, applied to XHTML
@@ -134,6 +135,7 @@ class latex2edx(object):
         self.suppress_policy = suppress_policy
         self.section_only = section_only
         self.suppress_verticals = suppress_verticals
+        self.xml_only = xml_only
         self.the_xml = None
 
         if output_fn is None or not output_fn:
@@ -165,13 +167,19 @@ class latex2edx(object):
 
         self.URLNAMES = []
 
+
+    def save_xml(self):
+        '''
+        Save XML file (as .xbundle, normally) to the output_fn
+        '''
+        open(self.output_fn,'w').write(etree.tostring(self.xml, pretty_print=True))
+
     def export_sections_only(self):
         '''
         Export sequentials only (no course, no chapters).
         Also save the initial XML as the xbundle file
         '''
-        open(self.output_fn,'w').write(etree.tostring(self.xml, pretty_print=True))
-
+        self.save_xml()
         xb = xbundle.XBundle(force_studio_format=(not self.suppress_verticals), keep_urls=True)
         xb.dir = self.output_dir
 
@@ -213,6 +221,11 @@ class latex2edx(object):
         '''
         if section_only is None:
             section_only = self.section_only
+
+        if section_only and self.xml_only:
+            print "Saving XML to file %s" % self.output_fn
+            return self.save_xml()
+
         if section_only:
             return self.export_sections_only()
 
@@ -222,6 +235,9 @@ class latex2edx(object):
         tags = ['chapter', 'sequential', 'problem', 'html']
         for tag in tags:
             print "    %s: %d" % (tag, len(self.xb.course.findall('.//%s' % tag)))
+        if self.xml_only:
+            print "Saved xbundle XML to file %s" % self.output_fn
+            return
         self.xb.export_to_directory(self.output_dir, xml_only=True)
         print "Course exported to %s/" % self.output_dir
 
@@ -945,6 +961,11 @@ def CommandLine():
                       dest="section_only",
                       default=False,
                       help="export only edXsections (sequentials) -- no course or chapters",)
+    parser.add_option("-x", "--xml-only",
+                      action="store_true",
+                      dest="xml_only",
+                      default=False,
+                      help="export only xbundle xml file -- no separate course content",)
     (opts, args) = parser.parse_args()
 
     if len(args)<1:
@@ -966,6 +987,7 @@ def CommandLine():
                   suppress_policy=opts.suppress_policy,
                   suppress_verticals=opts.suppress_verticals,
                   section_only=opts.section_only,
+                  xml_only=opts.xml_only,
         )
     c.convert()
     
