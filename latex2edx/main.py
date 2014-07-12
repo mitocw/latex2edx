@@ -100,6 +100,8 @@ class latex2edx(object):
                  do_images=True,
                  update_policy=False,
                  suppress_policy=False,
+                 suppress_verticals=False,
+                 section_only=False,
                  ):
         '''
         extra_xml_filters = list of functions acting on XML, applied to XHTML
@@ -130,6 +132,9 @@ class latex2edx(object):
         self.do_merge = do_merge
         self.update_policy = update_policy
         self.suppress_policy = suppress_policy
+        self.section_only = section_only
+        self.suppress_verticals = suppress_verticals
+        self.the_xml = None
 
         if output_fn is None or not output_fn:
             if fn.endswith('.tex'):
@@ -160,11 +165,57 @@ class latex2edx(object):
 
         self.URLNAMES = []
 
-    def convert(self):
+    def export_sections_only(self):
+        '''
+        Export sequentials only (no course, no chapters).
+        Also save the initial XML as the xbundle file
+        '''
+        open(self.output_fn,'w').write(etree.tostring(self.xml, pretty_print=True))
+
+        xb = xbundle.XBundle(force_studio_format=(not self.suppress_verticals), keep_urls=True)
+        xb.dir = self.output_dir
+
+        tags = ['sequential', 'problem', 'html']
+        for tag in tags:
+            print "    %s: %d" % (tag, len(self.xml.findall('.//%s' % tag)))
+
+        for seq in self.xml.findall('.//sequential'):
+            nprob = len(seq.findall('.//problem'))
+            nhtml = len(seq.findall('.//html'))
+            print "--> exporting sequential %s (%d problem, %d html)" % (seq.get('display_name', '<unknown display_name>'),
+                                                                         nprob, nhtml)
+            xb.add_descriptors(seq)
+            xb.export_xml_to_directory(seq, dowrite=True)
+
+
+    @property
+    def xml(self):
+        '''
+        Compute our XML representation by parsing the XHTML from plastex into XML, then running it through
+        all the fix_filters.
+
+        Cache result, so we only do the computation once.
+        '''
+        if self.the_xml is None:
+            xml = etree.fromstring(self.xhtml)
+            for filter in self.fix_filters:
+                filter(xml)
+            self.the_xml = xml
+        return self.the_xml
+
+
+    def convert(self, section_only=None):
         '''
         Convert xhtml to xbundle and then xbundle to directory of XML files.
         if self.do_merge then do not overwrite course files; attempt to merge them.
+        
+        if section_only then only export edXsections (sequentials)
         '''
+        if section_only is None:
+            section_only = self.section_only
+        if section_only:
+            return self.export_sections_only()
+
         self.xhtml2xbundle()
         self.xb.save(self.output_fn)
         print "xbundle generated (%s): " % self.output_fn
@@ -203,12 +254,9 @@ class latex2edx(object):
         Convert XHTML output of PlasTeX to an edX xbundle file.
         Use lxml to parse the XML and extract the desired parts.
         '''
-        xml = etree.fromstring(self.xhtml)
-        self.xml = xml
-        for filter in self.fix_filters:
-            filter(xml)
+        xml = self.xml
         no_overwrite = ['course'] if self.do_merge else []
-        xb = xbundle.XBundle(force_studio_format=True, keep_urls=True,
+        xb = xbundle.XBundle(force_studio_format=(not self.suppress_verticals), keep_urls=True,
                              no_overwrite=no_overwrite)
         xb.KeepTogetherTags = ['sequential', 'vertical', 'conditional']
         course = xml.find('.//course')
@@ -887,11 +935,22 @@ def CommandLine():
                       dest="suppress_policy",
                       default=False,
                       help="suppress policy settings from XML files",)
+    parser.add_option("--suppress-verticals",
+                      action="store_true",
+                      dest="suppress_verticals",
+                      default=False,
+                      help="do not automatically add extra verticals needed for Studio compatibility",)
+    parser.add_option("-S", "--section-only",
+                      action="store_true",
+                      dest="section_only",
+                      default=False,
+                      help="export only edXsections (sequentials) -- no course or chapters",)
     (opts, args) = parser.parse_args()
 
     if len(args)<1:
-        parser.error('wrong number of arguments')
-        sys.exit(0)
+        print 'latex2edx: wrong number of arguments'
+        parser.print_help()
+        sys.exit(-2)
     fn = args[0]
 
     config = DEFAULT_CONFIG
@@ -905,6 +964,8 @@ def CommandLine():
                   do_merge=opts.merge,
                   update_policy=opts.update_policy,
                   suppress_policy=opts.suppress_policy,
+                  suppress_verticals=opts.suppress_verticals,
+                  section_only=opts.section_only,
         )
     c.convert()
     
