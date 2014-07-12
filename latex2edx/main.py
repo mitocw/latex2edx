@@ -319,10 +319,10 @@ class latex2edx(object):
         if (not self.suppress_policy) and (not self.update_policy):
             return
 
-        def fixdate(dt):
-            dt = date_parse(dt)
+        def fixdate(dtin):
+            dt = date_parse(dtin)
             if dt is None:
-                print "--> Error: bad date %s given for policy setting" % dt
+                print "--> Error: bad date '%s' given for policy setting" % dtin
                 raise
             return dt.strftime('%Y-%m-%dT%H:%M')
 
@@ -365,7 +365,11 @@ class latex2edx(object):
                         if ffun is None:
                             sval = val
                         else:
-                            sval = ffun(val)
+                            try:
+                                sval = ffun(val)
+                            except Exception as err:
+                                msg = "Error processing element %s in %s" % (elem.tag, self.get_filename_and_linenum(elem))
+                                raise Exception(msg)
                         policy[key][setting] = sval
 
             copy_settings(course, policy)		    # do course first
@@ -653,19 +657,16 @@ class latex2edx(object):
             texfn = include.get('filename','<unavailable>')
             if incfn is None:
                 print "Error: %s must specify file to include!" % cmd
-                print "See tex file %s line %s" % (texfn, linenum)
-                raise
+                raise Exception(self.standard_error_msg(include))
             incfn = incfn.strip()
             if not os.path.exists(incfn):
                 print "Error: include file %s does not exist!" % incfn
-                print "See tex file %s line %s" % (texfn, linenum)
-                raise
+                raise Exception(self.standard_error_msg(include))
             try:
                 incdata = open(incfn).read()
             except Exception, err:
                 print "Error %s: cannot open include file %s to read" % (err,incfn)
-                print "See tex file %s line %s" % (texfn, linenum)
-                raise
+                raise Exception(self.standard_error_msg(include))
 
             # if python script, then check its syntax
             if do_python:
@@ -674,7 +675,7 @@ class latex2edx(object):
                 except Exception as err:
                     print "Error in python script %s! Err=%s" % (incfn, err)
                     print "Aborting!"
-                    sys.exit(0)
+                    raise Exception(self.standard_error_msg(include))
 
             try:
                 if do_python:
@@ -684,7 +685,7 @@ class latex2edx(object):
             except Exception, err:
                 print "Error %s parsing XML for include file %s" % (err,incfn)
                 print "See tex file %s line %s" % (texfn, linenum)
-                raise
+                raise Exception(self.standard_error_msg(include))
     
 	    # remove parent <p> if it exists
             parent = include.getparent()
@@ -708,6 +709,16 @@ class latex2edx(object):
         Handle \edXincludepy{script_file.py} inclusion of python scripts.
         '''
         self.process_include(tree, do_python=True)
+
+    @staticmethod
+    def get_filename_and_linenum(elem):
+        linenum = elem.get('linenum','<unavailable>')
+        texfn = elem.get('filename','<unavailable>')
+        return "file %s line %s" % (texfn, linenum)
+
+    def standard_error_msg(self, elem):
+        msg = "Error processing element %s in %s" % (elem.tag, self.get_filename_and_linenum(elem))
+        return msg
 
     def process_dndtex(self, tree):
         '''
@@ -836,7 +847,7 @@ class latex2edx(object):
                 print "Error in python script %s! Err=%s" % (pyfile.name, err)
                 print "Script location: %s" % etree.tostring(script)
                 print "Aborting!"
-                sys.exit(0)
+                raise Exception(self.standard_error_msg(script))
             os.unlink(pyfile.name)
 
     def add_url_names(self, xml):

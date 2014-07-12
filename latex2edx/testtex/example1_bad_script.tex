@@ -1,0 +1,131 @@
+%
+% File:   example1.tex
+% 
+
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl}	% edX
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\begin{edXcourse}{1.00x}{1.00x Fall 2013}[url_name=2013_Fall]
+
+\begin{edXchapter}{Unit 1}[start="2013-11-22"]
+
+\begin{edXsection}{Introduction}[due="2013-11-22"]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{edXproblem}{Problem 1}{attempts=40 url_name="p1"}
+
+\section{Example of symbolic response}  
+ 
+This is a sample problem, which is worth 40 points.  What is the number made famous by
+Hitchhiker's guide to the galaxy?
+
+\edXabox{type='symbolic' size='90' expect='42' }
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{edXproblem}{Problem 2}{10}
+
+\section{Example of option response}  
+
+This is a sample problem, which is worth 10 points.
+
+Give the correct python {\tt type} for the following expressions.  Select {\tt noneType} if the expression is illegal.
+
+\begin{itemize}
+\item {\tt 3}   \edXabox{expect="int" options="noneType","int","float"}
+\item {\tt 5.2} \edXabox{expect="float" options="noneType","int","float"}
+\item {\tt 3/2} \edXabox{expect="int" options="noneType","int","float"}
+\item {\tt 1+[]} \edXabox{expect="noneType" options="noneType","int","float"}
+\end{itemize}
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{edXproblem}{Problem 3}{10}
+
+\section{Example of string response}  
+
+What state is Detroit in?
+
+\edXabox{expect="Michigan" type="string"}
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{edXproblem}{Problem 3.5}{10}
+
+\section{Example of numerical response}  
+
+What is the numerical value of $pi$?
+
+\edXabox{expect="3.14159" type="numerical" tolerance='0.01' }
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{edXproblem}{Problem 4}{10}
+
+\section{Example of custom response}  
+
+This problem demonstrates the use of a custom python script used for
+checking the answer.
+
+\begin{edXscript}
+def 12sumtest(expect,ans):
+    (a1,a2) = map(float,eval(ans))
+    return (a1+a2)==10
+\end{edXscript}
+
+Enter a python list of two numbers which sum to 10:
+
+\edXabox{expect="[1,9]" type="custom" cfn="sumtest"}
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{edXproblem}{Problem 5}{10}
+
+\section{Example of external response (coding problem)}  
+
+This problem demonstrates a python coding problem.
+
+\begin{edXscript}
+initial_display = ""
+answer = """
+print "hello world"
+"""
+preamble = """ 
+code = '''
+"""
+test_program = """
+'''
+code = code.replace('print ','print >> LOG_OUTPUT, ')
+exec(code)
+"""
+\end{edXscript}
+
+Write python code which prints out ``hello world''
+
+\edXabox{type="external" tests="1"}
+
+\end{edXproblem}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{edXsection}
+\end{edXchapter}
+\end{edXcourse}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
