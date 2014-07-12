@@ -1222,6 +1222,21 @@ the macro does not produce a button.</p>
 </div>
 <p>typically right before <tt class="docutils literal"><span class="pre">\end{edXproblem}</span></tt>.</p>
 </div>
+<div class="section" id="edxshowhide">
+<h3>edXshowhide<a class="headerlink" href="#edxshowhide" title="Permalink to this headline">¶</a></h3>
+<p>Use this macro to make a block of text initially hidden, e.g.:</p>
+<a class="reference internal image-reference" href="_images/showhide-example.png"><img alt="_images/showhide-example.png" src="_images/showhide-example.png" style="width: 650px;" /></a>
+<p>The user can then click on &#8220;show&#8221; to reveal the hidden text.</p>
+<p>The id field can be any alphanumerical string with no spaces; it&#8217;s
+used as the DOM element ID for the text being hidden.  The description
+can be any latex string, used to describe the text being hidden.</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>\begin{edXshowhide}{hint3}{Dimension bounds}
+First bound $\dim \vee^n\C^d$, where $\vee^n\C^d:={\rm                                                                                                                       span}\{\ket{\psi}^{\otimes n}:\psi\in\C^d\}$.
+\end{edXshowhide}
+</pre></div>
+</div>
+</div>
 <div class="section" id="edxgitlink">
 <h3>edXgitlink<a class="headerlink" href="#edxgitlink" title="Permalink to this headline">¶</a></h3>
 <p>Use this macro to place a piece of text hyperlinked to the specific
@@ -1279,6 +1294,7 @@ stored on github, then use something like this example:</p>
 <li><a class="reference internal" href="#edxmath">edXmath</a></li>
 <li><a class="reference internal" href="#edxbr">edXbr</a></li>
 <li><a class="reference internal" href="#edxaskta">edXaskta</a></li>
+<li><a class="reference internal" href="#edxshowhide">edXshowhide</a></li>
 <li><a class="reference internal" href="#edxgitlink">edXgitlink</a></li>
 </ul>
 </li>
