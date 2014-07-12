@@ -17,6 +17,7 @@ generating interactive MITx / edX courses from LaTeX.
    
    introduction.rst
    install.rst
+   workflows.rst
    macros.rst
    hints.rst
    history.rst
