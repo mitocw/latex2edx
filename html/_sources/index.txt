@@ -21,6 +21,7 @@ generating interactive MITx / edX courses from LaTeX.
    macros.rst
    hints.rst
    history.rst
+   issues.rst
 
 Indices and tables
 ==================
