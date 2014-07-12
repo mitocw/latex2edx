@@ -212,7 +212,10 @@ class latex2edx(object):
 
         for tag in tags:
             for unit in self.xml.findall('.//%s' % tag):
-                print "--> exporting %s %s" % (unit.get('display_name', '<unknown display_name>'))
+                print "--> exporting %s (%s) url_name=%s" % (unit.get('display_name', '<unknown display_name>'), 
+                                                             self.get_filename_and_linenum(unit),
+                                                             unit.get('url_name', '<unknown>'),
+                                                         )
                 xb.add_descriptors(unit)
                 xb.export_xml_to_directory(unit, dowrite=True)
 
