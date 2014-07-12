@@ -967,8 +967,11 @@ Use this macro to make a block of text initially hidden, e.g.:
 The user can then click on "show" to reveal the hidden text.
 
 The id field can be any alphanumerical string with no spaces; it's
-used as the DOM element ID for the text being hidden.  The description
-can be any latex string, used to describe the text being hidden.
+used as the DOM element ID for the text being hidden.  Each "id"
+string must be unique, at least within each edXchapter.
+
+The description can be any latex string, used to describe the text
+being hidden.
 
 Example::
 
