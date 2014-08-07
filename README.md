@@ -58,24 +58,35 @@ be installed automatically by the pip install.
 Usage
 =====
 
+```
+latex2edx -h                                                                                                                                       15:30:51
 Usage: latex2edx [options] filename.tex
 
 Options:
+  --version             show program's version number and exit
+  -h, --help            show this help message and exit
+  -v, --verbose         verbose error messages
+  -o OUTPUT_FN, --output-xbundle=OUTPUT_FN
+                        Filename for output xbundle file
+  -d OUTPUT_DIR, --output-directory=OUTPUT_DIR
+                        Directory name for output course XML files
+  -c CONFIG_FILE, --config-file=CONFIG_FILE
+                        configuration file to load
+  -m, --merge-chapters  merge chapters into existing course directory
+  -P, --update-policy-file
+                        update policy.json from settings in latex file
+  --suppress-policy-settings
+                        suppress policy settings from XML files
+  --suppress-verticals  do not automatically add extra verticals needed for
+                        Studio compatibility
+  -S, --section-only    export only edXsections (sequentials) -- no course or
+                        chapters
+  -x, --xml-only        export only xbundle xml file -- no separate course
+                        content
+  --units-only          export only units, including problem, html -- no
+                        course, chapter, section
+```
 
-    --version             show program's version number and exit
-    -h, --help            show this help message and exit
-    -v, --verbose         verbose error messages
-    -o OUTPUT_FN, --output-xbundle=OUTPUT_FN
-                          Filename for output xbundle file
-    -d OUTPUT_DIR, --output-directory=OUTPUT_DIR
-                          Directory name for output course XML files
-    -c CONFIG_FILE, --config-file=CONFIG_FILE
-                          configuration file to load
-    -m, --merge-chapters  merge chapters into existing course directory
-    -P, --update-policy-file
-                          update policy.json from settings in latex file
-    --suppress-policy-settings
-                          suppress policy settings from XML files
 Example
 =======
 
