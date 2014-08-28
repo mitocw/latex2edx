@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# File:   latex2edx.py  
+# File:   latex2edx.py
 # Date:   19-Jun-12
 # Author: I. Chuang <ichuang@mit.edu>
 #
@@ -60,8 +60,8 @@ class MyRenderer(XHTML.Renderer):
                 return "&nbsp;"
             if x=="\displaystyle":
                 return "&nbsp;"
-            
-            #return '{%% math eq="%s" %%}' % urllib.quote(x,safe="")            
+
+            #return '{%% math eq="%s" %%}' % urllib.quote(x,safe="")
             x = x.replace('\n','')
             x = escape(x)
             return '[mathjaxinline]%s[/mathjaxinline]' % x
@@ -97,7 +97,7 @@ class MyRenderer(XHTML.Renderer):
                 if width==0:
                     width = 400
             else:
-                # CL: 16.101x -- find image size and make percentage be multiple of width in pixels
+                # CL: 16.06r -- find image size and make percentage be multiple of width in pixels
                 #print "Image m:", m
                 #print "   m.group(0):", m.group(0)
                 #print "   m.group(1):", m.group(1)
@@ -108,12 +108,13 @@ class MyRenderer(XHTML.Renderer):
                 #print path_to_image
                 #print "w =", w
                 #print "h =", h
-                width = w/18  # using this as percentage for width and height below
+                width = w/8  # using this as percentage for width and height below
 
             def make_image_html(fn,k):
                 self.imfnset.append(fn+k)
                 # if file doesn't exist in edX web directory, copy it there
                 fnbase = os.path.basename(fn)+k
+                print "fnbase =", fnbase
                 wwwfn = '%s/%s' % (self.imdir,fnbase)
                 #print "wwwfn =", wwwfn
                 #wwwfn = re.sub(r'(?s).png(?s)','.svg',wwwfn)
@@ -160,7 +161,7 @@ class MyRenderer(XHTML.Renderer):
                             return imghtml
                         else:
                             return make_image_html(fn,k)
-                    
+
             fn = fnset[0]
             print 'Cannot find image file %s' % fn
             return '<img src="NOTFOUND-%s">' % fn
@@ -179,7 +180,7 @@ class MyRenderer(XHTML.Renderer):
             except Exception, err:
                 print "Error in MyRenderer.processFileContent (fix unicode): ",err
 
-        def do_abox(m): 
+        def do_abox(m):
             print "\nDOING abox!!\n"
             if m.group(1).find('type="justification"') >= 0: # justification response
                 print m.group(1)
@@ -212,7 +213,7 @@ class MyRenderer(XHTML.Renderer):
                     MITxyoutubeembedcode = row[4].strip()
                     # remove DOUBLEHYPHEN from video master list entry
                     edXyoutubeembedcode = re.sub(r'DOUBLEHYPHEN',r'',edXyoutubeembedcode)
-                    MITxyoutubeembedcode =  re.sub(r'DOUBLEHYPHEN',r'',MITxyoutubeembedcode) 
+                    MITxyoutubeembedcode =  re.sub(r'DOUBLEHYPHEN',r'',MITxyoutubeembedcode)
                     #print "Looking for embedcode %s..." % code
                     #print "row MITembedcode = %s" % MITxyoutubeembedcode
                     #print "row edXembedcode = %s" % edXyoutubeembedcode
@@ -249,7 +250,7 @@ class MyRenderer(XHTML.Renderer):
             figure_number = figure_number[0].encode("utf-8")
             print figure_name
             print figure_number
-            new_window_command = "<a href=\"/static/html/%s.png\" onClick=\"window.open(this.href,\'16.101x\',\'toolbar=1\'); return false;\">%s</a>" % (figure_name,figure_number)
+            new_window_command = "<a href=\"/static/html/%s.png\" onClick=\"window.open(this.href,\'16.06r\',\'toolbar=1\'); return false;\">%s</a>" % (figure_name,figure_number)
             print new_window_command
             return new_window_command
 
@@ -278,7 +279,7 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub(r'(?s)<displaymath>\\begin{edXmath}(.*?)\\end{edXmath}</displaymath>',fix_displaymath,s)
             s = re.sub(r'(?s)<math>\\\[(.*?)\\\]</math>',fix_displaymath,s)
             s = re.sub('<includegraphics style="(.*?)">(.*?)</includegraphics>',do_image,s)	# includegraphics
-            
+
             s = re.sub('(?s)<edxxml>\\\\edXxml{(.*?)}</edxxml>','\\1',s)
             s = re.sub(r'(?s)<iframe(.*?)></iframe>',do_iframe,s)  # edXinlinevideo
             s = re.sub(r'LESSTHAN',r'<',s)
@@ -293,7 +294,7 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub(r'(?s)<customresponse(.*?)cfn="defaultsoln"(.*?)</customresponse>','<customresponse cfn="defaultsoln" expect=""><textline size="90" correct_answer=""/></customresponse>',s)
 
             s = re.sub(r'(?s)<abox>(.*?)</abox>',do_abox,s) # THIS MUST COME AFTER CUSTOMRESPONSE HANDLING!!!
-            
+
             s = re.sub(r'(?s)<textline correct_answer=""/>','<textline size="90" correct_answer=""/>',s)
 
             # MISSING CONTENT!
@@ -372,23 +373,23 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
         content.set('rerandomize','never')
 
     # set display_name (will be overwritten below if it is specified in attrib_string -- NOT ANYMORE!!)
-    if content.get('display_name') is None: 
-        content.set('display_name',pname)   
-        
-    #if tagname=="problem":
-        #print "problem display name =", content.get('display_name') 
-        #raw_input("Press ENTER")    
+    if content.get('display_name') is None:
+        content.set('display_name',pname)
 
-    #extract attributes from attrib_string 
+    #if tagname=="problem":
+        #print "problem display name =", content.get('display_name')
+        #raw_input("Press ENTER")
+
+    #extract attributes from attrib_string
     attrib_string = content.get('attrib_string','')
     if attrib_string:
-        attrib_list=split_args_with_quoted_strings(attrib_string)    
+        attrib_list=split_args_with_quoted_strings(attrib_string)
         if len(attrib_list)==1 & len(attrib_list[0].split('='))==1: #a single number n is interpreted as weight="n"
-            content.set('weight',attrib_list[0]) 
+            content.set('weight',attrib_list[0])
             content.attrib.pop('attrib_string') #remove attrib_string
         else: #the normal case, can remove backwards compatibility later if desired
-            for s in attrib_list: 
-                attrib_and_val=s.split('=')    	
+            for s in attrib_list:
+                attrib_and_val=s.split('=')
                 if len(attrib_and_val) != 2:
                     print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
                     sys.exit(-1)
@@ -396,7 +397,7 @@ def content_to_file(content, tagname, fnsuffix, pdir='.', single='', fnprefix=''
             content.attrib.pop('attrib_string') #remove attrib_string
 
     # create a copy to return of the content tag, with just the filename as the url_name
-    nprob = etree.Element(tagname)	
+    nprob = etree.Element(tagname)
     nprob.set('url_name',pfn)
     content.attrib.pop('url_name')       	# remove url_name from our own tag
 
@@ -443,7 +444,7 @@ def cleanup_xml(xml):
     walk_tree(xml)
 
     FLAG_drop_sequential = False
-    
+
     if FLAG_drop_sequential:
         # 21jan13 new xml format: drop section, add display_name to sequential and to chapter
         for ch in xml.findall('.//chapter'):
@@ -459,7 +460,7 @@ def cleanup_xml(xml):
                 if not dn and ndn:
                     seq.set('display_name',ndn)
                 p.addnext(seq)	# move up to parent's level
-        
+
         for sec in xml.findall('.//section'):
             if len(sec)>0:
                 print "oops, non-empty section!  sec=%s" % etree.tostring(sec)
@@ -470,9 +471,9 @@ def cleanup_xml(xml):
     if FLAG_convert_section_to_sequential:
         # 23jan13 - convert <section> (which is no longer used) to <sequential>
         # and turn url_name into display_name
-        # 11jun13 - added section counter to allow for multiple chapters with 
+        # 11jun13 - added section counter to allow for multiple chapters with
         # the same section heading; creates url_name attribute with appended number
-        
+
         chapnum = 0
         for chap in xml.findall('.//chapter'):
             if "Survey" in chap.get('display_name') or "Office Hour" in chap.get('display_name'):
@@ -494,7 +495,7 @@ def cleanup_xml(xml):
                         sec.set('url_name',make_urlname(un))
                     print sec.get('url_name')
                     #raw_input("URL NAME PRINTOUT ABOVE")
-            
+
 
     # move contents of video elements into attrib
     for video in xml.findall('.//video'):
@@ -581,10 +582,10 @@ def update_chapter(chapter,cdir):
     if not chapfound:								# chapter does not exist
         print "      --> Adding chapter '%s'" % chapter.get('url_name')
         course.getroot().append(chapter)					# add new chapter to the course
-                        
+
     # write out course.xml
     os.popen('xmllint -format -o %s -' % cxfn,'w').write(etree.tostring(course,pretty_print=True))
- 
+
 #-----------------------------------------------------------------------------
 # extract problems into separate XML files
 
@@ -601,11 +602,11 @@ def extract_problems(tree,pdir,fnprefix=''):
         # remove all attributes, put in url_name, source_file into the <problem> tag in course.xml
         #for a in nprob.attrib:
         #    nprob.attrib.pop(a)
-        #nprob.set('url_name',pfn)		
+        #nprob.set('url_name',pfn)
         parent = problem.getparent()		# replace problem with <problem ... /> course xml link
         parent.insert(parent.index(problem),nprob)
         parent.remove(problem)
- 
+
 #-----------------------------------------------------------------------------
 # extract html segments into separate XML files
 
@@ -627,7 +628,7 @@ def extract_html(tree,pdir,fnprefix=''):
 #-----------------------------------------------------------------------------
 # create a partial policy file for easier policy generation
 
-def generate_partial_policy_file(course,pdir): 
+def generate_partial_policy_file(course,pdir):
     '''
     This function is intended to generate a partial policy file (the part pertaining to edX problems) with default information so that setting point values for the problems is much easier, but without interfering with the content (in LaTeX source) itself.  The output goes to /partial_policy.json, where / refers to the latex directory in content repo.
     '''
@@ -661,7 +662,7 @@ def generate_partial_policy_file(course,pdir):
         name = chapter.get('display_name')
         #print name
         #raw_input("Press enter yo")
-        if name=="Overview of 16.101x" or name=="Test":
+        if name=="Overview of 16.06r" or name=="Test":
             continue
         modtotCQweight = 0
         modtotHWweight = 0
@@ -710,14 +711,8 @@ def generate_partial_policy_file(course,pdir):
                 f.write('\t\t\"graded\": %s,\n' % problem_graded)
                 f.write('\t\t\"format\": \"%s\",\n' % problem_format)
                 f.write('\t\t\"showanswer\": \"%s\",\n' % problem_showanswer)
-                f.write('\t\t\"attempts\": \"%s\"\n' % problem_attempts) 
+                f.write('\t\t\"attempts\": \"%s\"\n' % problem_attempts)
                 f.write('\t},\n')
-        if modtotCQweight != 50:
-            print "\n *** WARNING *** Module: %s, Concept Question weights sum to %d != 50!!!\n" % (name, modtotCQweight)
-            raw_input("Press ENTER to continue")
-        if modtotHWweight != 50:
-            print "\n *** WARNING *** Module: %s, Homework Question weights sum to %d != 50!!!\n" % (name, modtotHWweight)
-            raw_input("Press ENTER to continue")
     f.close()
 
 
@@ -725,7 +720,7 @@ def generate_partial_policy_file(course,pdir):
 # output course into XML file
 
 def course_to_files(course, update_mode, default_dir, fnprefix=''):
-    
+
     cnumber = course.get('number')	# course number, like 18.06x
     print "Course number: %s" % cnumber
     cdir = cnumber
@@ -755,7 +750,7 @@ def course_to_files(course, update_mode, default_dir, fnprefix=''):
     cleanup_xml(course)
 
     # write partial policy file
-    #generate_partial_policy_file(course,pdir)
+    generate_partial_policy_file(course,pdir)
 
     # if the url_name given is in reasonable format, eg 2013_Fall (no spaces), then write
     # contents of <course> to that filename in the course subdir, ie unbundle it
@@ -798,10 +793,9 @@ def process_edXmacros(tree):
     fix_table(tree)
     fix_center(tree)
     fix_figure_refs(tree)
-    fix_table_refs(tree)
     handle_equation_labels_and_refs(tree)
     handle_measurable_outcomes(tree)
-    # add_links_to_mo_index(tree)
+    add_links_to_mo_index(tree)
     add_figure_padding(tree)
     process_include(tree)
     process_showhide(tree)
@@ -812,7 +806,7 @@ def process_edXmacros(tree):
     ensure_relative_url_for_youtube_embeds(tree)
     change_problem_display_names_to_have_counters(tree)
     add_titles_to_edxtext(tree)
-    add_discussion_posts_to_problems(tree)
+    #add_discussion_posts_to_problems(tree)
     #fix_edXvideos_in_solutions(tree)   # this line currently breaks the normal video handling --- only bring back if we will be able to use <video> tags in solutions and replace all the iframe videos
 
 def add_discussion_posts_to_problems(tree):
@@ -821,28 +815,26 @@ def add_discussion_posts_to_problems(tree):
     '''
     # first find all verticals, and insert problem tag at the bottom (for verticals that contain a problem or sequence of problems)
     for chapter in tree.findall('.//chapter'):
-        if "Survey" in chapter.get('display_name'):
-            continue 
+        if "Survey" in chapter.get('display_name') or "Exam" in chapter.get('display_name'):
+            continue
         chaptername = chapter.get('display_name')
         for section in chapter.findall('.//section'):
             sectionname = section.get('url_name')
             for vert in section.findall('.//vertical'):
                 for problem in vert.findall('.//problem'):
                     if (problem.get('url_name').find('edx_surveys')<0):  # only if not edx survey problem
-                        firstproblem = problem 
+                        firstproblem = problem
                         break # name contained in first problem of vertical
                 if firstproblem is not None: # this vertical has a problem
                     discussion = etree.SubElement(vert,'discussion')
-                    if firstproblem.get('display_name') is None:
-                        firstproblem.set('display_name',firstproblem.get('url_name'))
                     discussion.set('for',firstproblem.get('display_name'))
-                    discussion.set('id',"16101x_Fall2013_%s" % make_urlname(firstproblem.get('url_name')))
+                    discussion.set('id',"1606r_Fall2013_%s" % make_urlname(firstproblem.get('url_name')))
                     discussion.set('discussion_category',"%s/%s" % (chaptername,sectionname))
                     discussion.set('display_name',firstproblem.get('display_name'))
             # then go through problems (that are NOT inside a vertical already), put them inside vertical tags and place discussion tag as last child of that vertical
             for problem in section.findall('.//problem'):
                 if (problem.get('url_name').find('edx_surveys')<0): # only if not edx survey problem
-                    # check if problem is inside a vertical already 
+                    # check if problem is inside a vertical already
                     inside_vert = False
                     for verti in section.findall('.//vertical'):
                         for innerproblem in verti.findall('.//problem'):
@@ -850,7 +842,7 @@ def add_discussion_posts_to_problems(tree):
                                 if innerproblem==problem: # found it inside vert
                                     inside_vert = True
                                     break
-                    if not inside_vert:    
+                    if not inside_vert:
                         # save a copy of the problem so we can put it inside the vertical
                         save_problem = etree.fromstring(etree.tostring(problem)) # make a copy
                         # change this problem to vertical (called 'problem') tag with nothing inside
@@ -861,26 +853,20 @@ def add_discussion_posts_to_problems(tree):
                         # append the discussion thread to that vertical (called 'problem')
                         discussion = etree.SubElement(problem,'discussion')
                         discussion.set('for',save_problem.get('display_name'))
-                        discussion.set('id',"16101x_Fall2013_%s" % make_urlname(save_problem.get('url_name')))
+                        discussion.set('id',"1606r_Fall2013_%s" % make_urlname(save_problem.get('url_name')))
                         discussion.set('discussion_category',"%s/%s" % (chaptername,sectionname))
                         discussion.set('display_name',save_problem.get('display_name'))
             for html in section.findall('.//html'):
                 if (html.get('url_name').find('edx_surveys')<0): # only if not edx survey problem
-                    # check if problem is inside a vertical already 
+                    # check if problem is inside a vertical already
                     inside_vert = False
                     for verti in section.findall('.//vertical'):
-                        for innerhtml in verti.findall('.//html'):
+                        for innerhtml in verti.findall('.//problem'):
                             if (innerhtml.get('url_name').find('edx_surveys')<0):  # only if not edx survey problem
                                 if innerhtml==html: # found it inside vert
                                     inside_vert = True
-                                    #print "html inside vert = true for : "
-                                    #print "   innerhtml = ", innerhtml
-                                    #print "   innerhtml url_name = ", innerhtml.get('url_name')
-                                    #print "   html = ", html
-                                    #print "   html url_name = ", html.get('url_name')      
-                                    #raw_input("Press ENTER")         
                                     break
-                    if not inside_vert:    
+                    if not inside_vert:
                         # save a copy of the html so we can put it inside the vertical
                         save_html = etree.fromstring(etree.tostring(html)) # make a copy
                         # change this html to vertical (called 'html') tag with nothing inside
@@ -895,7 +881,7 @@ def add_discussion_posts_to_problems(tree):
                         if save_html.get('display_name') is None:
                             save_html.set('display_name',save_html.get('url_name'))
                         discussion.set('for',save_html.get('display_name'))
-                        discussion.set('id',"16101x_Fall2013_%s" % make_urlname(save_html.get('url_name')))
+                        discussion.set('id',"1606r_Fall2013_%s" % make_urlname(save_html.get('url_name')))
                         discussion.set('discussion_category',"%s/%s" % (chaptername,sectionname))
                         discussion.set('display_name',save_html.get('display_name'))
 
@@ -904,7 +890,7 @@ def change_problem_display_names_to_have_counters(tree):
     chapnum = -1
     for chap in tree.findall('.//chapter'):
         if "Survey" in chap.get('display_name') or "Office Hour" in chap.get('display_name') or "Exam" in chap.get('display_name'):
-            continue        
+            continue
         chapnum += 1
         sectionnum = 0
         for section in chap.findall('.//section'):
@@ -929,13 +915,10 @@ def change_problem_display_names_to_have_counters(tree):
                             for testproblem in testvert.findall('.//problem'):
                                 if testproblem.get('url_name')==vert.get('url_name'):
                                     in_vertical = True
-                            for testhtml in testvert.findall('.//html'):
-                                if testhtml.get('url_name')==vert.get('url_name'):
-                                    in_vertical = True 
                         if not in_vertical:
                             currdispname = vert.get('url_name')
                             pagenum += 1
-                            vert.set('display_name',"%d.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))  
+                            vert.set('display_name',"%d.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))
                     elif (verttag=="vertical"):
                         for problem in vert.findall('.//problem'):
                             currdispname = problem.get('url_name')
@@ -979,7 +962,7 @@ def add_chap_num_to_content(tree):
     chapnum = 0
     for chap in tree.findall('.//chapter'):
         if "Survey" in chap.get('display_name') or "Office Hour" in chap.get('display_name') or "Exam" in chap.get('display_name'):
-            continue        
+            continue
         chapnum += 1
         for section in chap.findall('.//section'):
             for html in section.findall('.//html'):
@@ -1106,7 +1089,7 @@ def handle_measurable_outcomes(tree):
                                                     print "a.text =", a.text
                                                     print "Found an <a> with mo: tag"
                                                     #raw_input("Press ENTER")
-                                                    # we need to distinguish here between relmo calls and places where the outcome is referenced in the text (look for the word "outcome", any case) in the preceding text  
+                                                    # we need to distinguish here between relmo calls and places where the outcome is referenced in the text (look for the word "outcome", any case) in the preceding text
                                                     print "\n", p.text
                                                     if p.text.lower().find(r'outcome')>0 and p.text.find(r'<a>mo'):
                                                         p.text = p.text + "%d.%d" % (chapternum,monum)
@@ -1145,7 +1128,7 @@ def handle_measurable_outcomes(tree):
                                                     # add measurable outcome attribute to the xml tag
                                                     if problem.get('measurable_outcomes') is not None:
                                                         # add it and reset (comma-separated list, no space per P. Pinch)
-                                                        currmo = problem.get('measurable_outcomes') 
+                                                        currmo = problem.get('measurable_outcomes')
                                                         newmo = currmo + ",%s" % tag
                                                         problem.set('measurable_outcomes',newmo)
                                                     else:
@@ -1175,13 +1158,13 @@ def handle_measurable_outcomes(tree):
                                         for p in vertical.findall('.//p'):
                                             # print "p.text=",p.text
                                             for a in p.findall('.//a'):
-                                                #print "a.text =",a.text 
+                                                #print "a.text =",a.text
                                                 if a.text=="mo:"+tag:
                                                 # found MO tag in vertical.
                                                     # need to put these tags in the measurable_outcomes attribute of problems in this vertical (for Cole's reporting tool)
                                                     # assume here that verticals encapsulate only problems !!!
                                                     # get first problem
-                                                    
+
                                                     #print "\nPROCESSING TAG mo:%s\n" % tag
                                                     #raw_input("Press ENTER")
                                                     for problem in vertical.findall('.//problem'):
@@ -1192,7 +1175,7 @@ def handle_measurable_outcomes(tree):
                                                         # add measurable outcome attribute to the xml tag
                                                         if problem.get('measurable_outcomes') is not None:
                                                             # add it and reset (comma-separated list, no space per P. Pinch)
-                                                            currmo = problem.get('measurable_outcomes') 
+                                                            currmo = problem.get('measurable_outcomes')
                                                             newmo = currmo + ",%s" % tag
                                                             problem.set('measurable_outcomes',newmo)
                                                         else:
@@ -1224,7 +1207,7 @@ def handle_measurable_outcomes(tree):
                                                     link.set("class","wikitable collapsible collapsed")
                                                     innerxml = etree.fromstring("<tbody><tr><th>  <a href=\"javascript:$('#mo%d%d').toggle()\" id=\"mo%d%dl\">MO%d.%d</a></th></tr><tr id=\"mo%d%d\" style=\"display:none\"><td>%s</td></tr></tbody>" % (chapternum,monum,chapternum,monum,chapternum,monum,chapternum,monum,newtext))
                                                     link.append(innerxml)
-                                        
+
         # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
         # look through the rest of the document for references to that measurable outcome
         # where there is a reference to the MO, make a tag at the bottom of that vertical that says "MO1.2" or whatever, but that permits a hover that brings up the full-length description of the measurable outcome
@@ -1242,8 +1225,8 @@ def handle_measurable_outcomes(tree):
     #raw_input("Press ENTER")
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
-        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name') or "Exam" in chapter.get('display_name'):
-            continue        
+        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name') or "Sample Problems" in chapter.get('display_name'):
+            continue
         chapternum += 1
         moindexhtml += "<h2>%s</h2>" % chapter.get('display_name')
         for section in chapter.findall('.//section'):
@@ -1266,18 +1249,18 @@ def handle_measurable_outcomes(tree):
                                     p.text = newtext
                                     # find the references to this everywhere else (will be in html or problem OR vertical)
                                     print "Finding reference to " + newtext + "..."
-                                    moindexhtml += "<a name=\"anchorMO%d%d\"></a><table class=\"wikitable collapsible collapsed\" itemscope itemtype=\"measurable_outcome\" id=\"%s\"><tbody><tr><th><a href=\"javascript:$('#indmo%d%d').toggle()\" id=\"indmo%d%dl\" name=\"indmo%d%dl\"><strong itemprop=\"name\">MO%d.%d</strong></a><span itemprop=\"description\">%s</span></th></tr><tr id=\"indmo%d%d\" style=\"display:none\"><td>" % (chapternum,monum,tag,chapternum,monum,chapternum,monum,chapternum,monum,chapternum,monum,oldtext,chapternum,monum)
+                                    moindexhtml += "<a name=\"anchorMO%d%d\"></a><table class=\"wikitable collapsible collapsed\" itemscope itemtype=\"measurable_outcome\" id=\"%s\"><tbody><tr><th><a href=\"#\" onClick=\"$('#indmo%d%d').toggle();return false;\" id=\"indmo%d%dl\" name=\"indmo%d%dl\"><strong itemprop=\"name\">MO%d.%d</strong></a><span itemprop=\"description\">%s</span></th></tr><tr id=\"indmo%d%d\" style=\"display:none\"><td>" % (chapternum,monum,tag,chapternum,monum,chapternum,monum,chapternum,monum,chapternum,monum,oldtext,chapternum,monum)
                                     #raw_input("Press ENTER")
                                     moindexhtml += "<h3>Learn</h3><ul class=\"MOlearn\">"
                                     for html in tree.findall('.//html'): #look in html
-                                        
+
                                         for p in html.findall('.//p'):
                                             for a in p.findall('.//a'):
                                                 if a.text=="mo:"+tag:
                                                     print "a.text =", a.text
                                                     print "Found an <a> with mo: tag"
                                                     #raw_input("Press ENTER")
-                                                    # we need to distinguish here between relmo calls and places where the outcome is referenced in the text (look for the word "outcome", any case) in the preceding text  
+                                                    # we need to distinguish here between relmo calls and places where the outcome is referenced in the text (look for the word "outcome", any case) in the preceding text
                                                     print "\n", p.text
                                                     if p.text.lower().find(r'outcome')>0 and p.text.find(r'<a>mo'):
                                                         p.text = p.text + "%d.%d" % (chapternum,monum)
@@ -1303,11 +1286,11 @@ def handle_measurable_outcomes(tree):
                                                             if p.get('id')=="taglist":
                                                                 taglist = p
                                                                 break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.101x/2013_SOND/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
-                                                    link.text = "MO%d.%d" % (chapternum,monum)  
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.06r/2014_Fall/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)
                                                     link.set('id',tag)
                                                     # add it to moindexhtml
-                                                    moindexhtml += "<li><a itemtype=\"html\" href=\"/jump_to_id/16101x_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(html.get('url_name')), html.get('url_name'))
+                                                    moindexhtml += "<li><a itemtype=\"html\" href=\"/jump_to_id/1606r_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(html.get('url_name')), html.get('url_name'))
                                     moindexhtml += "</ul>"
 
                                     moindexhtml += "<h3>Assess</h3><ul class=\"MOassess\">"
@@ -1318,7 +1301,7 @@ def handle_measurable_outcomes(tree):
                                                     # add measurable outcome attribute to the xml tag
                                                     if problem.get('measurable_outcomes') is not None:
                                                         # add it and reset (comma-separated list, no space per P. Pinch)
-                                                        currmo = problem.get('measurable_outcomes') 
+                                                        currmo = problem.get('measurable_outcomes')
                                                         newmo = currmo + ",%s" % tag
                                                         problem.set('measurable_outcomes',newmo)
                                                     else:
@@ -1339,24 +1322,24 @@ def handle_measurable_outcomes(tree):
                                                             if p.get('id')=="taglist":
                                                                 taglist = p
                                                                 break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.101x/2013_SOND/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
-                                                    link.text = "MO%d.%d" % (chapternum,monum)  
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.06r/2014_Fall/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)
                                                     link.set('id',tag)
-                                                    moindexhtml += "<li><a itemtype=\"problem\" href=\"/jump_to_id/16101x_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(problem.get('url_name')), problem.get('url_name'))
-                                                        
-    
+                                                    moindexhtml += "<li><a itemtype=\"problem\" href=\"/jump_to_id/1606r_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(problem.get('url_name')), problem.get('url_name'))
+
+
                                     for vertical in tree.findall('.//vertical'): # look in vertical
                                         print "\nVERTICAL %s" % vertical.get('display_name')
                                         for p in vertical.findall('.//p'):
                                             # print "p.text=",p.text
                                             for a in p.findall('.//a'):
-                                                #print "a.text =",a.text 
+                                                #print "a.text =",a.text
                                                 if a.text=="mo:"+tag:
                                                 # found MO tag in vertical.
                                                     # need to put these tags in the measurable_outcomes attribute of problems in this vertical (for Cole's reporting tool)
                                                     # assume here that verticals encapsulate only problems !!!
                                                     # get first problem
-                                                    
+
                                                     #print "\nPROCESSING TAG mo:%s\n" % tag
                                                     #raw_input("Press ENTER")
                                                     for problem in vertical.findall('.//problem'):
@@ -1367,7 +1350,7 @@ def handle_measurable_outcomes(tree):
                                                         # add measurable outcome attribute to the xml tag
                                                         if problem.get('measurable_outcomes') is not None:
                                                             # add it and reset (comma-separated list, no space per P. Pinch)
-                                                            currmo = problem.get('measurable_outcomes') 
+                                                            currmo = problem.get('measurable_outcomes')
                                                             newmo = currmo + ",%s" % tag
                                                             problem.set('measurable_outcomes',newmo)
                                                         else:
@@ -1395,17 +1378,17 @@ def handle_measurable_outcomes(tree):
                                                             if pt.get('id')=="taglist":
                                                                 taglist = pt
                                                                 break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.101x/2013_SOND/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
-                                                    link.text = "MO%d.%d" % (chapternum,monum)  
+                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.06r/2014_Fall/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
+                                                    link.text = "MO%d.%d" % (chapternum,monum)
                                                     link.set('id',tag)
-                                                    moindexhtml += "<li><a itemtype=\"problem\" href=\"/jump_to_id/16101x_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(firstproblem.get('url_name')), firstproblem.get('url_name'))
+                                                    moindexhtml += "<li><a itemtype=\"problem\" href=\"/jump_to_id/1606r_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(firstproblem.get('url_name')), firstproblem.get('url_name'))
                                     moindexhtml += "</ul>"
         # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
         # look through the rest of the document for references to that measurable outcome
         # where there is a reference to the MO, make a tag at the bottom of that vertical that says "MO1.2" or whatever, but that permits a hover that brings up the full-length description of the measurable outcome
                                 moindexhtml += "</td></tr></tbody></table>"
         moindexhtml += "</br>"
-    
+
     # finish the moindex page
     moindexhtml += "</body></html>"
     # save to moindex.html (to be moved to tabs/)
@@ -1421,15 +1404,14 @@ def add_links_to_mo_index(tree):
     ffff.close()
 
     # loop through all of the xml tree, and for each html or problem, find its reference in the moindexhtml and change it to a link to the correct place
-    pathtocourseware = "/courses/MITx/16.101x/2013_SOND"
+    pathtocourseware = "/courses/MITx/16.06r/2014_Fall"
     sampleprobcounter = 0
     homeworkprobcounter = 0
     overviewcounter = 0
     for chapter in tree.findall('.//chapter'):
-        chapname = chapter.get('display_name')
-        chapnamewithunderscores = re.sub(r' ',r'_',chapname)
-        print "MO INDEX LINKING... Chapter: %s" % chapnamewithunderscores
-        for section in chapter.findall('.//section'):       
+        chapurl = chapter.get('url_name')
+        print "MO INDEX LINKING... Chapter: %s" % chapurl
+        for section in chapter.findall('.//section'):
             overviewcounter += 1
             secname = section.get('url_name')
             secnamewithunderscores = re.sub(r' ',r'_',secname)
@@ -1453,7 +1435,7 @@ def add_links_to_mo_index(tree):
             for vert in allverts:
                 vertnum += 1
                 verttag = vert.tag
-                print verttag   
+                print verttag
                 # html and problem
                 if (verttag=="html" or verttag=="problem"):
                     vertname = vert.get('url_name')
@@ -1469,12 +1451,13 @@ def add_links_to_mo_index(tree):
                 else:
                     print "UNRECOGNIZED VERTICAL TAG TYPE"
                 # href = "%s/courseware/%s/%s/%d/" % (pathtocourseware,chapnamewithunderscores,secnamewithunderscores,vertnum)
-                href = "/jump_to_id/16101x_%s" % make_urlname(vertname)
-                linktext = "<a href=\"%s\">%s</a>" % (href,vertname)
+                # href = "/jump_to_id/1606r_%s" % make_urlname(vertname)
+                linktext = "href=\"/jump_to_id/1606r_%s\"" % make_urlname(vertname)
+                href = "href=\"../courseware/%s/%s/%d/\"" % (chapurl,make_urlname(secnamewithunderscores),vertnum)
                 print "html-linktext =", linktext
-                livertname = "<li>" + vertname + "</li>"
-                lilinktext = "<li>" + linktext + "</li>"
-                moindexhtml = moindexhtml.replace(r'%s' % livertname,r'%s' % lilinktext)
+                # livertname = "<li>" + vertname + "</li>"
+                # lilinktext = "<li>" + linktext + "</li>"
+                moindexhtml = moindexhtml.replace(r'%s' % linktext,r'%s' % href)
                 # moindexhtml = re.sub(r'%s' % livertname,r'%s' % lilinktext,moindexhtml)
 
     print "WRITING MO INDEX CONTENT WITH LINKS!!"
@@ -1487,13 +1470,13 @@ def handle_section_refs(tree):
     Process references to sections of content -- create section numbering and the reference should be a link that opens in a new tab to the desired component
     '''
     # For the purposes of this function, I will think of "chapter" (e.g., Differential Forms of Compressible Flow Equations) --- what we call Modules --- and then "section" (e.g., Kinematics of a Fluid Element), followed by "subsection" to refer to the component level (e.g., Normal Strain)
-    pathtocourseware = "/courses/MITx/16.101x/2013_SOND"
+    pathtocourseware = "/courses/MITx/16.06r/2014_Fall"
     chapternum = -1
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
-        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name') or "Exam" in chapter.get('display_name'):
-            continue        
-        chapternum += 1
+        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
+            continue
+        chapternum = chapternum + 1
         # look for chapter label
         chaplabel = ""
         for p in chapter.findall('.//p'):
@@ -1530,7 +1513,7 @@ def handle_section_refs(tree):
                     # raw_input("Press ENTER")
                     a.set('href',href)
                     a.set('target',"_blank")
-            # end look for chapter references            
+            # end look for chapter references
         sectionnum = 0
         for section in chapter.findall('.//section'):
             sectionnum = sectionnum + 1
@@ -1576,18 +1559,18 @@ def handle_section_refs(tree):
                         # raw_input("Press ENTER")
                         a.set('href',href)
                         a.set('target',"_blank")
-                # end look for section references  
+                # end look for section references
             subsectionnum = 0
-           
+
             #for subsection in section.findall('.//problem'):
             #for subsection in section.findall('.//html' or './/problem'):  # here we do list (go through children) because children are either of 'html' or 'problem' type
             for subsection in section.findall(".//"):
                 # debugging...
                 #print "section type=",section.tag
                 #print "section name=",section.get('url_name')
-                #print "subsection type=",subsection.tag       
+                #print "subsection type=",subsection.tag
                 if (subsection.tag == "problem" or subsection.tag == "html") and subsection.get('url_name') is not None:
-                    print "PROBLEM OR HTML COMPONENT TYPE!!!"         
+                    print "PROBLEM OR HTML COMPONENT TYPE!!!"
                     subsectionnum = subsectionnum + 1
                     # raw_input("Press ENTER")
                     # look for subsection label
@@ -1599,7 +1582,7 @@ def handle_section_refs(tree):
                         if p.text is not None and p.tag == "p" and re.search(r'(?s)sec:(.*?)(?s)',p.text) is not None: # found label sec:?
                             print "section type=",section.tag
                             print "section name=",section.get('url_name')
-                            print "subsection type=",subsection.tag   
+                            print "subsection type=",subsection.tag
                             print "subsection name=",subsection.get('url_name')
                             print "P TEXT =", p.text
                             tmp = (re.search(r'sec:(.*?) ',p.text))
@@ -1639,8 +1622,8 @@ def handle_section_refs(tree):
                                 a.set('href',href)
                                 a.set('target',"_blank")
                                 #raw_input("FOUND REFERENCE TO %s" % subseclabel)
-                            # end look for subsection references 
-                
+                            # end look for subsection references
+
     # once all of the labels have been found... need to go through and do something about the references that do not have associated labels
     # issue warning that requires user to press enter to continue
     for a in tree.findall('.//a'):
@@ -1674,19 +1657,16 @@ def fix_boxed_equations(tree):
                     boxedFlag = False
 
 def fix_figure_refs(tree):
-    ''' 
+    '''
     Fix figure references
     '''
     modulenum = -1
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
         if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
-            continue  
-        if "Exam" in chapter.get('display_name'):
-          modulenum = modulenum
-        else:    
-          modulenum = modulenum + 1
-        fignum = 0  # counter for equation numbering
+            continue
+        modulenum = modulenum + 1
+        fignum = 0
         for div in chapter.findall('.//div'):
             print "CHAPTER: %s" % chapter.get('display_name')
             print "div information:"
@@ -1717,6 +1697,7 @@ def fix_figure_refs(tree):
                 image_names = []
                 for img in div.findall('.//img'):
                     img_src = img.get('src')
+                    print "HERE"
                     print img_src
                     m = re.search(r'/static/html/(.*?).png',img_src,re.S)
                     this_name = m.group(1)
@@ -1735,7 +1716,7 @@ def fix_figure_refs(tree):
                         if len(image_names)==1:  # single image figure
                             print "\nfiglabel =", figlabel
                             figure_info = figlabel.split(":")
-                            figure_name = figure_info[1]
+                            figure_name = image_names[0]
                             # find the image within directory of modules.tex (the tex file this is being run on)
                             ##print INPUT_TEX_FILENAME
                             latexfolder = os.getcwd()
@@ -1746,23 +1727,23 @@ def fix_figure_refs(tree):
                                     if imgpath.find('figs') != -1:
                                         #print "FOUND figs IN PATH"
                                         fullimgpath = imgpath
-                            #print fullimgpath
-                            img = Image.open(fullimgpath)
-                            w, h = img.size
-                            #print "w =", w
-                            ws = 0.50
-                            wp = (int)(w*ws)
-                            #wp = w
-                            #hp = h
-                            hp = (int)(h*ws)
-                            href = "/static/html/%s.png" % figure_name
-                            onClick = "window.open(this.href,\'16.101x\',\'width=%s,height=%s\',\'toolbar=1\'); return false;" % (wp,hp)
-                            a.set('href',href)
-                            a.set('onClick',onClick)
+                                        #print fullimgpath
+                                        img = Image.open(fullimgpath)
+                                        w, h = img.size
+                                        #print "w =", w
+                                        ws = 0.50
+                                        wp = (int)(w*ws)
+                                        #wp = w
+                                        #hp = h
+                                        hp = (int)(h*ws)
+                                        href = "/static/html/%s.png" % figure_name
+                                        onClick = "window.open(this.href,\'16.06r\',\'width=%s,height=%s\',\'toolbar=1\'); return false;" % (wp,hp)
+                                        a.set('href',href)
+                                        a.set('onClick',onClick)
                         else: # multi-image figure
                             htmlbodycontent = ""
                             for figure_name in image_names:
-                                htmlbodycontent += "<img src=\"/static/content-mit-16101x~2013_SOND/html/%s.png\" width=\"400\" height=\"200\">" % figure_name  # this fix is edX dependent
+                                htmlbodycontent += "<img src=\"/static/content-mit-1606r~2014_Fall/html/%s.png\" width=\"400\" height=\"200\">" % figure_name  # this fix is edX dependent
                             htmlstr = "\'<html><head></head><body>%s</body></html>\'" % htmlbodycontent
                             print htmlstr
                             #raw_input("CHECK OUT THIS HTML STRING")
@@ -1770,100 +1751,16 @@ def fix_figure_refs(tree):
                             a.set('href',"javascript: void(0)")
                             a.set('onClick',onClick)
 
-def fix_table_refs(tree):
-    ''' 
-    Fix table references
-    '''
-    modulenum = -1
-    for chapter in tree.findall('.//chapter'):
-        # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
-        if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
-            continue  
-        if "Exam" in chapter.get('display_name'):
-          modulenum = modulenum
-        else:    
-          modulenum = modulenum + 1
-        tabnum = 0  # counter for equation numbering
-        for div in chapter.findall('.//div'):
-            print "CHAPTER: %s" % chapter.get('display_name')
-            print "div information:"
-            print "  div class: %s" % div.get('class')
-            print "  div id: %s" % div.get('id')
-            #raw_input("Press ENTER")
-            if div.get('class') == "table":
-                thewholething = div
-                print "\n\n"
-                tablabel = div.get('id')
-                if tablabel is None:
-                    print "No label for this table."
-                    continue
-                print tablabel
-                for b in div.findall('.//b'):
-                    if re.search(r'Table [0-9]+$',b.text,re.S) is not None:
-                        splitres = b.text.split()
-                        #fignum = int(splitres[1])
-                        tabnum += 1
-                        b.text = "Table %d.%d" % (modulenum,tabnum)
-                        tabstr = "\'Table (%d.%d)\'" % (modulenum,tabnum)
-                        table = None
-                        for tbl in div.findall('.//table'):
-                            if tbl.get('class') == 'tabular':  # handle table
-                                table = tbl
-                        if table is None:
-                            print "TABLE (%s) NOT FOUND!" % tablabel
-                            raw_input("Press ENTER to continue...")
-                for innerdiv in div.findall('.//div'):
-                    if innerdiv.get('class') == "caption":
-                        for span in innerdiv.findall('.//span'):
-                            caption_description = (etree.tostring(span,encoding="utf-8",method="html")).rstrip()
-                            break
-                # look for references and put the right code
-                for a in tree.findall('.//a'):
-                    print "looking for the reference %s ..." % tablabel
-                    print "a.text =", a.text
-                    if a.text == tablabel:
-                        print "found reference"
-                        # change this ref element
-                        a.text = "%d.%d" % (modulenum,tabnum)
-                        print "\ntablabel =", tablabel
-                        table_info = tablabel.split(":")
-                        table_name = table_info[1]
-                        latexfolder = os.getcwd()
-                        imgpath = ""
-                        figure_name = "tab_%s" % table_name
-                        for path, dirs, files in os.walk(latexfolder):
-                            for filename in fnmatch.filter(files,figure_name+".png"):
-                                imgpath = os.path.join(path, filename)
-                                if imgpath.find('figs') != -1:
-                                    #print "FOUND figs IN PATH"
-                                    fullimgpath = imgpath
-                        #print fullimgpath
-                        img = Image.open(fullimgpath)
-                        w, h = img.size
-                        #print "w =", w
-                        ws = 0.50
-                        wp = (int)(w*ws)
-                        #wp = w
-                        #hp = h
-                        hp = (int)(h*ws)
-                        href = "/static/html/%s.png" % figure_name
-                        onClick = "window.open(this.href,\'16.101x\',\'width=%s,height=%s\',\'toolbar=1\'); return false;" % (wp,hp)
-                        a.set('href',href)
-                        a.set('onClick',onClick)
-
 def handle_equation_labels_and_refs(tree):
-    ''' 
+    '''
     Add equation numbers to all equation and eqnarray and modify equation references to give correct numbers and also link that opens pop-up with equation on it
     '''
     modulenum = -1
     for chapter in tree.findall('.//chapter'):
         # if chapter contains the word "survey", skip it in counting and doing any of the good stuff
         if "Survey" in chapter.get('display_name') or "Office Hour" in chapter.get('display_name'):
-            continue  
-        if "Exam" in chapter.get('display_name'):
-          modulenum = modulenum
-        else:    
-          modulenum = modulenum + 1
+            continue
+        modulenum = modulenum + 1
         eqnnum = 1  # counter for equation numbering
         for table in chapter.findall('.//table'):
             if table.get('class') == 'equation':  # handle equation
@@ -1880,7 +1777,7 @@ def handle_equation_labels_and_refs(tree):
                                 print "eqncontent (after) =", eqncontent
                                 nolabel = True
                     # tr is this element's parent
-                    tr.clear()     
+                    tr.clear()
                     # add the necessary subelements to get desired behavior
                     eqncell = etree.SubElement(tr,"td",attrib={'style':"width:80%;vertical-align:middle;text-align:center;border-style:hidden",'class':"equation"})
                     eqncell.text = eqncontent
@@ -1888,18 +1785,16 @@ def handle_equation_labels_and_refs(tree):
                     if not nolabel:
                         if "Exam 1" in chapter.get('display_name'):
                             eqnnumcell.text = "(Ex1.%d)" % eqnnum
-                        elif "Exam 2" in chapter.get('display_name'):
-                            eqnnumcell.text = "(Ex2.%d)" % eqnnum
                         else:
                             eqnnumcell.text = "(%d.%d)" % (modulenum,eqnnum)
                     else:
                         eqnnumcell.text = ""
-                                       
+
                     # now find all references to this equation and modify it to make number and link
                     # identify equation tag
-                    if re.search(r'\\label\{(.*?)\}',eqncontent) is not None:  # equation has a label so it is probably referenced somewhere       
-                        eqnlabelfind = re.findall(r'\\label\{(.*?)\}',eqncontent,re.S)   
-                        eqnlabel = eqnlabelfind[0].encode("utf-8")   
+                    if re.search(r'\\label\{(.*?)\}',eqncontent) is not None:  # equation has a label so it is probably referenced somewhere
+                        eqnlabelfind = re.findall(r'\\label\{(.*?)\}',eqncontent,re.S)
+                        eqnlabel = eqnlabelfind[0].encode("utf-8")
                         eqnlabel = "".join(eqnlabel.split())
                         for a in tree.findall('.//a'):
                             # print "looking for the reference..."
@@ -1912,31 +1807,12 @@ def handle_equation_labels_and_refs(tree):
                                     tablestr_etree = (etree.tostring(table,encoding="utf-8",method="html")).rstrip()
                                     #print "etree to string =", tablestr_etree
                                     tablestr_find = re.search(r'\[mathjax\](.*?)\[/mathjax\]',tablestr_etree,re.S)
-                                    tablestr = re.escape('$$' + tablestr_find.group(1).encode("US-ASCII") + '$$') 
+                                    tablestr = re.escape('$$' + tablestr_find.group(1).encode("US-ASCII") + '$$')
 
                                     if re.search(r'\\boxed',tablestr,re.S) is not None:
                                         tablestr = tablestr.replace(r'\boxed','')
-            
-                                    tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(Ex1.%d)</td></tr></table>" % (tablestr,eqnnum)                  
-                                    #print "tablestr_etree =", tablestr_etree
-                                    mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
-                                    htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
-                                    onClick = "return newWindow(%s,%s);" % (htmlstr,eqnstr)
-                                    a.set('onClick',onClick)
-                                elif "Exam 2" in chapter.get('display_name'):
-                                    # change this ref element
-                                    a.text = "Ex2.%d" % eqnnum
-                                    a.set('href',"javascript: void(0)")
-                                    eqnstr = "\'Equation (Ex2.%d)\'" % eqnnum
-                                    tablestr_etree = (etree.tostring(table,encoding="utf-8",method="html")).rstrip()
-                                    #print "etree to string =", tablestr_etree
-                                    tablestr_find = re.search(r'\[mathjax\](.*?)\[/mathjax\]',tablestr_etree,re.S)
-                                    tablestr = re.escape('$$' + tablestr_find.group(1).encode("US-ASCII") + '$$') 
 
-                                    if re.search(r'\\boxed',tablestr,re.S) is not None:
-                                        tablestr = tablestr.replace(r'\boxed','')
-            
-                                    tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(Ex1.%d)</td></tr></table>" % (tablestr,eqnnum)                  
+                                    tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(Ex1.%d)</td></tr></table>" % (tablestr,eqnnum)
                                     #print "tablestr_etree =", tablestr_etree
                                     mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
                                     htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
@@ -1950,29 +1826,29 @@ def handle_equation_labels_and_refs(tree):
                                     tablestr_etree = (etree.tostring(table,encoding="utf-8",method="html")).rstrip()
                                     #print "etree to string =", tablestr_etree
                                     tablestr_find = re.search(r'\[mathjax\](.*?)\[/mathjax\]',tablestr_etree,re.S)
-                                    tablestr = re.escape('$$' + tablestr_find.group(1).encode("US-ASCII") + '$$') 
+                                    tablestr = re.escape('$$' + tablestr_find.group(1).encode("US-ASCII") + '$$')
 
                                     if re.search(r'\\boxed',tablestr,re.S) is not None:
                                         tablestr = tablestr.replace(r'\boxed','')
-            
-                                    tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,modulenum,eqnnum)                  
+
+                                    tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,modulenum,eqnnum)
                                     #print "tablestr_etree =", tablestr_etree
                                     mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
                                     htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
                                     onClick = "return newWindow(%s,%s);" % (htmlstr,eqnstr)
                                     a.set('onClick',onClick)
 
-                    eqnnum = eqnnum + 1 # iterate equation number          
+                    eqnnum = eqnnum + 1 # iterate equation number
 
             if table.get('class') == 'eqnarray':  # handle eqnarray
                 for tr in table.findall('.//tr'):
                     for td in tr.findall('.//td'):
                         if td.get('class') == "eqnnum":
                             eqnnumcell = td
-                       
+
                         if td.text is not None and re.search(r'\\label\{(.*?)\}',td.text,re.S) is not None:
-                            eqnlabelfind = re.findall(r'\\label\{(.*?)\}',td.text,re.S)   
-                            eqnlabel = eqnlabelfind[0].encode("utf-8")   
+                            eqnlabelfind = re.findall(r'\\label\{(.*?)\}',td.text,re.S)
+                            eqnlabel = eqnlabelfind[0].encode("utf-8")
                             eqnlabel = "".join(eqnlabel.split())
                             for a in tree.findall('.//a'):
                                 # print "looking for the reference..."
@@ -1994,40 +1870,12 @@ def handle_equation_labels_and_refs(tree):
                                         nn = len(tablestr_find)
                                         for ii in range(nn):
                                             tstr = tstr + tablestr_find[ii]
-                                        tablestr = re.escape('$$' + tstr + '$$') 
+                                        tablestr = re.escape('$$' + tstr + '$$')
                                         #print tablestr
                                         if re.search(r'\\boxed',tablestr,re.S) is not None:
                                             tablestr = tablestr.replace(r'\boxed','')
                                         tablestr = tablestr.replace(r',','')
-                                        tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(Ex1.%d)</td></tr></table>" % (tablestr,eqnnum)                  
-                                        #print "tablestr_etree =", tablestr_etree
-                                        mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
-                                        htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
-                                        onClick = "return newWindow(%s,%s);" % (htmlstr,eqnstr)
-                                        a.set('onClick',onClick)
-                                    elif "Exam 2" in chapter.get('display_name'):
-                                        # change this ref element
-                                        a.text = "Ex2.%d" % eqnnum
-                                        a.set('href',"javascript: void(0)")
-                                        eqnstr = "\'Equation (Ex2.%d)\'" % eqnnum
-                                        tablestr_etree = (etree.tostring(tr,encoding="utf-8",method="html")).rstrip()
-                                        #print "etree to string =", tablestr_etree
-                                        tablestr_find = re.findall(r'\[mathjaxinline\](.*?)\[/mathjaxinline\]',tablestr_etree,re.S)
-                                        #print tablestr_find
-                                        #print "group 0:", tablestr_find.group(0)
-                                        #print "group 1:", tablestr_find.group(1)
-                                        #print "group 2:", tablestr_find.group(2)
-                                        print "\n\ntablestr_find =", tablestr_find
-                                        tstr = ""
-                                        nn = len(tablestr_find)
-                                        for ii in range(nn):
-                                            tstr = tstr + tablestr_find[ii]
-                                        tablestr = re.escape('$$' + tstr + '$$') 
-                                        #print tablestr
-                                        if re.search(r'\\boxed',tablestr,re.S) is not None:
-                                            tablestr = tablestr.replace(r'\boxed','')
-                                        tablestr = tablestr.replace(r',','')
-                                        tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(Ex1.%d)</td></tr></table>" % (tablestr,eqnnum)                  
+                                        tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(Ex1.%d)</td></tr></table>" % (tablestr,eqnnum)
                                         #print "tablestr_etree =", tablestr_etree
                                         mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
                                         htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
@@ -2051,12 +1899,12 @@ def handle_equation_labels_and_refs(tree):
                                         nn = len(tablestr_find)
                                         for ii in range(nn):
                                             tstr = tstr + tablestr_find[ii]
-                                        tablestr = re.escape('$$' + tstr + '$$') 
+                                        tablestr = re.escape('$$' + tstr + '$$')
                                         #print tablestr
                                         if re.search(r'\\boxed',tablestr,re.S) is not None:
                                             tablestr = tablestr.replace(r'\boxed','')
                                         tablestr = tablestr.replace(r',','')
-                                        tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,modulenum,eqnnum)                  
+                                        tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,modulenum,eqnnum)
                                         #print "tablestr_etree =", tablestr_etree
                                         mathjax = "<script type=\"text/javascript\" src=\"https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML\"> </script>"
                                         htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
@@ -2066,8 +1914,6 @@ def handle_equation_labels_and_refs(tree):
                     eqnnumcell = etree.SubElement(tr,"td",attrib=eqnnumcell.attrib)
                     if "Exam 1" in chapter.get('display_name'):
                         eqnnumcell.text = "(Ex1.%d)" % eqnnum
-                    elif "Exam 2" in chapter.get('display_name'):
-                        eqnnumcell.text = "(Ex2.%d)" % eqnnum
                     else:
                         eqnnumcell.text = "(%d.%d)" % (modulenum,eqnnum)
                     eqnnum = eqnnum + 1  # have to iterate inside of eqnarray as well
@@ -2163,7 +2009,7 @@ def process_include(tree):
         print "--> including file %s at line %s" % (incfn,getattr(include,'sourceline','<unavailable>'))
         if incxml.tag=='html' and len(incxml)>0:		# strip out outer <html> container
             for k in incxml:
-                include.addprevious(k)	
+                include.addprevious(k)
         else:
             include.addprevious(incxml)
         p = include.getparent()
@@ -2193,7 +2039,7 @@ fnprefix = ''	# prefix for url_name filenames
 
 if len(sys.argv)==1:
     usage()
-    
+
 while sys.argv[1][0]=='-':
     if sys.argv[1]=='-d':
         default_dir = sys.argv[2]
@@ -2210,7 +2056,7 @@ while sys.argv[1][0]=='-':
     elif sys.argv[1]=='-imdir':
         imdir = sys.argv[2]
         sys.argv.pop(1)
-        sys.argv.pop(1)        
+        sys.argv.pop(1)
     elif sys.argv[1]=='-single':
         SINGLE_FN = sys.argv[2]
         sys.argv.pop(1)
@@ -2259,20 +2105,18 @@ if 1:
                 f = open(os.path.join(path, name),'r')
                 fsrc = f.read()
                 # do the replace
-                print fsrc[1:1500]
                 fsrc = re.sub(r'(\\item\\label\{mo:)(.*)(\})',r'\item (label-mo:\2)',fsrc)
-                print fsrc[1:1500]
                 f.close()
                 # write the file
                 f = open(os.path.join(path, name),'w')
                 f.write(fsrc)
-                f.close()   
+                f.close()
 
     # get the input latex file
     # latex_str = open(fn).read()
     latex_str = codecs.open(fn).read()
     latex_str = latex_str.replace('\r','\n')	# convert from mac format for EOL
-    
+
     #print latex_str[-500:]
     #raw_input('Press ENTER')
 
@@ -2281,22 +2125,22 @@ if 1:
     tex.ownerDocument.config['files']['split-level'] = -100
     tex.ownerDocument.config['files']['filename'] = ofn
     tex.ownerDocument.config['general']['theme'] = 'plain'
-    
+
     tex.input(latex_str)
     document = tex.parse()
-    
+
     renderer = MyRenderer()
     renderer.imdir = imdir
     renderer.imurl = imurl
     renderer.imfnset = []
-    
+
     renderer.render(document)
-    
+
     if not SINGLE_FN:
         print "\n======================================== IMAGE FILES"
         print renderer.imfnset or "None"
         print "========================================"
-    
+
 #--------------------
 # read XHTML file in and extract course + problems
 
@@ -2324,7 +2168,7 @@ chapters = xml.findall('.//chapter')	# get all chapters
 
 if course is not None:
     course_to_files(course, UPDATE_MODE, default_dir, fnprefix=fnprefix)
-    
+
 
 elif chapters and UPDATE_MODE:
     for chapter in chapters:
