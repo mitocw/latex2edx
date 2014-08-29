@@ -1,5 +1,5 @@
 name: edXcourse
-<course tal:attributes='number self/attributes/number; url_name self/attributes/url_name' tal:content='self'></course>
+<course tal:attributes='number self/attributes/number; url_name self/attributes/url_name; attrib_string self/attributes/attrib_string' tal:content='self'></course>
 
 name: edXchapter
 <chapter tal:attributes='display_name self/attributes/display_name' tal:content='self'></chapter>
