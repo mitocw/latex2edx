@@ -296,6 +296,8 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub(r'(?s)<abox>(.*?)</abox>',do_abox,s) # THIS MUST COME AFTER CUSTOMRESPONSE HANDLING!!!
 
             s = re.sub(r'(?s)<textline correct_answer=""/>','<textline size="90" correct_answer=""/>',s)
+            #EVH added the next line to process images after abox
+            #s = re.sub('<includegraphics style="(.*?)">(.*?)</includegraphics>',do_image,s)	# includegraphics
 
             # MISSING CONTENT!
             # check 2
@@ -724,6 +726,18 @@ def course_to_files(course, update_mode, default_dir, fnprefix=''):
     cnumber = course.get('number')	# course number, like 18.06x
     print "Course number: %s" % cnumber
     cdir = cnumber
+
+    #EVH added
+    attrib_string = course.get('attrib_string','')
+    if attrib_string:
+        attrib_list=split_args_with_quoted_strings(attrib_string)
+        for s in attrib_list:
+            attrib_and_val=s.split('='(
+            if len(attrib_and_val) != 2:
+                print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
+                sys.exit(-1)
+            course.set(attrib_and_val[0],attrib_and_val[1].strip("\""))
+        course.attrib.pop('attrib_string')
 
     # if udpating instead of creating, use dir if given
     if update_mode and not default_dir == '.':
