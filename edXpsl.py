@@ -1,7 +1,7 @@
 from plasTeX import Base
 
 class edXcourse(Base.Environment):
-    args = '{ number } { url_name } self'
+    args = '{ number } { url_name } { attrib_string } self'
 
 class edXchapter(Base.Environment):
     args = '{ display_name } self'

@@ -296,8 +296,6 @@ class MyRenderer(XHTML.Renderer):
             s = re.sub(r'(?s)<abox>(.*?)</abox>',do_abox,s) # THIS MUST COME AFTER CUSTOMRESPONSE HANDLING!!!
 
             s = re.sub(r'(?s)<textline correct_answer=""/>','<textline size="90" correct_answer=""/>',s)
-            #EVH added the next line to process images after abox
-            #s = re.sub('<includegraphics style="(.*?)">(.*?)</includegraphics>',do_image,s)	# includegraphics
 
             # MISSING CONTENT!
             # check 2
