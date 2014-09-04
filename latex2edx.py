@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#/usr/bin/python
 #
 # File:   latex2edx.py
 # Date:   19-Jun-12
@@ -730,7 +730,7 @@ def course_to_files(course, update_mode, default_dir, fnprefix=''):
     if attrib_string:
         attrib_list=split_args_with_quoted_strings(attrib_string)
         for s in attrib_list:
-            attrib_and_val=s.split('='(
+            attrib_and_val=s.split('=')
             if len(attrib_and_val) != 2:
                 print "ERROR! the attribute list for content %s.%s is not properly formatted" % (pfn,fnsuffix)
                 sys.exit(-1)
