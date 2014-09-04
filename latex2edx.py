@@ -1440,37 +1440,39 @@ def add_links_to_mo_index(tree):
             print "MO INDEX LINKING... Section: %s" % secnamewithunderscores
             # html
             vertnum = 0
-            htmls = section.findall('.//html')
-            probs = section.findall('.//problem')
-            verts = section.findall('.//vertical')
-            allverts = htmls + probs + verts
-            for vert in allverts:
-                vertnum += 1
-                verttag = vert.tag
-                print verttag
-                # html and problem
-                if (verttag=="html" or verttag=="problem"):
-                    vertname = vert.get('url_name')
-                # vertical
-                elif (verttag=="vertical"):
-                    vertname = "DEFAULT"
-                    print "verturlname =", vert.get('url_name')
-                    print vertname
-                    for problem in vert.findall('.//problem'):
-                        vertname = problem.get('url_name')
-                        break # name contained in first problem of vertical
-                    print vertname
-                else:
-                    print "UNRECOGNIZED VERTICAL TAG TYPE"
-                # href = "%s/courseware/%s/%s/%d/" % (pathtocourseware,chapnamewithunderscores,secnamewithunderscores,vertnum)
-                # href = "/jump_to_id/1606r_%s" % make_urlname(vertname)
-                linktext = "href=\"/jump_to_id/1606r_%s\"" % make_urlname(vertname)
-                href = "href=\"../courseware/%s/%s/%d/\"" % (chapurl,make_urlname(secnamewithunderscores),vertnum)
-                print "html-linktext =", linktext
-                # livertname = "<li>" + vertname + "</li>"
-                # lilinktext = "<li>" + linktext + "</li>"
-                moindexhtml = moindexhtml.replace(r'%s' % linktext,r'%s' % href)
-                # moindexhtml = re.sub(r'%s' % livertname,r'%s' % lilinktext,moindexhtml)
+            #htmls = section.findall('.//html')
+            #probs = section.findall('.//problem')
+            #verts = section.findall('.//vertical')
+            #allverts = htmls + probs + verts
+            #for vert in allverts:
+            for vert in section:
+                if vert[0].tag in ["html","problem","vertical"]:
+                    vertnum += 1
+                    verttag = vert[0].tag
+                    print verttag
+                    # html and problem
+                    if (verttag=="html" or verttag=="problem"):
+                        vertname = vert[0].get('url_name')
+                    # vertical
+                    elif (verttag=="vertical"):
+                        vertname = "DEFAULT"
+                        print "verturlname =", vert[0].get('url_name')
+                        print vertname
+                        for problem in vert[0].findall('.//problem'):
+                            vertname = problem.get('url_name')
+                            break # name contained in first problem of vertical
+                        print vertname
+                    else:
+                        print "UNRECOGNIZED VERTICAL TAG TYPE"
+                    # href = "%s/courseware/%s/%s/%d/" % (pathtocourseware,chapnamewithunderscores,secnamewithunderscores,vertnum)
+                    # href = "/jump_to_id/1606r_%s" % make_urlname(vertname)
+                    linktext = "href=\"/jump_to_id/1606r_%s\"" % make_urlname(vertname)
+                    href = "href=\"../courseware/%s/%s/%d/\"" % (chapurl,make_urlname(secnamewithunderscores),vertnum)
+                    print "html-linktext =", linktext
+                    # livertname = "<li>" + vertname + "</li>"
+                    # lilinktext = "<li>" + linktext + "</li>"
+                    moindexhtml = moindexhtml.replace(r'%s' % linktext,r'%s' % href)
+                    # moindexhtml = re.sub(r'%s' % livertname,r'%s' % lilinktext,moindexhtml)
 
     print "WRITING MO INDEX CONTENT WITH LINKS!!"
     ffff = open('moindex.html','w')
