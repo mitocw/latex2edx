@@ -1446,19 +1446,21 @@ def add_links_to_mo_index(tree):
             #allverts = htmls + probs + verts
             #for vert in allverts:
             for vert in section:
-                if vert[0].tag in ["html","problem","vertical"]:
+                if vert.tag == "p":
+                    vert = vert[0]
+                if vert.tag in ["html","problem","vertical"]:
                     vertnum += 1
-                    verttag = vert[0].tag
+                    verttag = vert.tag
                     print verttag
                     # html and problem
                     if (verttag=="html" or verttag=="problem"):
-                        vertname = vert[0].get('url_name')
+                        vertname = vert.get('url_name')
                     # vertical
                     elif (verttag=="vertical"):
                         vertname = "DEFAULT"
-                        print "verturlname =", vert[0].get('url_name')
+                        print "verturlname =", vert.get('url_name')
                         print vertname
-                        for problem in vert[0].findall('.//problem'):
+                        for problem in vert.findall('.//problem'):
                             vertname = problem.get('url_name')
                             break # name contained in first problem of vertical
                         print vertname
