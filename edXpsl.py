@@ -91,5 +91,8 @@ class section(Base.Command):
 class subsection(Base.Command):
     args = 'self'
 
+class label(Base.Command):
+    args = 'self'
+
 class ref(Base.Command):
     args = 'self'
