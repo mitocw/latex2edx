@@ -421,9 +421,7 @@ def cleanup_xml(xml):
 
         chapnum = 0
         for chap in xml.findall('.//chapter'):
-            if chap.get('nocount') is not None:
-                chapnum = chapnum
-            else:
+            if chap.get('nocount') is None:
                 chapnum += 1
             for sec in chap.findall('.//section'):
                 sec.tag = 'sequential'
@@ -755,8 +753,7 @@ def change_problem_display_names_to_have_counters(tree):
         for section in chap.findall('.//section'):
             sectionnum += 1
             pagenum = 0
-            #EVH print "section text =", etree.tostring(section)
-            for p in section.findall('.//p'): # use surrounding p-tags to my advantage
+            for p in section.findall('.//p'): # CHAD: use surrounding p-tags to my advantage
                 htmls = p.findall('.//html')
                 probs = p.findall('.//problem')
                 verts = p.findall('.//vertical')
@@ -874,9 +871,8 @@ def handle_measurable_outcomes(tree):
     chapternum = -1
     print "inside HANDLE_MEASURABLE_OUTCOMES"
     for chapter in tree.findall('.//chapter'):
-        if chapter.get('nocount') is not None:
-            continue
-        chapternum += 1
+        if chapter.get('nocount') is None:
+            chapternum += 1
         moindexhtml += "<h2>%s</h2>" % chapter.get('display_name')
         for section in chapter.findall('.//section'):
             if section.get('url_name').lower()=="overview":
@@ -1102,6 +1098,23 @@ def add_links_to_mo_index(tree):
     ffff.write(moindexhtml)
     ffff.close()
 
+# EVH
+def getlabel(tree): #TODO: Find a cleaner way to build the eTree
+    '''
+    Search etree element for label tag, retrieve label text, and delete label element.
+    '''
+    labeltext = None
+    label = tree.find('./p/label')
+    if label is None:
+        label = tree.find('./label')
+        plabel = label
+    else:
+        plabel = label.getparent()
+    if label is not None:
+        labeltext = label.text
+        tree.remove(plabel)
+    return labeltext
+
 # EVH: need to fix this, don't understand the complexity
 def handle_section_refs(tree):
     '''
@@ -1109,49 +1122,38 @@ def handle_section_refs(tree):
     '''
     refdict = {} # start building a reference dictionary {'labeltag':'href'}
     numdict = {} # start building a numbering dictionary {'labeltag':'number'}
-    chapnum = -1
+    chapnum = seqnum = vertnum = vertnumstr = 0 #eqnnum = fignum = 0
     for chapter in tree.findall('.//chapter'):
         if chapter.get('nocount') is None:
-            chapnum = chapnum + 1
+            chapnum += 1
+            seqnum = vertnum = vertnumstr = 0 #eqnnum = fignum = 0
         chapname = chapter.get('display_name')
         chapurl = re.sub(r' ',r'_',chapname)
-        chaplabel = None
-        if chapter.find('./label') is not None:
-            chaplabel = chapter.find('./label').text
-        elif chapter.find('./p/label') is not None:
-            chaplabel = chapter.find('./p/label').text
-        seqnum = 0
+        chaplabel = getlabel(chapter)
         for child1 in chapter:
             if child1.tag == 'p':
                 if child1.find('./') is not None:
                     seq = child1.find('./')
             else:
                 seq = child1
-            seqlabel = None
             if seq.tag not in ['sequential','vertical','section']:
                 continue
             if seq.get('nocount') is None:
-                seqnum+=1
+                seqnum += 1
+                vertnumstr = 0 #eqnnum = fignum = 0
             sequrl = seq.get('url_name')
             if sequrl.lower() in ["overview","sample problems","homework problems"]:
-                sequrl +=str(chapnum+1)
+                sequrl += str(chapnum+1)
             sequrl = re.sub(r' ',r'_',sequrl)
             if seqnum==1 and (chaplabel is not None):
                 chapname = chapter.get('display_name')
                 chapurl = re.sub(r' ',r'_',chapname)
-                refdict[chaplabel] = '../courseware/{0}/{1}'.format(chapurl,sequrl) #EVH is a /1 necessary?
+                refdict[chaplabel] = '../courseware/{}/{}'.format(chapurl,sequrl) #EVH is a /1 necessary?
                 numdict[chaplabel] = str(chapnum)
-            label = seq.find('./p/label')
-            if label is None: #TODO: Find a cleaner way to build the eTree
-                label = seq.find('./label')
-                plabel = label
-            else:
-                plabel = label.getparent()
-            if label is not None:
-                seqlabel = label.text
-                seq.remove(plabel)
-                refdict[seqlabel] = '../courseware/{0}}/{1}'.format(chapurl,sequrl)
-                numdict[seqlabel] = '{0}.{1}'.format(chapnum,seqnum)
+            seqlabel = getlabel(seq)
+            if seqlabel is not None:
+                refdict[seqlabel] = '../courseware/{}/{}'.format(chapurl,sequrl)
+                numdict[seqlabel] = '{}.{}'.format(chapnum,seqnum)
             vertnum = 0
             for child2 in seq:
                 if child2.tag == 'p':
@@ -1162,20 +1164,13 @@ def handle_section_refs(tree):
                 #if vert.tag not in ['sequential','vertical','section','problem','html']:
                 if vert.tag not in ['sequential','vertical','section']:
                     continue
+                vertnum += 1
                 if vert.get('nocount') is None:
-                    vertnum = vertnum + 1
-                vertlabel = None
-                label = vert.find('./p/label')
-                if label is None: #TODO:Combine referencing modules.
-                    label = vert.find('./label')
-                    plabel = label
-                else:
-                    plabel = label.getparent()
-                if label is not None:
-                    vertlabel = label.text
-                    vert.remove(plabel)
-                    refdict[vertlabel] = '../courseware/{0}}/{1}/{2}'.format(chapurl,securl,vertnum)
-                    numdict[vertlabel] = '{0}.{1}.{2}'.format(chapnum,secnum,vertnum)
+                    vertnumstr += 1
+                vertlabel = getlabel(vert)
+                if vertlabel is not None:
+                    refdict[vertlabel] = '../courseware/{}/{}/{}'.format(chapurl,securl,vertnum)
+                    numdict[vertlabel] = '{}.{}.{}'.format(chapnum,secnum,vertnumstr)
     # now find and replace reference everywhere with the correct number (and make it a link)
     for aref in tree.findall('.//ref'):
         reflabel = aref.text
@@ -1183,7 +1178,7 @@ def handle_section_refs(tree):
             aref.tag = 'a'
             aref.text = numdict[reflabel]
             aref.set('href',refdict[reflabel])
-            #aref.set('target',"_blank") # Causes link to open in new window
+            aref.set('target',"_blank")
     # end look for chapter references
 
     # once all of the labels have been found... need to go through and do something about the references that do not have associated labels
@@ -1225,17 +1220,17 @@ def fix_figure_refs(tree):
     Fix figure references
     '''
     modulenum = -1
+    fignum = 0
     for chapter in tree.findall('.//chapter'):
-        if chapter.get('nocount') is not None:
-            continue
-        modulenum = modulenum + 1
-        fignum = 0
+        if chapter.get('nocount') is None:
+            modulenum = modulenum + 1
+            fignum = 0
         for div in chapter.findall('.//div[@class="figure"]'):
             #Increment count if Figure is captioned
             for b in div.findall('.//b'):
                 if re.search(r'Figure [0-9]+$',b.text,re.S) is not None:
                     fignum += 1
-                    b.text = "Figure {0}.{1}".format(modulenum,fignum)
+                    b.text = "Figure {}.{}".format(modulenum,fignum)
             figlabel = None
             label = div.find('./p/label')
             if label is None: #TODO:Combine referencing modules.
@@ -1247,7 +1242,7 @@ def fix_figure_refs(tree):
                 figlabel = label.text
                 div.remove(plabel)
             if figlabel is not None:
-                # CHAD:for multi-image figures, collect all the image names
+                # CHAD: for multi-image figures, collect all the image names
                 #TODO: Find an example and investigate how to refine (as above)
                 img_names = []
                 for img in div.findall('.//img'):
@@ -1260,7 +1255,7 @@ def fix_figure_refs(tree):
                     if aref.text == figlabel:
                         # change this ref element
                         aref.tag = 'a'
-                        aref.text = '{0}.{1}'.format(modulenum,fignum)
+                        aref.text = '{}.{}'.format(modulenum,fignum)
                         if len(img_names)==1:  # single image figure
                             fig_name = img_names[0]
                             # find the image within directory of modules.tex (the tex file this is being run on)
@@ -1300,11 +1295,11 @@ def handle_equation_labels_and_refs(tree):
     '''
     popupFlag = True #EVH added
     modulenum = -1
+    eqnnum = 0 # counter for equation numbering
     for chapter in tree.findall('.//chapter'):
-        if chapter.get('nocount') is not None:
-            continue
-        modulenum = modulenum + 1
-        eqnnum = 0  # counter for equation numbering
+        if chapter.get('nocount') is None:
+            modulenum += 1
+            eqnnum = 0  # reset counter for equation numbering
         for table in chapter.findall('.//table'):
             tabclass = table.get('class')
             if tabclass in ['equation','eqnarray']:  # handle equation
@@ -1326,18 +1321,18 @@ def handle_equation_labels_and_refs(tree):
                             eqnlabel = eqnlabel.replace(' ','')
                             td.text = eqncontent
                     if not popupFlag: #EVH added, not currently used.
+                        # Set id for linking if the pop-up option is off
                         eq_id = '{}{}{}'.format(eqnlabel.split(":")[0],modulenum,eqnnum)
-                        tr.set('id',eq_id) #Set id for linking if the pop-up option is off
+                        tr.set('id',eq_id)
 
                     # now find all references to this equation and modify it to make number and link
                     # identify equation tag
-                    #eqnlabel = "".join(eqnlabel.split())
                     for aref in tree.findall('.//ref'):
                         if aref.text == eqnlabel:
                             # change this ref element
                             aref.tag = 'a'
-                            aref.text = "{}.{}".format(modulenum,eqnnum)
-                            if popupFlag: #TODO:Modularize HTML generation.
+                            aref.text = '{}.{}'.format(modulenum,eqnnum)
+                            if popupFlag: #TODO: Modularize HTML generation.
                                 aref.set('href',"javascript: void(0)")
                                 tablestr_etree = (etree.tostring(tr,encoding="utf-8",method="html")).rstrip()
                                 tablestr_find = re.findall(r'\[mathjax[a-z]*\](.*?)\[/mathjax[a-z]*\]',tablestr_etree,re.S)
