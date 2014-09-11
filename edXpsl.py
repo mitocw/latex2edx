@@ -6,14 +6,30 @@ class edXcourse(Base.Environment):
 class edXchapter(Base.Environment):
     args = '{ display_name } self'
 
+class EdXchapterStar(edXchapter):
+    macroName = 'edXchapter*'
+    nocount = True
+
 class edXsection(Base.Environment):
     args = '{ url_name } self'
+
+class EdXsectionStar(edXsection):
+    macroName = 'edXsection*'
+    nocount = True
 
 class edXsequential(Base.Environment):
     args = 'self'
 
+class EdXsequentialStar(edXsequential):
+    macroName = 'edXsequential*'
+    nocount = True
+
 class edXvertical(Base.Environment):
     args = '{ display_name } self'
+
+class EdXverticalStar(edXvertical):
+    macroName = 'edXvertical*'
+    nocount = True
 
 class edXabox(Base.Command):
     args = 'self'

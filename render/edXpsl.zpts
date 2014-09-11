@@ -1,17 +1,17 @@
 name: edXcourse
 <course tal:attributes='number self/attributes/number; url_name self/attributes/url_name; attrib_string self/attributes/attrib_string' tal:content='self'></course>
 
-name: edXchapter
-<chapter tal:attributes='display_name self/attributes/display_name' tal:content='self'></chapter>
+name: edXchapter edXchapter*
+<chapter tal:attributes='display_name self/attributes/display_name; nocount self/nocount' tal:content='self'></chapter>
 
-name: edXsection
-<section tal:attributes='url_name self/attributes/url_name' tal:content='self'></section>
+name: edXsection edXsection*
+<section tal:attributes='url_name self/attributes/url_name; nocount self/nocount' tal:content='self'></section>
 
-name: edXvertical
-<vertical tal:attributes='display_name self/attributes/display_name' tal:content='self'></vertical>
+name: edXvertical edXvertical*
+<vertical tal:attributes='display_name self/attributes/display_name; nocount self/nocount' tal:content='self'></vertical>
 
-name: edXsequential
-<sequential tal:content='self'></sequential>
+name: edXsequential edXsequential*
+<sequential  tal:attributes='nocount self/nocount' tal:content='self'></sequential>
 
 name: edXproblem
 <problem tal:attributes='url_name self/attributes/url_name; attrib_string self/attributes/attrib_string'><text tal:content='self'></text></problem>
