@@ -1111,9 +1111,7 @@ def handle_section_refs(tree):
     numdict = {} # start building a numbering dictionary {'labeltag':'number'}
     chapnum = -1
     for chapter in tree.findall('.//chapter'):
-        if chapter.get('nocount') is not None:
-            chapnum = chapnum
-        else:
+        if chapter.get('nocount') is None:
             chapnum = chapnum + 1
         chapname = chapter.get('display_name')
         chapurl = re.sub(r' ',r'_',chapname)
@@ -1132,21 +1130,19 @@ def handle_section_refs(tree):
             seqlabel = None
             if seq.tag not in ['sequential','vertical','section']:
                 continue
-            if seq.get('nocount') is not None:
-                seqnum = seqnum
-            else:
-                seqnum = seqnum + 1
+            if seq.get('nocount') is None:
+                seqnum+=1
             sequrl = seq.get('url_name')
             if sequrl.lower() in ["overview","sample problems","homework problems"]:
-                sequrl += "%d" % (chapnum+1)
+                sequrl +=str(chapnum+1)
             sequrl = re.sub(r' ',r'_',sequrl)
             if seqnum==1 and (chaplabel is not None):
                 chapname = chapter.get('display_name')
                 chapurl = re.sub(r' ',r'_',chapname)
-                refdict[chaplabel] = '../courseware/%s/%s' % (chapurl,sequrl) #EVH is a /1 necessary?
-                numdict[chaplabel] = '%d' % chapnum
+                refdict[chaplabel] = '../courseware/{0}/{1}'.format(chapurl,sequrl) #EVH is a /1 necessary?
+                numdict[chaplabel] = str(chapnum)
             label = seq.find('./p/label')
-            if label is None:
+            if label is None: #TODO: Find a cleaner way to build the eTree
                 label = seq.find('./label')
                 plabel = label
             else:
@@ -1154,8 +1150,8 @@ def handle_section_refs(tree):
             if label is not None:
                 seqlabel = label.text
                 seq.remove(plabel)
-                refdict[seqlabel] = '../courseware/%s/%s' % (chapurl,sequrl)
-                numdict[seqlabel] = '%d.%d' % (chapnum,seqnum)
+                refdict[seqlabel] = '../courseware/{0}}/{1}'.format(chapurl,sequrl)
+                numdict[seqlabel] = '{0}.{1}'.format(chapnum,seqnum)
             vertnum = 0
             for child2 in seq:
                 if child2.tag == 'p':
@@ -1166,13 +1162,11 @@ def handle_section_refs(tree):
                 #if vert.tag not in ['sequential','vertical','section','problem','html']:
                 if vert.tag not in ['sequential','vertical','section']:
                     continue
-                if vert.get('nocount') is not None:
-                    vertnum = vertnum
-                else:
+                if vert.get('nocount') is None:
                     vertnum = vertnum + 1
                 vertlabel = None
                 label = vert.find('./p/label')
-                if label is None:
+                if label is None: #TODO:Combine referencing modules.
                     label = vert.find('./label')
                     plabel = label
                 else:
@@ -1180,8 +1174,8 @@ def handle_section_refs(tree):
                 if label is not None:
                     vertlabel = label.text
                     vert.remove(plabel)
-                    refdict[vertlabel] = '../courseware/%s/%s/%d' % (chapurl,securl,vertnum)
-                    numdict[vertlabel] = '%d.%d.%d' % (chapnum,secnum,vertnum)
+                    refdict[vertlabel] = '../courseware/{0}}/{1}/{2}'.format(chapurl,securl,vertnum)
+                    numdict[vertlabel] = '{0}.{1}.{2}'.format(chapnum,secnum,vertnum)
     # now find and replace reference everywhere with the correct number (and make it a link)
     for aref in tree.findall('.//ref'):
         reflabel = aref.text
@@ -1195,19 +1189,19 @@ def handle_section_refs(tree):
     # once all of the labels have been found... need to go through and do something about the references that do not have associated labels
     # issue warning that requires user to press enter to continue
     # EVH: good to have, but not in this routing, as it hangs on MOs currently
-    #for aref in tree.findall('.//ref'):
-    if 0:
-        print "\nref.text =", aref.text
-        if aref.text is None:
-            break
-        else:
-            print "WARNING: There is a reference to non-existent label %s" % aref.text
-            raw_input("Press ENTER to continue")
+    # for aref in tree.findall('.//ref'):
+    #     print "\nref.text =", aref.text
+    #     if aref.text is None:
+    #         break
+    #     else:
+    #         print "WARNING: There is a reference to non-existent label %s" % aref.text
+    #         raw_input("Press ENTER to continue")
 
 #EVH: need to identify when this is used
 def fix_boxed_equations(tree):
     '''
-    Fix boxed equations: move boxed command outside of mathjax and instead modify the style of the cell containing the equation
+    Fix boxed equations: move boxed command outside of mathjax and instead
+    modify the style of the cell containing the equation
     '''
     boxedFlag = False
     for table in tree.findall('.//table'):
@@ -1241,38 +1235,39 @@ def fix_figure_refs(tree):
             for b in div.findall('.//b'):
                 if re.search(r'Figure [0-9]+$',b.text,re.S) is not None:
                     fignum += 1
-                    b.text = "Figure %d.%d" % (modulenum,fignum)
+                    b.text = "Figure {0}.{1}".format(modulenum,fignum)
             figlabel = None
-            for label in div.findall('.//label'): 
-                figlabel = label.text
+            label = div.find('./p/label')
+            if label is None: #TODO:Combine referencing modules.
+                label = div.find('./label')
+                plabel = label
+            else:
                 plabel = label.getparent()
-                while plabel.tag == 'p':
-                    plabel.remove(label)
-                    #plabel = plabel.getparent()
-                    label = plabel
-                    plabel = label.getparent()
-                plabel.remove(label) #EVH: need to get parent, which is center
+            if label is not None:
+                figlabel = label.text
+                div.remove(plabel)
             if figlabel is not None:
-                # for multi-image figures, i need to collect all the image names
-                image_names = []
+                # CHAD:for multi-image figures, collect all the image names
+                #TODO: Find an example and investigate how to refine (as above)
+                img_names = []
                 for img in div.findall('.//img'):
                     img_src = img.get('src')
-                    this_name = os.path.basename(img_src)
-                    image_names.append(this_name)
+                    img_name = os.path.basename(img_src)
+                    img_names.append(img_name)
                 # look for references and put the right code
                 print "looking for the reference %s ..." % figlabel
                 for aref in tree.findall('.//ref'):
                     if aref.text == figlabel:
                         # change this ref element
                         aref.tag = 'a'
-                        aref.text = "%d.%d" % (modulenum,fignum)
-                        if len(image_names)==1:  # single image figure
-                            figure_name = image_names[0]
+                        aref.text = '{0}.{1}'.format(modulenum,fignum)
+                        if len(img_names)==1:  # single image figure
+                            fig_name = img_names[0]
                             # find the image within directory of modules.tex (the tex file this is being run on)
                             latexfolder = os.getcwd()
-                            imgpath = ""
+                            imgpath = ''
                             for path, dirs, files in os.walk(latexfolder):
-                                for filename in fnmatch.filter(files,figure_name):
+                                for filename in fnmatch.filter(files,fig_name):
                                     imgpath = os.path.join(path, filename)
                                     #if imgpath.find('figs') != -1:
                                     if os.path.exists(imgpath):
@@ -1282,23 +1277,26 @@ def fix_figure_refs(tree):
                                         ws = 0.50
                                         wp = (int)(w*ws)
                                         hp = (int)(h*ws)
-                                        href = "/static/html/%s" % figure_name
-                                        onClick = "window.open(this.href,\'16.06r\',\'width=%s,height=%s\',\'toolbar=1\'); return false;" % (wp,hp)
+                                        href = "/static/html/{}".format(fig_name)
+                                        onClick = "window.open(this.href,\'16.06r\',\'width={},height={}\',\'toolbar=1\'); return false;".format(wp,hp)
                                         aref.set('href',href)
-                                        aref.set('onClick',onClick)
+                                        aref.set('onClick',onClick) #TODO:HTML Generation could be modular.
                         else: # multi-image figure
                             htmlbodycontent = ""
-                            for figure_name in image_names:
-                                htmlbodycontent += "<img src=\"/static/html/%s\" width=\"400\" height=\"200\">" % figure_name
-                            htmlstr = "\'<html><head></head><body>%s</body></html>\'" % htmlbodycontent
-                            onClick = "return newWindow(%s,'Figure %d.%d');" % (htmlstr,modulenum,fignum)
+                            for fig_name in img_names:
+                                htmlbodycontent += "<img src=\"/static/html/{}\" width=\"400\" height=\"200\">".format(fig_name)
+                            htmlstr = "\'<html><head></head><body>{}</body></html>\'".format(htmlbodycontent)
+                            onClick = "return newWindow({},'Figure {}.{}');".format(htmlstr,modulenum,fignum)
                             aref.set('href',"javascript: void(0)")
-                            aref.set('onClick',onClick)
+                            aref.set('onClick',onClick)#TODO:Blend this with above
 
 # EVH still need to code internal linking, and cleanup code
+#TODO: This function looks eeriely familar to above. Unify it?
 def handle_equation_labels_and_refs(tree):
     '''
-    Add equation numbers to all equation and eqnarray and modify equation references to give correct numbers and also link that opens pop-up with equation on it
+    Add equation numbers to all equation and eqnarray and modify equation
+    references to give correct numbers and also link that opens pop-up with
+    equation on it
     '''
     popupFlag = True #EVH added
     modulenum = -1
@@ -1323,12 +1321,13 @@ def handle_equation_labels_and_refs(tree):
                         else:
                             eqnnum = eqnnum + 1 # iterate equation number
                             eqnlabel = eqnlabel[0].encode("utf-8")
-                            eqnnumstr = "(%d.%d)" % (modulenum,eqnnum)
+                            eqnnumstr = '({}.{})'.format(modulenum,eqnnum)
                             eqncontent = eqncontent.replace('\\label{%s}' % eqnlabel,r'')
-                            eqnlabel = "".join(eqnlabel.split())
+                            eqnlabel = eqnlabel.replace(' ','')
                             td.text = eqncontent
-                    if not popupFlag: #EVH added
-                        tr.set('id','%s%d%d' % (eqnlabel.split(":")[0],modulenum,eqnnum)) #Set id for linking if the pop-up option is off
+                    if not popupFlag: #EVH added, not currently used.
+                        eq_id = '{}{}{}'.format(eqnlabel.split(":")[0],modulenum,eqnnum)
+                        tr.set('id',eq_id) #Set id for linking if the pop-up option is off
 
                     # now find all references to this equation and modify it to make number and link
                     # identify equation tag
@@ -1337,8 +1336,8 @@ def handle_equation_labels_and_refs(tree):
                         if aref.text == eqnlabel:
                             # change this ref element
                             aref.tag = 'a'
-                            aref.text = "%d.%d" % (modulenum,eqnnum)
-                            if popupFlag:
+                            aref.text = "{}.{}".format(modulenum,eqnnum)
+                            if popupFlag: #TODO:Modularize HTML generation.
                                 aref.set('href',"javascript: void(0)")
                                 tablestr_etree = (etree.tostring(tr,encoding="utf-8",method="html")).rstrip()
                                 tablestr_find = re.findall(r'\[mathjax[a-z]*\](.*?)\[/mathjax[a-z]*\]',tablestr_etree,re.S)
@@ -1359,7 +1358,7 @@ def handle_equation_labels_and_refs(tree):
                                 aref.set('onClick',onClick)
                             else:
                                 #EVH create internal link (placeholder)
-                                aref.set('href','../courseware/chapname/secname/vertnum/#%s%d%d' % (eqnlabel.split(":")[0],modulenum,eqnnum))
+                                aref.set('href','../courseware/chapname/secname/vertnum/#{}'.format(eq_id))
 
                     # replace the necessary subelements to get desired behavior
                     if tabclass == 'equation': #Only one tr element in equation table
@@ -1615,4 +1614,3 @@ else:
 
     for html in xml.findall('.//html'):
         html_to_file(html, default_dir)
-
