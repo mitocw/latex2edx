@@ -731,6 +731,7 @@ def process_edXmacros(tree):
     handle_section_refs(tree)
     handle_measurable_outcomes(tree)
     add_links_to_mo_index(tree)
+    check_for_missing_refs(tree)
     add_figure_padding(tree)
     process_include(tree)
     process_showhide(tree)
@@ -899,18 +900,18 @@ def handle_measurable_outcomes(tree):
                                     for html in tree.findall('.//html'): #look in html
 
                                         for p in html.findall('.//p'):
-                                            for a in p.findall('.//a'):
-                                                if a.text=="mo:"+tag:
-                                                    print "a.text =", a.text
-                                                    print "Found an <a> with mo: tag"
+                                            for aref in p.findall('.//ref'):
+                                                if aref.text=="mo:"+tag:
+                                                    print "ref.text =", aref.text
+                                                    print "Found a <ref> with mo: tag"
                                                     # we need to distinguish here between relmo calls and places where the outcome is referenced in the text (look for the word "outcome", any case) in the preceding text
                                                     #EVH print "\n", p.text
-                                                    if p.text.lower().find(r'outcome')>0 and p.text.find(r'<a>mo'):
+                                                    if p.text.lower().find(r'outcome')>0 and p.text.find(r'<ref>mo'):
                                                         p.text = p.text + "%d.%d" % (chapternum,monum)
                                                         #EVH print p.text
-                                                        p.remove(a)
+                                                        p.remove(aref)
                                                         continue # i.e. don't go below to where we do the tagging
-                                                    p.remove(a)
+                                                    p.remove(aref)
                                                     # put tag at the bottom of the html section
                                                     # determine if a taglist paragraph exists yet
                                                     taglist_exists = False
@@ -938,8 +939,8 @@ def handle_measurable_outcomes(tree):
                                     moindexhtml += "<h3>Assess</h3><ul class=\"MOassess\">"
                                     for problem in tree.findall('.//problem'): #look in problem
                                         for p in problem.findall('.//p'):
-                                            for a in p.findall('.//a'):
-                                                if a.text=="mo:"+tag:
+                                            for aref in p.findall('.//ref'):
+                                                if aref.text=="mo:"+tag:
                                                     # add measurable outcome attribute to the xml tag
                                                     if problem.get('measurable_outcomes') is not None:
                                                         # add it and reset (comma-separated list, no space per P. Pinch)
@@ -948,7 +949,7 @@ def handle_measurable_outcomes(tree):
                                                         problem.set('measurable_outcomes',newmo)
                                                     else:
                                                         problem.set('measurable_outcomes',tag)
-                                                    p.remove(a)
+                                                    p.remove(aref)
                                                     # put tag at the bottom of the html section
                                                     # determine if a taglist paragraph exists yet
                                                     taglist_exists = False
@@ -974,9 +975,9 @@ def handle_measurable_outcomes(tree):
                                         print "\nVERTICAL %s" % vertical.get('display_name')
                                         for p in vertical.findall('.//p'):
                                             # print "p.text=",p.text
-                                            for a in p.findall('.//a'):
-                                                #print "a.text =",a.text
-                                                if a.text=="mo:"+tag:
+                                            for aref in p.findall('.//ref'):
+                                                #print "ref.text =",aref.text
+                                                if aref.text=="mo:"+tag:
                                                 # found MO tag in vertical.
                                                     # need to put these tags in the measurable_outcomes attribute of problems in this vertical (for Cole's reporting tool)
                                                     # assume here that verticals encapsulate only problems !!!
@@ -995,12 +996,12 @@ def handle_measurable_outcomes(tree):
                                                             problem.set('measurable_outcomes',newmo)
                                                         else:
                                                             problem.set('measurable_outcomes',tag)
-                                                    p.remove(a)
+                                                    p.remove(aref)
                                                     # check if this p should be removed (the last a was just taken out)
                                                     totalaswithmos = 0
-                                                    for a in p.findall('.//a'):
-                                                        print "a.text =",a.text
-                                                        if a.text.find('mo:')!=-1:
+                                                    for aref in p.findall('.//ref'):
+                                                        print "ref.text =",aref.text
+                                                        if aref.text.find('mo:')!=-1:
                                                             totalaswithmos += 1
                                                     print "TOTAL MOs remaining in this <p> =", totalaswithmos
                                                     if totalaswithmos==0:
@@ -1074,7 +1075,6 @@ def add_links_to_mo_index(tree):
                 if vert.tag in ["html","problem","vertical"]:
                     vertnum += 1
                     verttag = vert.tag
-                    print "EVH TAGNAME: " + verttag
                     # html and problem
                     if (verttag=="html" or verttag=="problem"):
                         vertname = vert.get('url_name')
@@ -1122,14 +1122,15 @@ def handle_section_refs(tree):
     '''
     refdict = {} # start building a reference dictionary {'labeltag':'href'}
     numdict = {} # start building a numbering dictionary {'labeltag':'number'}
-    chapnum = seqnum = vertnum = vertnumstr = 0 #eqnnum = fignum = 0
+    chapnum = seqnumstr = vertnumstr = 0 #eqnnum = fignum = 0
     for chapter in tree.findall('.//chapter'):
         if chapter.get('nocount') is None:
             chapnum += 1
-            seqnum = vertnum = vertnumstr = 0 #eqnnum = fignum = 0
+            seqnumstr = vertnumstr = 0 #eqnnum = fignum = 0
         chapname = chapter.get('display_name')
         chapurl = re.sub(r' ',r'_',chapname)
         chaplabel = getlabel(chapter)
+        seqnum = 0
         for child1 in chapter:
             if child1.tag == 'p':
                 if child1.find('./') is not None:
@@ -1138,8 +1139,9 @@ def handle_section_refs(tree):
                 seq = child1
             if seq.tag not in ['sequential','vertical','section']:
                 continue
+            seqnum +=1
             if seq.get('nocount') is None:
-                seqnum += 1
+                seqnumstr += 1
                 vertnumstr = 0 #eqnnum = fignum = 0
             sequrl = seq.get('url_name')
             if sequrl.lower() in ["overview","sample problems","homework problems"]:
@@ -1153,7 +1155,7 @@ def handle_section_refs(tree):
             seqlabel = getlabel(seq)
             if seqlabel is not None:
                 refdict[seqlabel] = '../courseware/{}/{}'.format(chapurl,sequrl)
-                numdict[seqlabel] = '{}.{}'.format(chapnum,seqnum)
+                numdict[seqlabel] = '{}.{}'.format(chapnum,seqnumstr)
             vertnum = 0
             for child2 in seq:
                 if child2.tag == 'p':
@@ -1181,16 +1183,16 @@ def handle_section_refs(tree):
             aref.set('target',"_blank")
     # end look for chapter references
 
+def check_for_missing_refs(tree):
     # once all of the labels have been found... need to go through and do something about the references that do not have associated labels
     # issue warning that requires user to press enter to continue
-    # EVH: good to have, but not in this routing, as it hangs on MOs currently
-    # for aref in tree.findall('.//ref'):
-    #     print "\nref.text =", aref.text
-    #     if aref.text is None:
-    #         break
-    #     else:
-    #         print "WARNING: There is a reference to non-existent label %s" % aref.text
-    #         raw_input("Press ENTER to continue")
+    for aref in tree.findall('.//ref'):
+        print "\nref.text =", aref.text
+        if aref.text is None:
+            break
+        else:
+            print "WARNING: There is a reference to non-existent label %s" % aref.text
+            raw_input("Press ENTER to continue")
 
 #EVH: need to identify when this is used
 def fix_boxed_equations(tree):
@@ -1232,18 +1234,16 @@ def fix_figure_refs(tree):
                     fignum += 1
                     b.text = "Figure {}.{}".format(modulenum,fignum)
             figlabel = None
-            label = div.find('./p/label')
-            if label is None: #TODO:Combine referencing modules.
-                label = div.find('./label')
-                plabel = label
-            else:
-                plabel = label.getparent()
+            label = div.find('.//label')
             if label is not None:
                 figlabel = label.text
+                plabel = label.getparent()
+                if plabel.tag == 'p': #TODO: Find a cleaner way to build the eTree
+                    plabel = plabel.getparent()
                 div.remove(plabel)
             if figlabel is not None:
                 # CHAD: for multi-image figures, collect all the image names
-                #TODO: Find an example and investigate how to refine (as above)
+                # TODO: Find an example and investigate how to refine (as above)
                 img_names = []
                 for img in div.findall('.//img'):
                     img_src = img.get('src')
