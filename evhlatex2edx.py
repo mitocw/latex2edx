@@ -419,10 +419,10 @@ def cleanup_xml(xml):
         # 11jun13 - added section counter to allow for multiple chapters with
         # the same section heading; creates url_name attribute with appended number
 
-        chapnum = 0
+        chapnum = '0'
         for chap in xml.findall('.//chapter'):
-            if chap.get('nocount') is None:
-                chapnum += 1
+            if chap.get('refnum') is not None:
+                chapnum = chap.get('refnum')
             for sec in chap.findall('.//section'):
                 sec.tag = 'sequential'
                 un = sec.get('url_name','')
@@ -743,11 +743,12 @@ def process_edXmacros(tree):
 # EVH: this is way too convoluted, and should be changed, possibly to a macro
 # attempt to set display names with numbers below (but I think display_names are being set elsewhere down the line
 def change_problem_display_names_to_have_counters(tree):
-    chapnum = -1
+    chapnum = '0'
     for chap in tree.findall('.//chapter'):
-        if chap.get('nocount') is not None:
+        if chap.get('refnum') is not None:
+            chapnum = chap.get('refnum')
+        else:
             continue
-        chapnum += 1
         sectionnum = 0
         for section in chap.findall('.//section'):
             sectionnum += 1
@@ -769,12 +770,12 @@ def change_problem_display_names_to_have_counters(tree):
                         if not in_vertical:
                             currdispname = vert.get('url_name')
                             pagenum += 1
-                            vert.set('display_name',"%d.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))
+                            vert.set('display_name',"%s.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))
                     elif (verttag=="vertical"):
                         for problem in vert.findall('.//problem'):
                             currdispname = problem.get('url_name')
                             pagenum += 1
-                            problem.set('display_name',"%d.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))
+                            problem.set('display_name',"%s.%d.%d %s" % (chapnum,sectionnum,pagenum,currdispname))
                             break # name contained in first problem of vertical
                     else:
                         print "UNRECOGNIZED VERTICAL TAG TYPE"
@@ -812,23 +813,20 @@ def add_chap_num_to_content(tree):
     '''
     Add a trailing module number to measurable outcomes urlname
     '''
-    chapnum = 0
+    chapnum = '0'
     for chap in tree.findall('.//chapter'):
-        #if chap.get('nocount') is not None:
-        #    continue
-        #chapnum += 1
-        if chap.get('nocount') is None:
-            chapnum += 1
+        if chap.get('refnum') is not None:
+            chapnum = chap.get('refnum')
         for section in chap.findall('.//section'):
             for html in section.findall('.//html'):
-                html.set('chapnum','%d' % chapnum)
+                html.set('chapnum','%s' % chapnum)
             for problem in section.findall('.//problem'):
-                problem.set('chapnum','%d' % chapnum)
+                problem.set('chapnum','%s' % chapnum)
             for vertical in section.findall('.//vertical'):
                 for html in vertical.findall('.//html'):
-                    html.set('chapnum','%d' % chapnum)
+                    html.set('chapnum','%s' % chapnum)
                 for problem in vertical.findall('.//problem'):
-                    problem.set('chapnum','%d' % chapnum)
+                    problem.set('chapnum','%s' % chapnum)
 
 def ensure_relative_url_for_youtube_embeds(tree):
     '''
@@ -909,10 +907,11 @@ def handle_section_refs(tree):
         tocbody[1][0].text = 'Please note that while some future content will be indexed here, some links may not work until the content has been officially released!'
     refdict = {} # start building a reference dictionary {'labeltag':'href'}
     numdict = {} # start building a numbering dictionary {'labeltag':'number'}
-    chapnum = seqnumstr = vertnumstr = linum = 0 #eqnnum = fignum = 0
+    chapnum = '0'
+    seqnumstr = vertnumstr = linum = 0 #eqnnum = fignum = 0
     for chapter in tree.findall('.//chapter'):
-        if chapter.get('nocount') is None:
-            chapnum += 1
+        if chapter.get('refnum') is not None:
+            chapnum = chapter.get('refnum')
             seqnumstr = vertnumstr = linum = 0 #eqnnum = fignum = 0
         chapname = chapter.get('display_name')
         chapurl = re.sub(r' ',r'_',chapname)
@@ -937,7 +936,7 @@ def handle_section_refs(tree):
                 vertnumstr = 0 #eqnnum = fignum = 0
             sequrl = seq.get('url_name')
             if sequrl.lower() in ["overview","sample problems","homework problems"]:
-                sequrl += str(chapnum+1)
+                sequrl += str(chapnum)
             sequrl = re.sub(r' ',r'_',sequrl)
             if seqnum==1 and (chaplabel is not None):
                 if tocFlag: #and chaplabel is not None:
@@ -1004,17 +1003,17 @@ def handle_section_refs(tree):
         if tocFlag:
             tocbody.append(etree.XML('<br/>'))
     # now find and replace reference everywhere with the correct number (and make it a link)
-    chapnum = 0
+    chapnum = '0'
     for chap in tree.findall('.//chapter'):
         chapname = chapter.get('display_name')
         chapurl = re.sub(r' ',r'_',chapname)
-        if chap.get('nocount') is None:
-            chapnum += 1
+        if chap.get('refnum') is not None:
+            chapnum = chap.get('refnum')
         for level1 in chap.findall(".//*[@level='1']"):
             levelcnt = level1.attrib.pop('level')
             sequrl = level1.get('url_name')
             if sequrl.lower() in ["overview","sample problems","homework problems"]:
-                sequrl += str(chapnum+1)
+                sequrl += str(chapnum)
             sequrl = re.sub(r' ',r'_',sequrl)
             vertnum = 0
             for level2 in level1.findall(".//*[@level='2']"):
@@ -1043,10 +1042,7 @@ def handle_section_refs(tree):
                             if taglist is None:
                                 taglist = etree.Element('p',id='taglist')
                                 paref.insert(0,taglist)
-                            linktext = {'type':"button",'border-radius':"2px",'title':"{}{}".format(numdict[reflabel],refdict[reflabel][8:]),'style':"cursor:pointer",'class':"mo_button",'onClick':"window.location.href='../tocindex/#anchor{}';".format(numdict[reflabel].replace(r'.',''))}
-                            print "EVH link: ",linktext
-                            link = etree.SubElement(taglist,'button',{'type':"button",'border-radius':"2px",'title':"{}{}".format(numdict[reflabel],refdict[reflabel][8:]),'style':"cursor:pointer",'class':"mo_button",'onClick':"window.location.href='../tocindex/#anchor{}';".format(numdict[reflabel].replace(r'.',''))})
-                            print "EVH link: ",etree.tostring(link)
+                            link = etree.SubElement(taglist,'button',{'type':"button",'border-radius':"2px",'title':"{}:\n{}".format(numdict[reflabel],refdict[reflabel][8:]),'style':"cursor:pointer",'class':"mo_button",'onClick':"window.location.href='../tocindex/#anchor{}';".format(numdict[reflabel].replace(r'.',''))})
                             link.text = numdict[reflabel]
                             link.set('id',reflabel.split(':')[1])
                             tocitem = etree.Element('li')
@@ -1084,7 +1080,7 @@ def handle_section_refs(tree):
                         if taglist is None:
                             taglist = etree.Element('p',id='taglist')
                             paref.insert(0,taglist)
-                        link = etree.SubElement(taglist,'button',{'type':'button','border-radius':'2px','title':'{}{}'.format(numdict[reflabel],refdict[reflabel][8:]),'style':'cursor:pointer','class':'mo_button','onClick':"window.location.href='../tocindex/#anchor{}';".format(numdict[reflabel].replace(r'.',''))})
+                        link = etree.SubElement(taglist,'button',{'type':'button','border-radius':'2px','title':'{}:\n{}'.format(numdict[reflabel],refdict[reflabel][8:]),'style':'cursor:pointer','class':'mo_button','onClick':"window.location.href='../tocindex/#anchor{}';".format(numdict[reflabel].replace(r'.',''))})
                         link.text = numdict[reflabel]
                         link.set('id',reflabel.split(':')[1])
                         tocitem = etree.Element('li')
@@ -1144,10 +1140,11 @@ def fix_figure_refs(tree):
     '''
     Fix figure references
     '''
-    chapnum = fignum = 0
+    chapnum = '0'
+    fignum = 0
     for chapter in tree.findall('.//chapter'):
-        if chapter.get('nocount') is None:
-            chapnum = chapnum + 1
+        if chapter.get('refnum') is not None:
+            chapnum = chapter.get('refnum')
             fignum = 0
         for div in chapter.findall('.//div[@class="figure"]'):
             #Increment count if Figure is captioned
@@ -1217,10 +1214,11 @@ def handle_equation_labels_and_refs(tree):
     equation on it
     '''
     popupFlag = True #EVH added
-    chapnum = eqnnum = 0 # counter for equation numbering
+    chapnum = '0'
+    eqnnum = 0 # counter for equation numbering
     for chapter in tree.findall('.//chapter'):
-        if chapter.get('nocount') is None:
-            chapnum += 1
+        if chapter.get('refnum') is not None:
+            chapnum = chapter.get('refnum')
             eqnnum = 0  # reset counter for equation numbering
         for table in chapter.findall('.//table'):
             tabclass = table.get('class')
@@ -1267,11 +1265,11 @@ def handle_equation_labels_and_refs(tree):
                                 if re.search(r'\\boxed',tablestr,re.S) is not None:
                                     tablestr = tablestr.replace(r'\boxed','')
 
-                                tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,chapnum,eqnnum)
+                                tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">{}</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">({}.{})</td></tr></table>".format(tablestr,chapnum,eqnnum)
                                 mathjax = "<script type=\"text/javascript\" src=\"https://edx-static.s3.amazonaws.com/mathjax-MathJax-727332c/MathJax.js?config=TeX-MML-AM_HTMLorMML-full\"> </script>"
-                                htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
-                                eqnstr = "\'Equation %s\'" % eqnnumstr
-                                onClick = "return newWindow(%s,%s);" % (htmlstr,eqnstr)
+                                htmlstr = "\'<html><head>{}</head><body>{}</body></html>\'".format(mathjax,tablestr_etree)
+                                eqnstr = "\'Equation {}\'".format(eqnnumstr)
+                                onClick = "return newWindow({},{});".format(htmlstr,eqnstr)
                                 aref.set('onClick',onClick)
                             else:
                                 #EVH create internal link (placeholder)
@@ -1344,7 +1342,7 @@ def process_showhide(tree):
 
         desc = showhide.get('description','')
         shtable.set('class',"wikitable collapsible collapsed")
-        shdiv = etree.XML('<tbody><tr><th> %s [<a href="%s" id="%sl">show</a>]</th></tr></tbody>' % (desc,jscmd,shid))
+        shdiv = etree.XML('<tbody><tr><th> {} [<a href="{}" id="{}l">show</a>]</th></tr></tbody>'.format(desc,jscmd,shid))
         shtable.append(shdiv)
 
         tr = etree.SubElement(shdiv,'tr')

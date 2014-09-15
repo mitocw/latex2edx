@@ -2,16 +2,16 @@ name: edXcourse
 <course tal:attributes='number self/attributes/number; url_name self/attributes/url_name; attrib_string self/attributes/attrib_string' tal:content='self'></course>
 
 name: edXchapter edXchapter*
-<chapter tal:attributes='display_name self/attributes/display_name; nocount self/nocount' tal:content='self'></chapter>
+<chapter tal:attributes='display_name self/attributes/display_name; refnum self/position' tal:content='self'></chapter>
 
 name: edXsection edXsection*
-<section tal:attributes='url_name self/attributes/url_name; nocount self/nocount' tal:content='self'></section>
+<section tal:attributes='url_name self/attributes/url_name; refnum self/position' tal:content='self'></section>
 
 name: edXvertical edXvertical*
-<vertical tal:attributes='display_name self/attributes/display_name; nocount self/nocount' tal:content='self'></vertical>
+<vertical tal:attributes='display_name self/attributes/display_name; refnum self/position' tal:content='self'></vertical>
 
 name: edXsequential edXsequential*
-<sequential  tal:attributes='nocount self/nocount' tal:content='self'></sequential>
+<sequential tal:attributes='refnum self/position' tal:content='self'></sequential>
 
 name: edXproblem
 <problem tal:attributes='url_name self/attributes/url_name; attrib_string self/attributes/attrib_string'><text tal:content='self'></text></problem>
@@ -47,7 +47,7 @@ name: edXmath
 <displaymath tal:content='self/source'></displaymath>
 
 name: edXinlinevideo
-<iframe width="600" height="400" tal:attributes="src string:https://www.youtube.com/embed/${self}?rel=0"></iframe>
+<iframe width="600" height="400" tal:attributes="src string:http://www.youtube.com/embed/${self}?rel=0"></iframe>
 
 name: edXxml
 <edxxml tal:content='self/source'></edxxml>
@@ -72,3 +72,5 @@ name: label
 
 name: ref
 <ref tal:content='self'></ref>
+
+

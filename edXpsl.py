@@ -3,33 +3,57 @@ from plasTeX import Base
 class edXcourse(Base.Environment):
     args = '{ number } { url_name } { attrib_string } self'
 
-class edXchapter(Base.Environment):
+class EdXchapterStar(Base.Environment):
+    macroName = 'edXchapter*'
     args = '{ display_name } self'
 
-class EdXchapterStar(edXchapter):
-    macroName = 'edXchapter*'
-    nocount = True
+class edXchapter(EdXchapterStar):
+    macroName = 'edXchapter'
+    counter = 'chapter'
+    position = 0
+    forcePars = True
+    def invoke(self, tex):
+        self.position = self.ownerDocument.context.counters[self.counter].value + 1
+        return Base.Environment.invoke(self, tex)
 
-class edXsection(Base.Environment):
+class EdXsectionStar(Base.Environment):
+    macroName = 'edXsection*'
     args = '{ url_name } self'
 
-class EdXsectionStar(edXsection):
-    macroName = 'edXsection*'
-    nocount = True
+class edXsection(EdXsectionStar):
+    macroName = 'edXsection'
+    counter = 'section'
+    position = 0
+    forcePars = True
+    def invoke(self, tex):
+        self.position = self.ownerDocument.context.counters[self.counter].value + 1
+        return Base.Environment.invoke(self, tex)
 
-class edXsequential(Base.Environment):
+class EdXsequentialStar(Base.Environment):
+    macroName = 'edXsequential*'
     args = 'self'
 
-class EdXsequentialStar(edXsequential):
-    macroName = 'edXsequential*'
-    nocount = True
+class edXsequential(EdXsequentialStar):
+    macroName = 'edXsequential'
+    counter = 'section'
+    position = 0
+    forcePars = True
+    def invoke(self, tex):
+        self.position = self.ownerDocument.context.counters[self.counter].value + 1
+        return Base.Environment.invoke(self, tex)
 
-class edXvertical(Base.Environment):
+class EdXverticalStar(Base.Environment):
+    macroName = 'edXvertical*'
     args = '{ display_name } self'
 
-class EdXverticalStar(edXvertical):
-    macroName = 'edXvertical*'
-    nocount = True
+class edXvertical(EdXverticalStar):
+    macroName = 'edXvertical'
+    counter = 'subsection'
+    position = 0
+    forcePars = True
+    def invoke(self, tex):
+        self.position = self.ownerDocument.context.counters[self.counter].value + 1
+        return Base.Environment.invoke(self, tex)
 
 class edXabox(Base.Command):
     args = 'self'
@@ -96,3 +120,4 @@ class label(Base.Command):
 
 class ref(Base.Command):
     args = 'self'
+
