@@ -729,8 +729,6 @@ def process_edXmacros(tree):
     fix_figure_refs(tree)
     handle_equation_labels_and_refs(tree)
     handle_section_refs(tree)
-    handle_measurable_outcomes(tree)
-    add_links_to_mo_index(tree)
     check_for_missing_refs(tree)
     add_figure_padding(tree)
     process_include(tree)
@@ -816,9 +814,11 @@ def add_chap_num_to_content(tree):
     '''
     chapnum = 0
     for chap in tree.findall('.//chapter'):
-        if chap.get('nocount') is not None:
-            continue
-        chapnum += 1
+        #if chap.get('nocount') is not None:
+        #    continue
+        #chapnum += 1
+        if chap.get('nocount') is None:
+            chapnum += 1
         for section in chap.findall('.//section'):
             for html in section.findall('.//html'):
                 html.set('chapnum','%d' % chapnum)
@@ -862,242 +862,6 @@ def add_titles_to_edxtext(tree):
         html.insert(0, header_sub_element)
         # raw_input("Press ENTER")
 
-#EVH needs restructuring/generalizing
-def handle_measurable_outcomes(tree):
-    '''
-    Process the labels and references to measurable outcomes, placing 'tags' at the top of the vertical that have mouseovers revealing the measurable outcome
-    '''
-    moindexhtml = "<html><head></head><body><h1>Measurable Outcome Index</h1><p>This index provides the links associated to each of the measurable outcomes for the course. By clicking on a measurable outcome below, you will see the content you can use to learn about that measurable outcome and the content that we use to assess your understanding of that measurable outcome.  <i>Please note that while some future content will be indexed here, some links may not work until the content has been officially released!</i></p>"
-
-    chapternum = -1
-    print "inside HANDLE_MEASURABLE_OUTCOMES"
-    for chapter in tree.findall('.//chapter'):
-        if chapter.get('nocount') is None:
-            chapternum += 1
-        moindexhtml += "<h2>%s</h2>" % chapter.get('display_name')
-        for section in chapter.findall('.//section'):
-            if section.get('url_name').lower()=="overview":
-                for html in section.findall('.//html'):
-                    if html.get('url_name').lower()=="measurable outcomes":
-                        print "Found MEASURABLE OUTCOMES section"
-                        for ol in html.findall('.//ol'): # ordered list of measurable outcomes
-                            ol.tag = 'ul'
-                            monum = 0
-                            for li in ol.findall('.//li'): # items
-                                monum += 1
-                                for p in li.findall('.//p'): # paragraph
-                                    #EVH print "p.text =", p.text
-                                    m = re.search('\(label-mo:(.*?)\)',p.text)
-                                    tag = m.group(1)
-                                    oldtext = p.text
-                                    oldtext = re.sub(r'\(label-mo:(.*?)\)',r'',oldtext)
-                                    newtext = "MO%d.%d: " % (chapternum,monum) + oldtext
-                                    p.text = newtext
-                                    # find the references to this everywhere else (will be in html or problem OR vertical)
-                                    print "Finding reference to " + newtext + "..."
-                                    moindexhtml += "<a name=\"anchorMO%d%d\"></a><table class=\"wikitable collapsible collapsed\" itemscope itemtype=\"measurable_outcome\" id=\"%s\"><tbody><tr><th><a href=\"#\" onClick=\"$('#indmo%d%d').toggle();return false;\" id=\"indmo%d%dl\" name=\"indmo%d%dl\"><strong itemprop=\"name\">MO%d.%d</strong></a><span itemprop=\"description\">%s</span></th></tr><tr id=\"indmo%d%d\" style=\"display:none\"><td>" % (chapternum,monum,tag,chapternum,monum,chapternum,monum,chapternum,monum,chapternum,monum,oldtext,chapternum,monum)
-                                    moindexhtml += "<h3>Learn</h3><ul class=\"MOlearn\">"
-                                    for html in tree.findall('.//html'): #look in html
-
-                                        for p in html.findall('.//p'):
-                                            for aref in p.findall('.//ref'):
-                                                if aref.text=="mo:"+tag:
-                                                    print "ref.text =", aref.text
-                                                    print "Found a <ref> with mo: tag"
-                                                    # we need to distinguish here between relmo calls and places where the outcome is referenced in the text (look for the word "outcome", any case) in the preceding text
-                                                    #EVH print "\n", p.text
-                                                    if p.text.lower().find(r'outcome')>0 and p.text.find(r'<ref>mo'):
-                                                        p.text = p.text + "%d.%d" % (chapternum,monum)
-                                                        #EVH print p.text
-                                                        p.remove(aref)
-                                                        continue # i.e. don't go below to where we do the tagging
-                                                    p.remove(aref)
-                                                    # put tag at the bottom of the html section
-                                                    # determine if a taglist paragraph exists yet
-                                                    taglist_exists = False
-                                                    for p in html.findall('.//p'):
-                                                        if p.get('id')=="taglist":
-                                                            taglist_exists = True
-                                                    if not taglist_exists: # tag list element doesn't exist yet
-                                                        print "Taglist being created..."
-                                                        taglist = etree.Element("p",{'id':"taglist"})
-                                                        html.insert(0,taglist)
-                                                        # taglist = etree.SubElement(html,"ul",{'id':"taglist",'display':"block",'list-style':"none",'overflow':"hidden"})
-                                                    else: # taglist element already exists
-                                                        # find it and get it by the name taglist
-                                                        for p in html.findall('.//p'):
-                                                            if p.get('id')=="taglist":
-                                                                taglist = p
-                                                                break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.06r/2014_Fall/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
-                                                    link.text = "MO%d.%d" % (chapternum,monum)
-                                                    link.set('id',tag)
-                                                    # add it to moindexhtml
-                                                    moindexhtml += "<li><a itemtype=\"html\" href=\"/jump_to_id/1606r_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(html.get('url_name')), html.get('url_name'))
-                                    moindexhtml += "</ul>"
-
-                                    moindexhtml += "<h3>Assess</h3><ul class=\"MOassess\">"
-                                    for problem in tree.findall('.//problem'): #look in problem
-                                        for p in problem.findall('.//p'):
-                                            for aref in p.findall('.//ref'):
-                                                if aref.text=="mo:"+tag:
-                                                    # add measurable outcome attribute to the xml tag
-                                                    if problem.get('measurable_outcomes') is not None:
-                                                        # add it and reset (comma-separated list, no space per P. Pinch)
-                                                        currmo = problem.get('measurable_outcomes')
-                                                        newmo = currmo + ",%s" % tag
-                                                        problem.set('measurable_outcomes',newmo)
-                                                    else:
-                                                        problem.set('measurable_outcomes',tag)
-                                                    p.remove(aref)
-                                                    # put tag at the bottom of the html section
-                                                    # determine if a taglist paragraph exists yet
-                                                    taglist_exists = False
-                                                    for p in problem.findall('.//p'):
-                                                        if p.get('id')=="taglist":
-                                                            taglist_exists = True
-                                                    if not taglist_exists: # tag list element doesn't exist yet
-                                                        taglist = etree.Element("p",{'id':"taglist"})
-                                                        problem.insert(0,taglist)
-                                                    else: # taglist element already exists
-                                                        # find it and get it by the name taglist
-                                                        for p in problem.findall('.//p'):
-                                                            if p.get('id')=="taglist":
-                                                                taglist = p
-                                                                break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.06r/2014_Fall/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
-                                                    link.text = "MO%d.%d" % (chapternum,monum)
-                                                    link.set('id',tag)
-                                                    moindexhtml += "<li><a itemtype=\"problem\" href=\"/jump_to_id/1606r_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(problem.get('url_name')), problem.get('url_name'))
-
-
-                                    for vertical in tree.findall('.//vertical'): # look in vertical
-                                        print "\nVERTICAL %s" % vertical.get('display_name')
-                                        for p in vertical.findall('.//p'):
-                                            # print "p.text=",p.text
-                                            for aref in p.findall('.//ref'):
-                                                #print "ref.text =",aref.text
-                                                if aref.text=="mo:"+tag:
-                                                # found MO tag in vertical.
-                                                    # need to put these tags in the measurable_outcomes attribute of problems in this vertical (for Cole's reporting tool)
-                                                    # assume here that verticals encapsulate only problems !!!
-                                                    # get first problem
-
-                                                    for problem in vertical.findall('.//problem'):
-                                                        firstproblem = problem
-                                                        break
-                                                    # set measurable_outcome attribute for all problems
-                                                    for problem in vertical.findall('.//problem'):
-                                                        # add measurable outcome attribute to the xml tag
-                                                        if problem.get('measurable_outcomes') is not None:
-                                                            # add it and reset (comma-separated list, no space per P. Pinch)
-                                                            currmo = problem.get('measurable_outcomes')
-                                                            newmo = currmo + ",%s" % tag
-                                                            problem.set('measurable_outcomes',newmo)
-                                                        else:
-                                                            problem.set('measurable_outcomes',tag)
-                                                    p.remove(aref)
-                                                    # check if this p should be removed (the last a was just taken out)
-                                                    totalaswithmos = 0
-                                                    for aref in p.findall('.//ref'):
-                                                        print "ref.text =",aref.text
-                                                        if aref.text.find('mo:')!=-1:
-                                                            totalaswithmos += 1
-                                                    print "TOTAL MOs remaining in this <p> =", totalaswithmos
-                                                    if totalaswithmos==0:
-                                                        vertical.remove(p)
-                                                    taglist_exists = False
-                                                    for pt in firstproblem.findall('.//p'):
-                                                        if pt.get('id')=="taglist":
-                                                            taglist_exists = True
-                                                    if not taglist_exists: # tag list element doesn't exist yet
-                                                        taglist = etree.Element("p",{'id':"taglist"})
-                                                        firstproblem.insert(0,taglist)
-                                                    else: # taglist element already exists
-                                                        # find it and get it by the name taglist
-                                                        for pt in firstproblem.findall('.//p'):
-                                                            if pt.get('id')=="taglist":
-                                                                taglist = pt
-                                                                break
-                                                    link = etree.SubElement(taglist,"button",{'type':"button",'border-radius':"2px",'title':"%s" % newtext,'style':"cursor:pointer",'class':"mo_button",'onclick':"window.location.href='/courses/MITx/16.06r/2014_Fall/moindex/#anchorMO%d%d';" % (chapternum,monum)}) # add the link inside
-                                                    link.text = "MO%d.%d" % (chapternum,monum)
-                                                    link.set('id',tag)
-                                                    moindexhtml += "<li><a itemtype=\"problem\" href=\"/jump_to_id/1606r_%s\" itemprop=\"name\">%s</a></li>" % (make_urlname(firstproblem.get('url_name')), firstproblem.get('url_name'))
-                                    moindexhtml += "</ul>"
-        # find a measurable outcome (do by Chapter, like MO1.2, MO3.5 etc.)
-        # look through the rest of the document for references to that measurable outcome
-        # where there is a reference to the MO, make a tag at the bottom of that vertical that says "MO1.2" or whatever, but that permits a hover that brings up the full-length description of the measurable outcome
-                                moindexhtml += "</td></tr></tbody></table>"
-        moindexhtml += "</br>"
-
-    # finish the moindex page
-    moindexhtml += "</body></html>"
-    # save to moindex.html (to be moved to tabs/)
-    print "Writing MO Index content..."
-    ffff = open('moindex.html','w')
-    ffff.write(moindexhtml)
-    ffff.close()
-
-# EVH: needs a bit more cleaning up
-def add_links_to_mo_index(tree):
-    # first read in what we have from above
-    ffff = open('moindex.html','r')
-    moindexhtml = ffff.read()
-    ffff.close()
-
-    # loop through all of the xml tree, and for each html or problem, find its reference in the moindexhtml and change it to a link to the correct place
-    sampleprobcounter = 0
-    homeworkprobcounter = 0
-    overviewcounter = 0
-    for chapter in tree.findall('.//chapter'):
-        chapurl = chapter.get('url_name')
-        print "MO INDEX LINKING... Chapter: %s" % chapurl
-        for section in chapter.findall('.//section'):
-            overviewcounter += 1
-            secname = section.get('url_name')
-            secnamewithunderscores = re.sub(r' ',r'_',secname)
-            if secname.lower()=="sample problems":
-                sampleprobcounter += 1
-                for ii in range(sampleprobcounter-1):
-                    secnamewithunderscores = secnamewithunderscores + "x"
-            if secname.lower()=="homework problems":
-                homeworkprobcounter += 1
-                for ii in range(homeworkprobcounter-1):
-                    secnamewithunderscores = secnamewithunderscores + "x"
-            if secname.lower()=="overview":
-                secnamewithunderscores = secnamewithunderscores + "%d" % overviewcounter
-            print "MO INDEX LINKING... Section: %s" % secnamewithunderscores
-            # html
-            vertnum = 0
-            for vert in section:
-                if vert.tag=="p":
-                    vert = vert[0]
-                if vert.tag in ["html","problem","vertical"]:
-                    vertnum += 1
-                    verttag = vert.tag
-                    # html and problem
-                    if (verttag=="html" or verttag=="problem"):
-                        vertname = vert.get('url_name')
-                    # vertical
-                    elif (verttag=="vertical"):
-                        vertname = "DEFAULT"
-                        print "verturlname =", vert.get('url_name')
-                        for problem in vert.findall('.//problem'):
-                            vertname = problem.get('url_name')
-                            break # name contained in first problem of vertical
-                        print vertname
-                    else:
-                        print "UNRECOGNIZED VERTICAL TAG TYPE"
-                    linktext = "href=\"/jump_to_id/1606r_%s\"" % make_urlname(vertname)
-                    href = "href=\"../courseware/%s/%s/%d/\"" % (chapurl,make_urlname(secnamewithunderscores),vertnum)
-                    print "html-linktext =", linktext
-                    moindexhtml = moindexhtml.replace(r'%s' % linktext,r'%s' % href)
-
-    print "WRITING MO INDEX CONTENT WITH LINKS!!"
-    ffff = open('moindex.html','w')
-    ffff.write(moindexhtml)
-    ffff.close()
-
 # EVH
 def getlabel(tree): #TODO: Find a cleaner way to build the eTree
     '''
@@ -1112,6 +876,16 @@ def getlabel(tree): #TODO: Find a cleaner way to build the eTree
         plabel = label.getparent()
     if label is not None:
         labeltext = label.text
+        #Need to save the tail text for measurable outcomes
+        #Save the tail and append to tree text before deletion
+        labeltail = label.tail
+        if labeltail != ' ':
+            treetext = tree.text
+            if treetext == '\n':
+                tree.text = labeltail
+            else:
+                treetext = treetext[:-1] #remove final carriage return (usually from a p tag)
+                tree.text = '{}{}'.format(treetext,labeltail)
         tree.remove(plabel)
     return labeltext
 
@@ -1120,16 +894,33 @@ def handle_section_refs(tree):
     '''
     Process references to sections of content -- create section numbering and the reference should be a link that opens in a new tab to the desired component
     '''
+    tocFlag = True #EVH: choose whether or not to create a Table of Contents (tocindex.html)
+    #EVH: if the above is false create internal links only, if true created ToC
+    if tocFlag:
+        #EVH start building tocindex.html
+        toctree = etree.Element('html')
+        toctree.append(etree.fromstring('<head></head>'))
+        tocbody = etree.SubElement(toctree,'body')
+        tocbody.append(etree.Element('h1'))
+        tocbody[0].text = 'Measurable Outcome Index'
+        tocbody.append(etree.Element('p'))
+        tocbody[1].text = 'This index provides the links associated to each of the measurable outcomes for the course. By clicking on a measurable outcome below, you will see the content you can use to learn about that measurable outcome and the content that we use to assess your understanding of that measurable outcome.'
+        tocbody[1].append(etree.Element('i'))
+        tocbody[1][0].text = 'Please note that while some future content will be indexed here, some links may not work until the content has been officially released!'
     refdict = {} # start building a reference dictionary {'labeltag':'href'}
     numdict = {} # start building a numbering dictionary {'labeltag':'number'}
-    chapnum = seqnumstr = vertnumstr = 0 #eqnnum = fignum = 0
+    chapnum = seqnumstr = vertnumstr = linum = 0 #eqnnum = fignum = 0
     for chapter in tree.findall('.//chapter'):
         if chapter.get('nocount') is None:
             chapnum += 1
-            seqnumstr = vertnumstr = 0 #eqnnum = fignum = 0
+            seqnumstr = vertnumstr = linum = 0 #eqnnum = fignum = 0
         chapname = chapter.get('display_name')
         chapurl = re.sub(r' ',r'_',chapname)
         chaplabel = getlabel(chapter)
+        if tocFlag: #and chaplabel is not None:
+            tocchap = etree.SubElement(tocbody,'a',href='../courseware/{}'.format(chapurl)) #EVH set initial chapter link
+            tocchap.append(etree.Element('h2'))
+            tocchap[0].text = chapname
         seqnum = 0
         for child1 in chapter:
             if child1.tag == 'p':
@@ -1140,6 +931,7 @@ def handle_section_refs(tree):
             if seq.tag not in ['sequential','vertical','section']:
                 continue
             seqnum +=1
+            seq.set('level','1') #EVH keep track of level
             if seq.get('nocount') is None:
                 seqnumstr += 1
                 vertnumstr = 0 #eqnnum = fignum = 0
@@ -1148,8 +940,8 @@ def handle_section_refs(tree):
                 sequrl += str(chapnum+1)
             sequrl = re.sub(r' ',r'_',sequrl)
             if seqnum==1 and (chaplabel is not None):
-                chapname = chapter.get('display_name')
-                chapurl = re.sub(r' ',r'_',chapname)
+                if tocFlag: #and chaplabel is not None:
+                    tocchap.set('href','../courseware/{}/{}'.format(chapurl,sequrl))
                 refdict[chaplabel] = '../courseware/{}/{}'.format(chapurl,sequrl) #EVH is a /1 necessary?
                 numdict[chaplabel] = str(chapnum)
             seqlabel = getlabel(seq)
@@ -1163,25 +955,156 @@ def handle_section_refs(tree):
                         vert = child2.find('./')
                 else:
                     vert = child2
-                #if vert.tag not in ['sequential','vertical','section','problem','html']:
-                if vert.tag not in ['sequential','vertical','section']:
+                #if vert.tag not in ['sequential','vertical','section']:
+                if vert.tag not in ['sequential','vertical','section','problem','html']:
                     continue
                 vertnum += 1
+                vert.set('level','2') #EVH keep track of level
                 if vert.get('nocount') is None:
                     vertnumstr += 1
                 vertlabel = getlabel(vert)
                 if vertlabel is not None:
-                    refdict[vertlabel] = '../courseware/{}/{}/{}'.format(chapurl,securl,vertnum)
+                    refdict[vertlabel] = '../courseware/{}/{}/{}'.format(chapurl,sequrl,vertnum)
                     numdict[vertlabel] = '{}.{}.{}'.format(chapnum,secnum,vertnumstr)
+                #EVH: Search for labeled lists (for measurable outcome)
+                for childlist in vert.findall('.//'):
+                    if childlist.tag not in ['ol','ul']:
+                        continue
+                    for li in childlist.findall('./li/p'):
+                        linum += 1
+                        lilabel = getlabel(li)
+                        if lilabel is not None:
+                            lilabelstr = '{}{}.{}'.format(lilabel.split(':')[0].upper(),chapnum,linum)
+                            numdict[lilabel] = lilabelstr
+                            linumstr = lilabelstr.replace(r'.','').lower()
+                            if tocFlag:
+                                refdict[lilabel] = 'CROSSREF{}'.format(li.text) #EVH save list item text
+                                tocbody.append(etree.Element('a',name='anchor{}'.format(linumstr.upper())))
+                                toctable = etree.SubElement(tocbody,'table',{'class':"wikitable collapsible collapsed",'itemtype':'measurable_outcome','id':'{}'.format(lilabel.split(':')[1])})
+                                toctable = etree.SubElement(toctable,'tbody')
+                                toctable.append(etree.Element('tr'))
+                                toctable[0].append(etree.Element('th'))
+                                toctable[0][0].append(etree.Element('a',{'href':'#','onClick':"$('#ind{}').toggle();return false;".format(linumstr),'id':'ind{}l'.format(linumstr),'name':'ind{}l'.format(linumstr)}))
+                                #toctablabel = etree.SubElement(toctable[0][0][0],'strong',itemprop='name')
+                                toctable[0][0][0].append(etree.Element('strong',itemprop='name'))
+                                toctable[0][0][0][0].text = lilabelstr
+                                toctable[0][0].append(etree.Element('span',itemprop='description'))
+                                toctable[0][0][1].text = li.text
+                                toctable.append(etree.Element('tr',id='ind{}'.format(linumstr),style='display:none'))
+                                toctable[1].append(etree.Element('td'))
+                                toctable[1][0].append(etree.Element('h3'))
+                                toctable[1][0][0].text = 'Learn'
+                                toctable[1][0].append(etree.Element('ul',{'class':'MOlearn','reftag':'{}'.format(lilabel),'reftype':'html'}))
+                                toctable[1][0].append(etree.Element('h3'))
+                                toctable[1][0][2].text = 'Assess'
+                                toctable[1][0].append(etree.Element('ul',{'class':'MOasses','reftag':'{}'.format(lilabel),'reftype':'problem'}))
+                            else:
+                                refdict[lilabel] = '../courseware/{}/{}/{}/#ind{}'.format(chapurl,sequrl,vertnum,linumstr)
+                                li.set('id','ind{}'.format(linumstr))
+        if tocFlag:
+            tocbody.append(etree.XML('<br/>'))
     # now find and replace reference everywhere with the correct number (and make it a link)
-    for aref in tree.findall('.//ref'):
-        reflabel = aref.text
-        if reflabel in numdict:
-            aref.tag = 'a'
-            aref.text = numdict[reflabel]
-            aref.set('href',refdict[reflabel])
-            aref.set('target',"_blank")
+    chapnum = 0
+    for chap in tree.findall('.//chapter'):
+        chapname = chapter.get('display_name')
+        chapurl = re.sub(r' ',r'_',chapname)
+        if chap.get('nocount') is None:
+            chapnum += 1
+        for level1 in chap.findall(".//*[@level='1']"):
+            levelcnt = level1.attrib.pop('level')
+            sequrl = level1.get('url_name')
+            if sequrl.lower() in ["overview","sample problems","homework problems"]:
+                sequrl += str(chapnum+1)
+            sequrl = re.sub(r' ',r'_',sequrl)
+            vertnum = 0
+            for level2 in level1.findall(".//*[@level='2']"):
+                vertnum += 1
+                for aref in level2.findall('.//ref'):
+                    reflabel = aref.text
+                    if reflabel in numdict:
+                        if refdict[reflabel][:8] == 'CROSSREF': #EVH if tocFlag
+                            print "EVH looking for reflabel: ", reflabel
+                            paref = aref.getparent()
+                            paref.remove(aref)
+                            while paref.tag not in ['html','problem']:
+                                paref = paref.getparent()
+                            ptag = paref.tag
+                            if ptag == 'problem':
+                                oldmo = paref.get('measureable_outcomes')
+                                if oldmo is None:
+                                    newmo = reflabel.split(':')[1]
+                                else:
+                                    newmo = oldmo+','+reflabel.split(':')[1]
+                                paref.set('measureable_outcomes',newmo)
+                            #EVH create crossref link and add button at top of vertical
+                            #href = '/jump_to_id/{}'.format(paref.get('url_name'))
+                            href = '../courseware/{}/{}/{}'.format(chapurl,sequrl,vertnum)
+                            taglist = paref.find(".//p[@id='taglist']")
+                            if taglist is None:
+                                taglist = etree.Element('p',id='taglist')
+                                paref.insert(0,taglist)
+                            linktext = {'type':"button",'border-radius':"2px",'title':"{}{}".format(numdict[reflabel],refdict[reflabel][8:]),'style':"cursor:pointer",'class':"mo_button",'onClick':"window.location.href='../tocindex/#anchor{}';".format(numdict[reflabel].replace(r'.',''))}
+                            print "EVH link: ",linktext
+                            link = etree.SubElement(taglist,'button',{'type':"button",'border-radius':"2px",'title':"{}{}".format(numdict[reflabel],refdict[reflabel][8:]),'style':"cursor:pointer",'class':"mo_button",'onClick':"window.location.href='../tocindex/#anchor{}';".format(numdict[reflabel].replace(r'.',''))})
+                            print "EVH link: ",etree.tostring(link)
+                            link.text = numdict[reflabel]
+                            link.set('id',reflabel.split(':')[1])
+                            tocitem = etree.Element('li')
+                            tocitem.append(etree.Element('a',itemtype=ptag,href=href,itemprop='name'))
+                            tocitem[0].text = paref.get('display_name')
+                            for ul in toctree.findall(".//ul[@reftag='{}']".format(reflabel)):
+                                if ul.get('reftype') == ptag:
+                                    ul.append(tocitem)
+                        else:
+                            aref.tag = 'a'
+                            aref.text = numdict[reflabel]
+                            aref.set('href',refdict[reflabel])
+                            aref.set('target',"_blank")
+
+            for aref in level1.findall('.//ref'):
+                reflabel = aref.text
+                if reflabel in numdict:
+                    if refdict[reflabel][:8] == 'CROSSREF': #EVH if tocFlag
+                        paref = aref.getparent()
+                        paref.remove(aref)
+                        while paref.tag not in ['html','problem']:
+                            paref = paref.getparent()
+                        ptag = paref.tag
+                        if ptag == 'problem':
+                            oldmo = paref.get('measureable_outcomes')
+                            if oldmo is None:
+                                newmo = reflabel.split(':')[1]
+                            else:
+                                newmo = oldmo+','+reflabel.split(':')[1]
+                            paref.set('measureable_outcomes',newmo)
+                        #EVH create crossref link and add button at top of vertical
+                        #href = '/jump_to_id/{}'.format(paref.get('url_name'))
+                        href = '../courseware/{}/{}'.format(chapurl,sequrl)
+                        taglist = paref.find(".//p[@id='taglist']")
+                        if taglist is None:
+                            taglist = etree.Element('p',id='taglist')
+                            paref.insert(0,taglist)
+                        link = etree.SubElement(taglist,'button',{'type':'button','border-radius':'2px','title':'{}{}'.format(numdict[reflabel],refdict[reflabel][8:]),'style':'cursor:pointer','class':'mo_button','onClick':"window.location.href='../tocindex/#anchor{}';".format(numdict[reflabel].replace(r'.',''))})
+                        link.text = numdict[reflabel]
+                        link.set('id',reflabel.split(':')[1])
+                        tocitem = etree.Element('li')
+                        tocitem.append(etree.Element('a',itemtype=ptag,href=href,itemprop='name'))
+                        tocitem[0].text = paref.get('display_name')
+                        for ul in toctree.findall(".//ul[@reftag='{}']".format(reflabel)):
+                            if ul.get('reftype') == ptag:
+                                ul.append(tocitem)
+                    else:
+                        aref.tag = 'a'
+                        aref.text = numdict[reflabel]
+                        aref.set('href',refdict[reflabel])
+                        aref.set('target',"_blank")
     # end look for chapter references
+    if tocFlag:
+        print "EVH: writing ToC index content..."
+        #os.popen('xmllint -format -o 'tocindex.html -','w').write(etree.tostring(toctree,pretty_print=True))
+        tocf = open('tocindex.html','w')
+        tocf.write(etree.tostring(toctree,method='html',pretty_print=True))
+        tocf.close()
 
 def check_for_missing_refs(tree):
     # once all of the labels have been found... need to go through and do something about the references that do not have associated labels
@@ -1221,26 +1144,26 @@ def fix_figure_refs(tree):
     '''
     Fix figure references
     '''
-    modulenum = -1
-    fignum = 0
+    chapnum = fignum = 0
     for chapter in tree.findall('.//chapter'):
         if chapter.get('nocount') is None:
-            modulenum = modulenum + 1
+            chapnum = chapnum + 1
             fignum = 0
         for div in chapter.findall('.//div[@class="figure"]'):
             #Increment count if Figure is captioned
             for b in div.findall('.//b'):
                 if re.search(r'Figure [0-9]+$',b.text,re.S) is not None:
                     fignum += 1
-                    b.text = "Figure {}.{}".format(modulenum,fignum)
+                    b.text = "Figure {}.{}".format(chapnum,fignum)
             figlabel = None
             label = div.find('.//label')
             if label is not None:
                 figlabel = label.text
                 plabel = label.getparent()
                 if plabel.tag == 'p': #TODO: Find a cleaner way to build the eTree
+                    label = plabel
                     plabel = plabel.getparent()
-                div.remove(plabel)
+                plabel.remove(label)
             if figlabel is not None:
                 # CHAD: for multi-image figures, collect all the image names
                 # TODO: Find an example and investigate how to refine (as above)
@@ -1255,7 +1178,7 @@ def fix_figure_refs(tree):
                     if aref.text == figlabel:
                         # change this ref element
                         aref.tag = 'a'
-                        aref.text = '{}.{}'.format(modulenum,fignum)
+                        aref.text = '{}.{}'.format(chapnum,fignum)
                         if len(img_names)==1:  # single image figure
                             fig_name = img_names[0]
                             # find the image within directory of modules.tex (the tex file this is being run on)
@@ -1281,7 +1204,7 @@ def fix_figure_refs(tree):
                             for fig_name in img_names:
                                 htmlbodycontent += "<img src=\"/static/html/{}\" width=\"400\" height=\"200\">".format(fig_name)
                             htmlstr = "\'<html><head></head><body>{}</body></html>\'".format(htmlbodycontent)
-                            onClick = "return newWindow({},'Figure {}.{}');".format(htmlstr,modulenum,fignum)
+                            onClick = "return newWindow({},'Figure {}.{}');".format(htmlstr,chapnum,fignum)
                             aref.set('href',"javascript: void(0)")
                             aref.set('onClick',onClick)#TODO:Blend this with above
 
@@ -1294,11 +1217,10 @@ def handle_equation_labels_and_refs(tree):
     equation on it
     '''
     popupFlag = True #EVH added
-    modulenum = -1
-    eqnnum = 0 # counter for equation numbering
+    chapnum = eqnnum = 0 # counter for equation numbering
     for chapter in tree.findall('.//chapter'):
         if chapter.get('nocount') is None:
-            modulenum += 1
+            chapnum += 1
             eqnnum = 0  # reset counter for equation numbering
         for table in chapter.findall('.//table'):
             tabclass = table.get('class')
@@ -1316,13 +1238,13 @@ def handle_equation_labels_and_refs(tree):
                         else:
                             eqnnum = eqnnum + 1 # iterate equation number
                             eqnlabel = eqnlabel[0].encode("utf-8")
-                            eqnnumstr = '({}.{})'.format(modulenum,eqnnum)
+                            eqnnumstr = '({}.{})'.format(chapnum,eqnnum)
                             eqncontent = eqncontent.replace('\\label{%s}' % eqnlabel,r'')
                             eqnlabel = eqnlabel.replace(' ','')
                             td.text = eqncontent
                     if not popupFlag: #EVH added, not currently used.
                         # Set id for linking if the pop-up option is off
-                        eq_id = '{}{}{}'.format(eqnlabel.split(":")[0],modulenum,eqnnum)
+                        eq_id = '{}{}{}'.format(eqnlabel.split(":")[0],chapnum,eqnnum)
                         tr.set('id',eq_id)
 
                     # now find all references to this equation and modify it to make number and link
@@ -1331,7 +1253,7 @@ def handle_equation_labels_and_refs(tree):
                         if aref.text == eqnlabel:
                             # change this ref element
                             aref.tag = 'a'
-                            aref.text = '{}.{}'.format(modulenum,eqnnum)
+                            aref.text = '{}.{}'.format(chapnum,eqnnum)
                             if popupFlag: #TODO: Modularize HTML generation.
                                 aref.set('href',"javascript: void(0)")
                                 tablestr_etree = (etree.tostring(tr,encoding="utf-8",method="html")).rstrip()
@@ -1345,7 +1267,7 @@ def handle_equation_labels_and_refs(tree):
                                 if re.search(r'\\boxed',tablestr,re.S) is not None:
                                     tablestr = tablestr.replace(r'\boxed','')
 
-                                tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,modulenum,eqnnum)
+                                tablestr_etree = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">%s</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">(%d.%d)</td></tr></table>" % (tablestr,chapnum,eqnnum)
                                 mathjax = "<script type=\"text/javascript\" src=\"https://edx-static.s3.amazonaws.com/mathjax-MathJax-727332c/MathJax.js?config=TeX-MML-AM_HTMLorMML-full\"> </script>"
                                 htmlstr = "\'<html><head>%s</head><body>%s</body></html>\'" % (mathjax,tablestr_etree)
                                 eqnstr = "\'Equation %s\'" % eqnnumstr
