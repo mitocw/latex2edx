@@ -1,0 +1,11 @@
+BeautifulSoup==3.2.0
+Cython==0.20.1
+Pillow==2.5.3
+PyXML==0.8.4 --allow-unverified PyXML
+-e git+https://github.com/mitocw/latex2dnd.git@master#egg=latex2dnd-master
+-e git+https://github.com/mitocw/latex2edx.git@master#egg=latex2edx-master
+lxml==3.3.3
+path.py==5.1
+pep8==1.5.7
+-e git+https://github.com/tiarno/plastex@master#egg=plasTeX-master
+wsgiref==0.1.2
