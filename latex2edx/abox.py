@@ -318,7 +318,7 @@ class AnswerBox(object):
                     elem = etree.Element('p')
                     if 'inline' in abargs:
                         elem.set('style','display:inline')
-                    elem.text = prompt
+                    elem.text = prompt + " "
                     elem.append(tl)
                 else:
                     elem = tl
