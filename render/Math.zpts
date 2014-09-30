@@ -30,6 +30,6 @@ type: xml
     </metal:block>
     <td tal:condition="self/ownerDocument/context/packages/documentclass/fleqn" style="width:80%"></td>
     <td tal:condition="not:self/ownerDocument/context/packages/documentclass/fleqn" style="width:40%"></td>
-    <td class="eqnnum" style="width:20%"><span tal:condition="row/ref">(<span tal:content="row/ref">1.1.1</span>)</span></td>
+    <td tal:condition="row/ref" class="eqnnum" style="width:20%" tal:content="string:(${row/ref})"></td>
 </tr>
 </table>

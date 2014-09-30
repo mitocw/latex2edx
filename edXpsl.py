@@ -1,61 +1,89 @@
+import codecs
+from plasTeX import Command, Environment, CountCommand
+from plasTeX.Logging import getLogger
 from plasTeX import Base
 
-class edXcourse(Base.Environment):
-    args = '{ number } { url_name } { attrib_string } self'
+log = getLogger()
+status = getLogger('status')
 
-class EdXchapterStar(Base.Environment):
+class MyBaseCommand(Base.Command):
+    def invoke(self,tex):
+        Command.invoke(self,tex)
+        self.attributes['filename'] = tex.filename
+        self.attributes['linenum'] = tex.lineNumber
+
+class MyBaseVerbatim(Base.verbatim):
+    def invoke(self,tex):
+        self.attributes['filename'] = tex.filename
+        self.attributes['linenum'] = tex.lineNumber
+        return Base.verbatim.invoke(self,tex)
+
+class MyBaseEnvironment(Base.Environment):
+    def invoke(self,tex):
+        self.attributes['filename'] = tex.filename
+        self.attributes['linenum'] = tex.lineNumber
+        return Base.Environment.invoke(self,tex)
+
+class edXcourse(Base.Environment):
+    args = '{ number } { display_name } [ attrib_string:str ] self'
+
+class EdXchapterStar(MyBaseEnvironment):
     macroName = 'edXchapter*'
-    args = '{ display_name } self'
+    args = '{ display_name } [ attrib_string:str ] self'
 
 class edXchapter(EdXchapterStar):
     macroName = 'edXchapter'
     counter = 'chapter'
     position = 0
     forcePars = True
-    def invoke(self, tex):
+    args = '{ display_name } [ attrib_string:str ] self'
+    def invoke(self,tex):
         self.position = self.ownerDocument.context.counters[self.counter].value + 1
-        return Base.Environment.invoke(self, tex)
+        return Base.Environment.invoke(self,tex)
 
-class EdXsectionStar(Base.Environment):
+class EdXsectionStar(MyBaseEnvironment):
     macroName = 'edXsection*'
-    args = '{ url_name } self'
+    args = '{ display_name } [ attrib_string:str ] self'
 
 class edXsection(EdXsectionStar):
     macroName = 'edXsection'
     counter = 'section'
     position = 0
     forcePars = True
-    def invoke(self, tex):
+    args = '{ display_name } [ attrib_string:str ] self'
+    def invoke(self,tex):
         self.position = self.ownerDocument.context.counters[self.counter].value + 1
-        return Base.Environment.invoke(self, tex)
+        return Base.Environment.invoke(self,tex)
 
-class EdXsequentialStar(Base.Environment):
+class EdXsequentialStar(MyBaseEnvironment):
     macroName = 'edXsequential*'
-    args = 'self'
+    args = '{ display_name } [ attrib_string:str ] self'
 
 class edXsequential(EdXsequentialStar):
     macroName = 'edXsequential'
     counter = 'section'
     position = 0
     forcePars = True
-    def invoke(self, tex):
+    args = '{ display_name } [ attrib_string:str ] self'
+    def invoke(self,tex):
         self.position = self.ownerDocument.context.counters[self.counter].value + 1
-        return Base.Environment.invoke(self, tex)
+        return Base.Environment.invoke(self,tex)
 
-class EdXverticalStar(Base.Environment):
+class EdXverticalStar(MyBaseEnvironment):
     macroName = 'edXvertical*'
-    args = '{ display_name } self'
+    args = '{ display_name } [ attrib_string:str ] self'
 
 class edXvertical(EdXverticalStar):
     macroName = 'edXvertical'
     counter = 'subsection'
     position = 0
     forcePars = True
-    def invoke(self, tex):
+    args = '{ display_name } [ attrib_string:str ] self'
+    def invoke(self,tex):
         self.position = self.ownerDocument.context.counters[self.counter].value + 1
-        return Base.Environment.invoke(self, tex)
+        return Base.Environment.invoke(self,tex)
 
-class edXabox(Base.Command):
+class edXabox(MyBaseCommand):
     args = 'self'
 
 class edXinlinevideo(Base.Command):
@@ -100,13 +128,13 @@ class edXmath(Base.Environment):
 class edXxml(Base.Command):
     args = 'self'
 
-class edXproblem(Base.Environment):
-    args = '{ url_name } { attrib_string } self'
+class edXproblem(MyBaseEnvironment):
+    args = '{ display_name } { attrib_string } self'
 
-class edXtext(Base.Environment):	# indicates HTML file to be included (ie <html...> in course.xml)
-    args = '{ url_name } self'
+class edXtext(MyBaseEnvironment):	# indicates HTML file to be included (ie <html...> in course.xml)
+    args = '{ display_name } [ attrib_string:str ] self'
 
-class edXsolution(Base.Environment):
+class edXsolution(MyBaseEnvironment):
     args = 'self'
 
 class section(Base.Command):
@@ -121,3 +149,11 @@ class label(Base.Command):
 class ref(Base.Command):
     args = 'self'
 
+class toclabel(Base.Command):
+    args = 'self'
+
+class tocref(Base.Command):
+    args = 'self'
+
+class href(Base.Command):
+    args = 'self'
