@@ -887,7 +887,6 @@ def getpoptag(tree,tag): #TODO: Find a cleaner way to build the eTree
         tree.remove(pelem)
     return tagtext
 
-# EVH: need to fix this, don't understand the complexity
 def handle_references(tree):
     '''
     Process references to sections of content -- create section numbering and the reference should be a link that opens in a new tab to the desired component
@@ -896,44 +895,6 @@ def handle_references(tree):
     popupFlag = True
     course = tree.find('.//course')
     cnumber = course.get('number')
-    #HANDLE FIGURE REFERENCES
-    figdict = {}
-    figattrib = {}
-    for fig in tree.findall('.//div[@class="figure"]'):
-        #Retrieve Figure number if it is captioned
-        caption = fig.find('.//div[@class="caption"]/b')
-        if caption is not None:
-            fignum = caption.text.split(' ')[1]
-        figlabel = None
-        label = fig.find('.//label')
-        if label is not None:
-            figlabel = label.text
-            figdict[figlabel] = fignum
-            plabel = label.getparent()
-            if plabel.tag == 'p': #TODO: Find a cleaner way to build the eTree
-                label = plabel
-                plabel = plabel.getparent()
-            plabel.remove(label)
-        if figlabel is not None:
-            # CHAD: for multi-image figures, collect all the image names
-            # TODO: Find an example and investigate how to refine (as above)
-            imgsrcs = []
-            for img in fig.findall('.//img'):
-                imgsrc = img.get('src')
-                imgsrcs.append(imgsrc)
-            if len(imgsrcs)==1:  # single image figure
-                figfile = imgsrcs[0]
-                figattrib[figlabel] = {'href':'{}'.format(figfile)}
-                figattrib[figlabel] = {'onClick':"window.open(this.href,\'{}\',\'width=400,height=200\',\'toolbar=1\'); return false;".format(cnumber)}
-                #EVH: in the above, cnumber specifies the name of the popup window, if this is the same for all figures, the new linked clicked will replace the old figure in the pop-up.
-            else: # multi-image figure
-                htmlbodycontent = ""
-                for figfile in imgsrcs:
-                    htmlbodycontent += "<img src=\"{}\" width=\"400\" height=\"200\">".format(figfile)
-                htmlstr = "\'<html><head></head><body>{}</body></html>\'".format(htmlbodycontent)
-                figattrib[figlabel] = {'onClick':"return newWindow({},'Figure {}');".format(htmlstr,fignum)}
-                figattrib[figlabel] = {'href':'javascript: void(0)'}
-    #END HANDLE FIGURE REFERENCES
     #Navigate coures and set a 'tmploc' attribute with the item location
     maplist = [] #['loc. str.']
     mapdict = {} #{'location str.':['URL','display_name','refnum']}
@@ -996,18 +957,57 @@ def handle_references(tree):
                 for label in labels:
                     if label is not None:
                         label.set('tmploc',locstr+'.0')
-                for elem in vert.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]'):
+                for elem in vert.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]|.//div[@class="figure"]'):
                     elem.set('tmploc',locstr)
             locstr = '.'.join(locstr.split('.')[:-1])
-            #for elem in seq.xpath('.//tocref|.//toclabel|.//label'):
-            for elem in seq.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]'):
+            for elem in seq.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]|.//div[@class="figure"]'):
                 if elem.get('tmploc') is None:
                     elem.set('tmploc',locstr)
         locstr = '.'.join(locstr.split('.')[:-1])
-        #for elem in chapter.xpath('.//tocref|.//toclabel|.//label'):
-        for elem in chapter.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]'):
+        for elem in chapter.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]|.//div[@class="figure"]'):
             if elem.get('tmploc') is None:
                 elem.set('tmploc',locstr)
+    #HANDLE FIGURE REFERENCES
+    figdict = {}
+    figattrib = {}
+    for fig in tree.findall('.//div[@class="figure"]'):
+        locstr = fig.attrib.pop('tmploc')
+        #Retrieve Figure number if it is captioned
+        caption = fig.find('.//div[@class="caption"]/b')
+        if caption is not None:
+            fignum = caption.text.split(' ')[1]
+        figlabel = None
+        label = fig.find('.//label')
+        if label is not None:
+            figlabel = label.text
+            figdict[figlabel] = fignum
+            plabel = label.getparent()
+            if plabel.tag == 'p': #TODO: Find a cleaner way to build the eTree
+                label = plabel
+                plabel = plabel.getparent()
+            plabel.remove(label)
+        if figlabel is not None:
+            # CHAD: for multi-image figures, collect all the image names
+            # TODO: Find an example and investigate how to refine (as above)
+            fig.set('id','fig{}'.format(fignum))
+            figattrib[figlabel] = {'href':'{}/#fig{}'.format(mapdict[locstr][0],fignum)}
+            if popupFlag:
+                imgsrcs = []
+                for img in fig.findall('.//img'):
+                    imgsrc = img.get('src')
+                    imgsrcs.append(imgsrc)
+                if len(imgsrcs)==1:  # single image figure
+                    figfile = imgsrcs[0]
+                    figattrib[figlabel] = {'href':'{}'.format(figfile)}
+                    figattrib[figlabel] = {'onClick':"window.open(this.href,\'{}\',\'width=400,height=200\',\'toolbar=1\'); return false;".format(cnumber)}
+                else: # multi-image figure
+                    htmlbodycontent = ""
+                    for figfile in imgsrcs:
+                        htmlbodycontent += "<img src=\"{}\" width=\"400\" height=\"200\">".format(figfile)
+                    htmlstr = "\'<html><head></head><body>{}</body></html>\'".format(htmlbodycontent)
+                    figattrib[figlabel] = {'onClick':"return newWindow({},'Figure {}');".format(htmlstr,fignum)}
+                    figattrib[figlabel] = {'href':'javascript: void(0)'}
+    #END HANDLE FIGURE REFERENCES
     #Build cross reference dictionaries
     toclist = [] #['toclabel']
     tocdict = {} #{'toclabel',['locstr','label text']}
@@ -1098,11 +1098,7 @@ def handle_references(tree):
         toctree.append(etree.fromstring('<head></head>'))
         tocbody = etree.SubElement(toctree,'body')
         tocbody.append(etree.Element('h1'))
-        tocbody[0].text = 'Measurable Outcome Index'
-        tocbody.append(etree.Element('p'))
-        tocbody[1].text = 'This index provides the links associated to each of the measurable outcomes for the course. By clicking on a measurable outcome below, you will see the content you can use to learn about that measurable outcome and the content that we use to assess your understanding of that measurable outcome.'
-        tocbody[1].append(etree.Element('i'))
-        tocbody[1][0].text = 'Please note that while some future content will be indexed here, some links may not work until the content has been officially released!'
+        tocbody[0].text = 'Table of Contents'
     while len(toclist)!=0:
         hlabel = False
         toclabel = toclist.pop(0)
