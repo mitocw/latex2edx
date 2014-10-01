@@ -27,18 +27,56 @@ class MyBaseEnvironment(Base.Environment):	# add filename and linenum attributes
 class edXcourse(Base.Environment):
     args = '{ number } { display_name } [ attrib_string:str ] self'
 
-class edXchapter(MyBaseEnvironment):
+class EdXchapterStar(MyBaseEnvironment):
+    macroName = 'edXchapter*'
     args = '{ display_name } [ attrib_string:str ] self'
 
-class edXsection(MyBaseEnvironment):
-    # turns into edXsequential
+class edXchapter(EdXchapterStar):
+    macroName = 'edXchapter'
+    counter = 'chapter'
+    position = 0
+    forcePars = True
+    args = '{ display_name } [ attrib_string:str ] self'
+    def invoke(self,tex):
+        self.position = self.ownerDocument.context.counters[self.counter].value + 1
+        return Base.Environment.invoke(self,tex)
+
+class EdXsectionStar(MyBaseEnvironment):
+    macroName = 'edXsection*'
     args = '{ display_name } [ attrib_string:str ] self'
 
-class edXsequential(Base.Environment):
+class edXsection(EdXsectionStar):
+    macroName = 'edXsection'
+    counter = 'section'
+    position = 0
+    forcePars = True
+    args = '{ display_name } [ attrib_string:str ] self'
+    def invoke(self,tex):
+        self.position = self.ownerDocument.context.counters[self.counter].value + 1
+        return Base.Environment.invoke(self,tex)
+
+class EdXsequentialStar(MyBaseEnvironment):
+    macroName = 'edXsequential*'
     args = '{ display_name } [ attrib_string:str ] self'
 
-class edXvertical(Base.Environment):
+class edXsequential(EdXsequentialStar):
+    macroName = 'edXsequential'
+    counter = 'section'
+    position = 0
+    forcePars = True
     args = '{ display_name } [ attrib_string:str ] self'
+    def invoke(self,tex):
+        self.position = self.ownerDocument.context.counters[self.counter].value + 1
+        return Base.Environment.invoke(self,tex)
+
+class EdXverticalStar(MyBaseEnvironment):
+    macroName = 'edXvertical*'
+    args = '{ display_name } [ attrib_string:str ] self'
+
+class edXvertical(EdXverticalStar):
+    macroName = 'edXvertical'
+    counter = 'subsection'
+    position = 0
 
 class edXabox(MyBaseCommand):
     args = 'self'
@@ -118,6 +156,21 @@ class section(Base.Command):
     args = 'self'
 
 class subsection(Base.Command):
+    args = 'self'
+
+class label(Base.Command):
+    args = 'self'
+
+class ref(Base.Command):
+    args = 'self'
+
+class toclabel(Base.Command):
+    args = 'self'
+
+class tocref(Base.Command):
+    args = 'self'
+
+class href(Base.Command):
     args = 'self'
 
 class edXaskta(Base.Command):

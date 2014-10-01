@@ -4,6 +4,7 @@ import datetime
 import json
 import optparse
 import os
+import re
 import py_compile
 import sys
 import tempfile
@@ -104,6 +105,7 @@ class latex2edx(object):
                  section_only=False,
                  xml_only=False,
                  units_only=False,
+                 popup_flag=False,
                  ):
         '''
         extra_xml_filters = list of functions acting on XML, applied to XHTML
@@ -138,6 +140,7 @@ class latex2edx(object):
         self.suppress_verticals = suppress_verticals
         self.xml_only = xml_only
         self.units_only = units_only
+        self.popup_flag = popup_flag
         self.the_xml = None
 
         if output_fn is None or not output_fn:
@@ -153,6 +156,7 @@ class latex2edx(object):
                             self.fix_table,
                             self.fix_table_p,
                             self.fix_latex_minipage_div,
+                            self.handle_refs,
                             self.process_edxcite,
                             self.process_askta,
                             self.process_showhide,
@@ -436,6 +440,386 @@ class latex2edx(object):
         '''
         for div in tree.findall('.//div[@class="minipage"]'):
             div.tag = 'text'
+    
+    def handle_refs(self, tree):
+        '''
+        Process references to sections of content -- create section numbering and
+        reference should be a link that opens in a new tab to the desired component.
+        If the --popups option is specified, equations and figure references open a new window.
+        '''
+        #EVH: Build course map from tree.
+        course = tree.find('.//course')
+        cnumber = course.get('number')
+        #EVH: Navigate course and set a 'tmploc' attribute with location for desired items
+        maplist = [] #['loc. str.']
+        mapdict = {} #{'location str.':['URL','display_name','refnum']}
+        chapnum = 0
+        chapref = seqref = vertref = '0'
+        for chapter in tree.findall('.//chapter'):
+            chapnum += 1
+            if chapter.get('refnum') is not None:
+                chapref = chapter.get('refnum')
+                seqref = vertref = '0'
+            chapurl = chapter.get('url_name')
+            locstr = '{}'.format(chapnum)
+            maplist.append(locstr)
+            mapdict[locstr] = ['../courseware/{}'.format(chapurl),chapter.get('display_name'),chapref]
+            labels = [chapter.find('./p/label'),chapter.find('./label'),chapter.find('./p/toclabel'),chapter.find('./toclabel')]
+            for label in labels:
+                if label is not None:
+                    label.set('tmploc',locstr+'.0')
+            seqnum = 0
+            for child1 in chapter:
+                if child1.tag == 'p' and (child1.find('./') is not None):
+                    seq = child1[0]
+                else:
+                    seq = child1
+                if seq.tag not in ['sequential','vertical','section']:
+                    continue
+                seqnum +=1
+                if seq.get('refnum') is not None:
+                    seqref = seq.get('refnum')
+                    vertref = '0'
+                sequrl = seq.get('url_name')
+                locstr = '{}.{}'.format(chapnum,seqnum)
+                maplist.append(locstr)
+                mapdict[locstr] = ['../courseware/{}/{}'.format(chapurl,sequrl),seq.get('display_name'),'.'.join([chapref,seqref])]
+                labels = [seq.find('./p/label'),seq.find('./label'),seq.find('./p/toclabel'),seq.find('./toclabel')]
+                for label in labels:
+                    if label is not None:
+                        label.set('tmploc',locstr+'.0')
+                if seqnum==1:
+                    mapdict['{}'.format(chapnum)][0] = '../courseware/{}/{}/1'.format(chapurl,sequrl)
+                vertnum = 0
+                for child2 in seq:
+                    if child2.tag == 'p' and (child2.find('./') is not None):
+                        vert = child2.find('./')
+                    else:
+                        vert = child2
+                    if vert.tag not in ['sequential','vertical','section','problem','html']:
+                        continue
+                    vertnum += 1
+                    if vert.get('refnum') is not None:
+                        vertref = vert.get('refnum')
+                    locstr = '{}.{}.{}'.format(chapnum,seqnum,vertnum)
+                    maplist.append(locstr)
+                    mapdict[locstr] = ['../courseware/{}/{}/{}'.format(chapurl,sequrl,vertnum),vert.get('display_name'),'.'.join([chapref,seqref,vertref])]
+                    labels = [vert.find('./p/label'),vert.find('./label'),vert.find('./p/toclabel'),vert.find('./toclabel')]
+                    for label in labels:
+                        if label is not None:
+                            label.set('tmploc',locstr+'.0')
+                    for elem in vert.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]|.//div[@class="figure"]'):
+                        elem.set('tmploc',locstr)
+                locstr = '.'.join(locstr.split('.')[:-1])
+                for elem in seq.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]|.//div[@class="figure"]'):
+                    if elem.get('tmploc') is None:
+                        elem.set('tmploc',locstr)
+            locstr = '.'.join(locstr.split('.')[:-1])
+            for elem in chapter.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]|.//div[@class="figure"]'):
+                if elem.get('tmploc') is None:
+                    elem.set('tmploc',locstr)
+        #EVH: Handle figure references. Search for labels and build dictionary
+        figdict = {} #{'figlabel':'fignum'}
+        figattrib = {} #{'figlabel':{'attrib':'value'}}
+        for fig in tree.findall('.//div[@class="figure"]'):
+            locstr = fig.attrib.pop('tmploc')
+            #Retrieve Figure number if it is captioned
+            caption = fig.find('.//div[@class="caption"]/b')
+            if caption is not None:
+                fignum = caption.text.split(' ')[1]
+            figlabel = None
+            label = fig.find('.//label')
+            if label is not None:
+                figlabel = label.text
+                figdict[figlabel] = fignum
+                plabel = label.getparent()
+                if plabel.tag == 'p': #TODO: Find a cleaner way to build the eTree
+                    label = plabel
+                    plabel = plabel.getparent()
+                plabel.remove(label)
+            if figlabel is not None:
+                # CHAD: for multi-image figures, collect all the image names
+                # TODO: Find an example and investigate how to refine (as above)
+                fig.set('id','fig{}'.format(fignum))
+                figattrib[figlabel] = {'href':'{}/#fig{}'.format(mapdict[locstr][0],fignum)}
+                if self.popup_flag:
+                    imgsrcs = []
+                    for img in fig.findall('.//img'):
+                        imgsrc = img.get('src')
+                        imgsrcs.append(imgsrc)
+                    if len(imgsrcs)==1:  # single image figure
+                        figfile = imgsrcs[0]
+                        figattrib[figlabel] = {'href':'{}'.format(figfile)}
+                        # TODO: Find a way to resize popup window to the figure
+                        figattrib[figlabel] = {'onClick':"window.open(this.href,\'{}\',\'width=400,height=200\',\'toolbar=1\'); return false;".format(cnumber)}
+                    else: # multi-image figure
+                        htmlbodycontent = ""
+                        for figfile in imgsrcs:
+                            htmlbodycontent += "<img src=\"{}\" width=\"400\" height=\"200\">".format(figfile)
+                        htmlstr = "\'<html><head></head><body>{}</body></html>\'".format(htmlbodycontent)
+                        figattrib[figlabel] = {'onClick':"return newWindow({},'Figure {}');".format(htmlstr,fignum)}
+                        figattrib[figlabel] = {'href':'javascript: void(0)'}
+        #EVH: Build cross reference dictionaries for ToC refs
+        toclist = [] #['toclabel']
+        tocdict = {} #{'toclabel',['locstr','label text']}
+        labeldict = {} #{'labeltag':['loc. str.','chapnum.labelnum']}
+        tocrefdict = {} #{'tocref':[['loc. str.'],['parent name']]}
+        labelcnt = {} #{'labeltag':cnt}
+        chapref = '0'
+        for label in tree.xpath('.//label|//toclabel'):
+            locstr = label.get('tmploc')
+            if locstr.split('.')[-1]=='0':
+                locref = mapdict[locstr[:-2]][2]
+            else:
+                locref = mapdict[locstr][2]
+            labelref = label.text
+            if locref.split('.')[0] != chapref:
+                chapref = locref.split('.')[0]
+                labelcnt = {} #Reset label count
+            if locstr.split('.')[-1] == '0':
+                labeldict[labelref] = [locstr,locref]
+            else:
+                labeltag = labelref.split(':')[0]
+                if labeltag in labelcnt:
+                    labelcnt[labeltag]+=1
+                else:
+                    labelcnt[labeltag]=1
+                if chapref == '0':
+                    labelstr = '{}{}'.format(labeltag,labelcnt[labeltag])
+                else:
+                    labelstr = '{}{}.{}'.format(labeltag,chapref,labelcnt[labeltag])
+                labeldict[labelref] = [locstr,labelstr]
+            #Get label tail and parent text, and remove label
+            labeltail = label.tail
+            plabel = label.getparent()
+            ptext = plabel.text
+            if labeltail != ' ' and (labeltail is not None):
+                if ptext == '\n' or (ptext is None):
+                    ptext = labeltail
+                else:
+                    ptext = ptext[:-1]+labeltail #remove final carriage return (usually from a p tag) and add tail
+            if label.tag == 'toclabel':
+                toclist.append(labelref)
+                tocdict[labelref] = [locstr,ptext]
+            if plabel.tag == 'p':
+                label = plabel
+                plabel = plabel.getparent()
+            plabel.text = ptext
+            plabel.remove(label)
+        for tocref in tree.findall('.//tocref'):
+            tagref = tocref.text
+            locstr = tocref.get('tmploc')
+            paref = tocref.getparent()
+            paref.remove(tocref)
+            while paref.tag not in ['html','problem']:
+                paref = paref.getparent()
+            #EVH: Prepend letter to identify content type
+            if paref.tag == 'problem':
+                parefname = 'P'+paref.get('display_name')
+                oldtag = paref.get('measureable_outcomes')
+                if oldtag is None:
+                    newtag = tagref.split(':')[1]
+                else:
+                    newtag = oldtag+','+tagref.split(':')[1]
+                paref.set('measureable_outcomes',newtag)
+            else:
+                parefname = 'H'+paref.get('display_name')
+            if tagref in tocrefdict:
+                tocrefdict[tagref][0].append(locstr)
+                tocrefdict[tagref][1].append(parefname)
+            else:
+                tocrefdict[tagref] = [[locstr],[parefname]]
+            taglist = paref.find(".//p[@id='taglist']")
+            if taglist is None:
+                taglist = etree.Element('p',id='taglist',tags=tagref)
+                paref.insert(0,taglist)
+            else:
+                tags = taglist.get('tags')+','+tagref
+                taglist.set('tags',tags+','+tagref)
+        #EVH: Parse taglist to create ToC button links at the top of each vertical
+        for taglist in tree.findall(".//p[@id='tags']"):
+            tags = taglist.get('tags').split(',')
+            for tocref in tags:
+                link = etree.SubElement(taglist,'button',{'type':"button",'border-radius':"2px",'title':"{}{}:\n{}".format(tocref.split(':')[0].upper(),labeldict[tocref][1],tocdict[tocref][1]),'style':"cursor:pointer",'class':"mo_button",'onClick':"window.location.href='../tocindex/#anchor{}{}';".format(tocref.split(':')[0].upper(),labeldict[tocref][1].replace(r'.',''))})
+                link.text = tocref.split(':')[0].upper()+labeldict[tocref][1]
+                link.set('id',tocref.split(':')[1])
+        tochead = ['h2','h3','h4']
+        if len(toclist) != 0:
+            #EVH: Start building tocindex.html
+            toctree = etree.Element('html')
+            toctree.append(etree.fromstring('<head></head>'))
+            tocbody = etree.SubElement(toctree,'body')
+            tocbody.append(etree.Element('h1'))
+            tocbody[0].text = 'Table of Contents'
+        while len(toclist)!=0:
+            hlabel = False
+            toclabel = toclist.pop(0)
+            tocloc = tocdict[toclabel][0]
+            tocname = tocdict[toclabel][1]
+            if tocloc.split('.')[-1]=='0':
+                hlabel = True
+                tocloc = tocloc[:-2]
+            while tocloc in maplist:
+                tocentry = maplist.pop(0)
+                entryname = mapdict[tocentry][1]
+                toclevel = len(tocentry.split('.'))
+                if toclevel == 1:
+                    if tocentry.split('.')[0]!='1':
+                        tocbody.append(etree.Element('br'))
+                    #Insert chapter titles if no toclabel exist
+                    if not hlabel:
+                        tocitem = etree.Element('a',{'href':mapdict[tocentry][0]})
+                        tocitem.append(etree.Element('h2'))
+                        tocitem[0].text = entryname
+                        tocbody.append(tocitem)
+            #if toclabel in tocrefdict:
+            if not (hlabel and toclabel in tocrefdict):
+                toctag = labeldict[toclabel][1]
+                tocbody.append(etree.Element('a',{'name':'anchor{}'.format(toctag.replace('.','').upper())}))
+                toctable = etree.Element('table',{'id':'label','class':'wikitable collapsible collapsed'})
+                toctable.append(etree.Element('tbody'))
+                tablecont = etree.SubElement(toctable[0],'tr')
+                tablecont = etree.SubElement(tablecont,'th')
+                tablecont.append(etree.Element('a',{'id':'ind{}l'.format(toctag),'onclick':"$('#ind{}').toggle();return false;".format(toctag),'name':'ind{}l'.format(toctag),'href':'#'}))
+                if hlabel:
+                    tablecont = etree.SubElement(tablecont[0],tochead[toclevel-1])
+                    tablecont.text = entryname
+                else:
+                    tablecont[0].append(etree.Element('strong',{'itemprop':'name'}))
+                    tablecont[0][0].text = toctag.upper()
+                    tablecont = etree.SubElement(tablecont,'span',{'itemprop':'description'})
+
+                    tablecont.text = tocname
+
+                tablecont = etree.SubElement(toctable[0],'tr',{'id':'ind{}'.format(toctag),'style':'display:none'})
+                tablecont = etree.SubElement(tablecont,'td')
+                tablecont.append(etree.Element('h4'))
+                tablecont[0].text = 'Learn'
+                tablecont.append(etree.Element('ul',{'class':'{}learn'.format(toclabel.split(':')[0].upper())}))
+                tablecont.append(etree.Element('h4'))
+                tablecont[2].text = 'Assess'
+                tablecont.append(etree.Element('ul',{'class':'{}assess'.format(toclabel.split(':')[0].upper())}))
+                if toclabel in tocrefdict:
+                    tocrefs = tocrefdict.pop(toclabel)
+                    tocrefnames = tocrefs[1]
+                    tocrefs = tocrefs[0]
+                    for tocref in tocrefs:
+                        tableli = etree.Element('li')
+                        tableli.append(etree.Element('a',{'href':mapdict[tocref][0],'itemprop':'name'}))
+                        tocrefname = tocrefnames.pop(0)
+                        tableli[0].text = tocrefname[1:]
+                        if tocrefname[0] == 'H':
+                            tablecont[1].append(tableli)
+                        else:
+                            tablecont[3].append(tableli)
+            else:
+                toctable = etree.Element('a',{'href':mapdict[tocloc][0]})
+                if hlabel:
+                    tablecont = etree.SubElement(toctable,tochead[toclevel-1])
+                    tablecont.text = entryname
+                else:
+                    toctable.append(etree.Element('strong',{'itemprop':'name'}))
+                    toctable[0].text = toclabel.split(':')[0]+labeldict[toclabel][1]
+                    tablecont = etree.SubElement(toctable,'span',{'itemprop':'description'})
+                    tablecont.text = tocname
+            tocbody.append(toctable)
+        if len(tocdict) != 0:
+            print "Writing ToC index content..."
+            tocf = open('tocindex.html','w')
+            tocf.write(etree.tostring(toctree,method='html',pretty_print=True))
+            tocf.close()
+        #EVH: Check for unused tocrefs
+        for tocref in tocrefdict:
+            print "\ntocref.text =", tocref
+            print "WARNING: There is a reference to non-existent label %s" % tocref
+            raw_input("Press ENTER to continue")
+        #EVH: Handle equation references. Search for labels and build dictionaries
+        eqndict = {} #{'eqnlabel':'eqnnum'}
+        eqnattrib = {} #{'eqnlabel':{'attrib':'value'}}
+        chapref = '0'
+        eqncnt = 0
+        for table in tree.xpath('.//table[@class="equation"]|.//table[@class="eqnarray"]'):
+            locstr = table.attrib.pop('tmploc')
+            locref = mapdict[locstr][2]
+            if chapref != locref.split('.')[0]:
+                chapref = locref.split('.')[0]
+                eqncnt = 0
+            for tr in table.findall('.//tr'): #Each row can have at most one label
+                eqnnumcell = None
+                eqnlabel = []
+                for td in tr.findall('.//td'):
+                    if td.get('class') == 'eqnnum':
+                        eqnnumcell = td
+                    elif td.text is not None:
+                        if re.search(r'\\label\{(.*?)\}',td.text,re.S) is not None:
+                            eqncontent = td.text
+                            eqnlabel = re.findall(r'\\label\{(.*?)\}',eqncontent,re.S)
+                            eqncontent = re.sub(r'\\label{.*}',r'',eqncontent)
+                            td.text = eqncontent
+                if len(eqnlabel) != 0:
+                    eqnlabel = eqnlabel[0]
+                    eqncnt += 1
+                    eqnlabel = eqnlabel.replace(' ','')
+                    if chapref == '0':
+                        eqnnum = '{}'.format(eqncnt)
+                    else:
+                        eqnnum = '{}{}'.format(chapref,eqncnt)
+                    eqndict[eqnlabel] = '({})'.format(eqnnum)
+                    #EVH: Set id for linking if pop-up flag is False
+                    tr.set('id','eqn{}'.format(eqnnum))
+                    eqnattrib[eqnlabel] = {'href':'{}/#eqn{}'.format(mapdict[locstr][0],eqnnum)}
+                if self.popup_flag and len(eqnlabel)!=0:
+                    eqnattrib[eqnlabel]['href'] = 'javascript: void(0)'
+                    eqntablecontent = (etree.tostring(tr,encoding="utf-8",method="html")).rstrip()
+                    eqntablecontent = ''.join(re.findall(r'\[mathjax[a-z]*\](.*?)\[/mathjax[a-z]*\]',eqntablecontent,re.S))
+                    eqntablecontent = re.escape('$$'+eqntablecontent+'$$')
+                    if re.search(r'\\boxed',eqntablecontent,re.S) is not None:
+                        eqntablecontent = eqntablecontent.replace(r'\boxed','')
+                    eqntablecontent = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">{}</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">({})</td></tr></table>".format(eqntablecontent,eqnnum)
+                    mathjax = "<script type=\"text/javascript\" src=\"https://edx-static.s3.amazonaws.com/mathjax-MathJax-727332c/MathJax.js?config=TeX-MML-AM_HTMLorMML-full\"> </script>"
+                    htmlstr = "\'<html><head>{}</head><body>{}</body></html>\'".format(mathjax,eqntablecontent)
+                    eqnattrib[eqnlabel]['onClick'] = "return newWindow({},\'Equation {}\');".format(htmlstr,eqnnum)
+                # replace the necessary subelements to get desired behavior
+                if table.tag == 'equation': #Only one tr element in equation table, need to add 'td' elements
+                    tr.clear()
+                    eqncell = etree.SubElement(tr,"td",attrib={'style':"width:80%;vertical-align:middle;text-align:center;border-style:hidden",'class':"equation"})
+                    eqncell.text = eqncontent
+                    eqnnumcell = None
+                if eqnnumcell is None:
+                    eqnnumcell = etree.SubElement(tr,"td",attrib={'style':"width:20%;vertical-align:middle;text-align:left;border-style:hidden",'class':"eqnnum"})
+                else:
+                    tr.remove(eqnnumcell)
+                    eqnnumcell = etree.SubElement(tr,"td",attrib=eqnnumcell.attrib)
+                if len(eqnlabel)!=0:
+                    eqnnumcell.text = '({})'.format(eqnnum)
+                    eqnnumsty = eqnnumcell.get('style')
+                    eqnnumsty = re.sub('text-align:[a-zA-Z]+;','',eqnnumsty)
+                    eqnnumsty += ';text-align:right'
+                    eqnnumcell.set('style',eqnnumsty)
+        #EVH: Find and replace references everywhere with ref number and link
+        for aref in tree.findall('.//ref'):
+            reflabel = aref.text
+            if reflabel in figdict:
+                aref.tag = 'a'
+                aref.text = figdict[reflabel]
+                for attrib in figattrib[reflabel]:
+                    aref.set(attrib,figattrib[reflabel][attrib])
+            elif reflabel in labeldict:
+                aref.tag = 'a'
+                aref.text = labeldict[reflabel][1]
+                locstr = labeldict[reflabel][0]
+                if locstr.split('.')[-1]=='0':
+                    locstr = locstr[:-2]
+                aref.set('href',mapdict[locstr][0])
+                aref.set('target',"_blank")
+            elif reflabel in eqndict:
+                aref.tag = 'a'
+                aref.text = eqndict[reflabel]
+                for attrib in eqnattrib[reflabel]:
+                    aref.set(attrib,eqnattrib[reflabel][attrib])
+            else:
+                print "WARNING: There is a reference to non-existent label %s" % aref.text
+                raw_input("Press ENTER to continue")
     
     def process_askta(self, tree):
         '''
@@ -1005,6 +1389,11 @@ def CommandLine():
                       dest="units_only",
                       default=False,
                       help="export only units, including problem, html -- no course, chapter, section",)
+    parser.add_option("--popups",
+                      action="store_true",
+                      dest="popups",
+                      default=False,
+                      help="enable equation and figure popup windows on clicking their references",)
     (opts, args) = parser.parse_args()
 
     if len(args)<1:
@@ -1028,6 +1417,7 @@ def CommandLine():
                   section_only=opts.section_only,
                   xml_only=opts.xml_only,
                   units_only=opts.units_only,
+                  popup_flag=opts.popups,
         )
     c.convert()
     
