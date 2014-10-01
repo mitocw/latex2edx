@@ -38,8 +38,8 @@ whereas *Command* macros are used as::
 Structural Macros
 -----------------
 
-edX courses are structured heirarchically, by chapter, section, then
-sequential.  Each sequential unit may have several Vertical elements
+edX courses are structured heirarchically, by chapter, sequential (or section), then
+vertical.  Each sequential unit may have several Vertical elements
 within it.  In addition, the course itself is defined with certain properties.
 
 .. image:: images/course-structure-labeled.png
@@ -55,6 +55,9 @@ edXsection    Environment { display_name } [ attributes ]
 edXsequential Environment { display_name } [ attributes ]
 edXvertical   Environment { display_name } [ attributes ]
 ============= =========== ============================================================
+
+The last four macros also exist in starred versions (e.g. ``edXchapter*``),
+which in agreement with standard LaTeX notation stand for unnumbered sections.
 
 Each of these macros may have optional "attributes" defined, which
 specify content metadata.  Each "attributes" string should be a
@@ -82,6 +85,9 @@ Note that ``url_name`` may only contain uppercase and lowercase
 letters, numbers, and the underbar character (``_``).  It may not
 contain other characters; in particular, no spaces, dashes, or periods
 are allowed.
+
+Also be aware that the ``edXsection`` Environment is replaced by
+``edXsequential``.
 
 edXcourse
 ^^^^^^^^^
@@ -237,13 +243,19 @@ parallel with problem and video.
 edXvideo
 ^^^^^^^^
 
-A video element embeds a you-tube video player.
+A video element embeds a YouTube video player in the course.
 
 Example::
 
-    \edXvideo{A sample video}{u23ZUSu7-HY}[source=test]
+    \edXvideo{A sample video}{u23ZUSu7-HY}[source="https://s3.amazonaws.com/edx-course/video/mit-xxx/MITxxxTxxx-Gxxxx.mp4"]
 
-| TODO: add information about how to use non-youtube video sources
+The embeded player displays the video from YouTube 
+(``https://www.youtube.com/watch?v=u23ZUSu7-HY``) 
+for the example above. With a "Download video" button linking to 
+``https://s3.amazonaws.com/edx-course/video/mit-xxx/MITxxxTxxx-Gxxxx.mp4`` 
+specified by the optional ``source`` attribute.
+
+| TODO: add information about how to use non-YouTube video sources
 
 A video element may be within a sequential or vertical, placed in
 parallel with problem and text.
@@ -251,14 +263,17 @@ parallel with problem and text.
 edXdiscussion
 ^^^^^^^^^^^^^
 
-A discussion element (not used very often) embeds a link to an edX
+A discussion element (not used very often in residential courses) embeds a link to an edX
 forum discussion topic.  
 
 Example::
 
-    \edXdiscussion{Discuss this question}{forumid=discuss2}
+    \edXdiscussion{Discuss this question}{discussion_category="Pset" discussion_id="2.03x_P1-1"}
 
-| TODO: explain
+The above example inserts a discussion element in the course with the 
+display name ``Discuss this question``, discussion category of ``Pset`` 
+for sorting in the discussion in the forum under the heading ``Pset``.  
+Other attributes may be specified, such as ``discussion_target``.
 
 A discussion element may be within a sequential or vertical, placed in
 parallel with problem and text.
@@ -475,9 +490,11 @@ options       a comma-delimited list of double-quoted strings
 
 If the value for ``expect`` is a single double-quoted string, then the
 question is a single-choice problem.
+In this case, the choice selection is done using radio buttons.
 
 If the value for ``expect`` is a comma-delimited list of more than one
 double-quoted string, then the question is a multiple-choice problem.
+In this instance, choices are made using checkboxes.
 
 Example input::
 
@@ -511,6 +528,10 @@ Output XML::
       </checkboxgroup>
     </choiceresponse>
 
+If the desired input format is to have checkbox selection even when only 
+one choice is correct, use the ``oldmultichoice`` type, and for the list of 
+answers under the ``expect`` value, specify the correct choice and a blank 
+string (e.g. ``expect="Python",""``).
 
 Custom response problem
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -744,12 +765,14 @@ edXscript     Environment None
 edXshowhide   Environment { id }{ description }
 edXgitlink    Command     { git_url_root } { Label }
 edXinline     Command     { text }
-edXdndtex     Command     [attributes]{ filename }
+edXdndtex     Command     [ attributes ]{ filename }
 edXinclude    Command     { filename }
 edXincludepy  Command     { filename }
 edXaskta      Command     { arguments }
 edXbr         Command     None
 edXmath       Environment None
+toclabel      Command     { marker }
+tocref        Command     { marker }
 ============= =========== ============================================================
 
 edXsolution
@@ -991,3 +1014,43 @@ stored on github, then use something like this example::
   \def\giturl{https://github.com/mitocw/content-mit-latex2edx-demo/blob/master/src}
   \edXgitlink{\giturl}{Source TeX}
 
+
+toclabel
+^^^^^^^^
+
+This macro is used much like the standard ``\label{}`` LaTeX command, 
+but instead of linking to the document content, creates a table of contents 
+entry. 
+The ``marker`` is a string, usually containing a colon to separate a meta-label 
+from the unique name given to the item being referenced (e.g. ``chap:Intro``). 
+Common meta information tags are:
+
+===== ========
+chap: chapter
+sec:  section
+fig:  figure
+tab:  table
+eq:   equation
+===== ========
+
+It is not necessary to use these tags; however, the tag specified will be used 
+in order to number the references, and the capitalized tag is used to 
+create button links to a static table of contents (tocindex.html) page 
+(e.g. ``\toclabel{mo:num1}`` will create an "MO" entry in the table of contents). 
+
+In order to create this table of contents (Toc) file, only one ``\toclabel{}`` call 
+needs to be made in the document. 
+References to ``toclabel`` made using ``tocref`` create links in the ToC pointing 
+back to the course content. 
+In essence ``\toclabel{}`` and ``\tocref{}`` permit two-way cross-referencing.
+
+
+tocref
+^^^^^^
+
+This macro acts like the LaTeX ``\ref{}`` command in that it creates a link 
+to previously labeled content. The ``marker`` must be a unique identifier 
+of the content being referenced. 
+Instead of being a simple pointer to previous content (which can be achieved 
+using the ``\ref{}`` command), ``\tocref{}`` links back to the static 
+tocindex.html page.
