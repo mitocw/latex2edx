@@ -42,10 +42,12 @@ class edXchapter(EdXchapterStar):
         return Base.Environment.invoke(self,tex)
 
 class EdXsectionStar(MyBaseEnvironment):
+    # turns into edXsequential
     macroName = 'edXsection*'
     args = '{ display_name } [ attrib_string:str ] self'
 
 class edXsection(EdXsectionStar):
+    # turns into edXsequential
     macroName = 'edXsection'
     counter = 'section'
     position = 0
