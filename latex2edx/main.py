@@ -447,6 +447,8 @@ class latex2edx(object):
         reference should be a link that opens in a new tab to the desired component.
         If the --popups option is specified, equations and figure references open a new window.
         '''
+        if self.section_only:
+            return
         #EVH: Build course map from tree.
         course = tree.find('.//course')
         cnumber = course.get('number')
