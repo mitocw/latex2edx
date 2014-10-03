@@ -5,12 +5,15 @@ import tempfile
 import shutil
 from path import path	# needs path.py
 from lxml import etree
-from StringIO import StringIO
-
 import latex2edx as l2emod
 from latex2edx.main import latex2edx
-from latex2edx.test.util import make_temp_directory
+from StringIO import StringIO
 
+@contextlib.contextmanager
+def make_temp_directory():
+    temp_dir = tempfile.mkdtemp('l2etmp')
+    yield temp_dir
+    shutil.rmtree(temp_dir)
 
 class TestVideo(unittest.TestCase):
 

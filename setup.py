@@ -36,6 +36,9 @@ setup(
                       'beautifulsoup',
                       'latex2dnd',
                       ],
+    dependency_links = [
+        'http://downloads.sourceforge.net/project/plastex/plastex/rel-0-9-2/plastex-0.9.2.tgz',
+        ],
     package_dir={'latex2edx': 'latex2edx'},
     package_data={ 'latex2edx': ['render/*', 'testtex/*', 'plastexpy/*.py', 'python_lib/*.py'] },
     # data_files = data_files,
