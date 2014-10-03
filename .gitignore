@@ -30,3 +30,6 @@ pip-log.txt
 #OSX files
 .DS_Store
 .paux
+
+# Testing
+cover

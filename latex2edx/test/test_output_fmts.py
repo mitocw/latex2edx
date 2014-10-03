@@ -1,18 +1,12 @@
 import os
-import contextlib
 import unittest
-import tempfile
-import shutil
 from path import path	# needs path.py
-import latex2edx as l2emod
-from latex2edx.main import latex2edx
 from StringIO import StringIO
 
-@contextlib.contextmanager
-def make_temp_directory():
-    temp_dir = tempfile.mkdtemp('l2etmp')
-    yield temp_dir
-    shutil.rmtree(temp_dir)
+import latex2edx as l2emod
+from latex2edx.main import latex2edx
+from latex2edx.test.util import make_temp_directory
+
 
 class TestOutput_Fmts(unittest.TestCase):
 
