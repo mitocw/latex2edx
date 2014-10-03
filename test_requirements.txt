@@ -5,3 +5,4 @@ pylint
 diff-cover
 pytest
 pyparsing
+coveralls
