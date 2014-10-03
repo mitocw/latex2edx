@@ -1,0 +1,9 @@
+nose
+coverage
+pep8
+pylint
+diff-cover
+pytest
+pyparsing
+scipy
+numpy

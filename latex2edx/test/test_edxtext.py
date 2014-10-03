@@ -1,17 +1,11 @@
 import os
-import contextlib
 import unittest
-import tempfile
-import shutil
 from lxml import etree
-from latex2edx.main import latex2edx
 from StringIO import StringIO
 
-@contextlib.contextmanager
-def make_temp_directory():
-    temp_dir = tempfile.mkdtemp('l2etmp')
-    yield temp_dir
-    shutil.rmtree(temp_dir)
+from latex2edx.main import latex2edx
+from latex2edx.test.util import make_temp_directory
+
 
 class MakeTeX(object):
     def __init__(self, tex):
