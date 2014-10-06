@@ -361,10 +361,10 @@ class plastex2xhtml(object):
         '''
 
         edXenvironments = ['edXcourse', 
-                           'edXchapter',
-                           'edXsection',
-                           'edXsequential',
-                           'edXvertical',
+                           'edXchapter', r'edXchapter*',
+                           'edXsection', r'edXsection*',
+                           'edXsequential', r'edXsequential*',
+                           'edXvertical', r'edXvertical*',
                            'edXtext',
                            'edXproblem',
                            'edXsolution',

@@ -17,6 +17,7 @@ class MakeTeX(object):
     def fp(self):
         return StringIO(self.buf)
 
+
 class TestAskTA(unittest.TestCase):
 
     def test_askta1(self):
@@ -31,7 +32,7 @@ class TestAskTA(unittest.TestCase):
                '\\end{edXsection}\n'
                '\\end{edXchapter}\n'
                '\\end{edXcourse}\n'
-           )
+               )
 
         # make sure edXaskta buttons work properly
         with make_temp_directory() as tmdir:
@@ -39,9 +40,9 @@ class TestAskTA(unittest.TestCase):
             fp = MakeTeX(tex).fp
             l2e = latex2edx(tmdir + '/test.tex', fp=fp, do_images=False, output_dir=tmdir)
             l2e.xhtml2xbundle()
-            #print "xbundle = "
-            #print str(l2e.xb)
-            #print
+            # print "xbundle = "
+            # print str(l2e.xb)
+            # print
             self.assertIn(r'<a style="display:none" href="/course/jump_to_id" id="aturl_1"/>', str(l2e.xb))
 
 if __name__ == '__main__':

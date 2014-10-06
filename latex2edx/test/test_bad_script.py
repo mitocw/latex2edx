@@ -5,17 +5,18 @@ import unittest
 import tempfile
 import shutil
 import json
-from path import path	# needs path.py
+from path import path  # needs path.py
 from StringIO import StringIO
 
 import latex2edx as l2emod
 from latex2edx.main import latex2edx
 from latex2edx.test.util import make_temp_directory
 
+
 class TestBad_Script(unittest.TestCase):
 
     def test_bad_script1(self):
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example1_bad_script.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:
@@ -33,7 +34,7 @@ class TestBad_Script(unittest.TestCase):
             self.assertTrue(re.search('Error processing element script in file .*\.tex line 82', str(err)))
 
     def test_bad_script2(self):
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example7_bad_script.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:
