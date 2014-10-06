@@ -16,23 +16,24 @@ try:
 except:
     from ordereddict import OrderedDict
 
-from path import path	# needs path.py
+from path import path  # needs path.py
 from lxml import etree
 from plastexit import plastex2xhtml
 from abox import split_args_with_quoted_strings
 
 # from logging import Logger
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 DEFAULT_CONFIG = {
     'problem_default_attributes': {
         'showanswer': 'closed',
         'rerandomize': 'never',
-     }
+    }
 }
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 def date_parse(datestr, retbad=False, verbose=True):
     '''
@@ -59,9 +60,9 @@ def date_parse(datestr, retbad=False, verbose=True):
 
     for fmt in formats:
         try:
-            dt = datetime.datetime.strptime(datestr,fmt)
+            dt = datetime.datetime.strptime(datestr, fmt)
             return dt
-        except Exception as err:
+        except Exception:
             continue
 
     if verbose:
@@ -70,7 +71,8 @@ def date_parse(datestr, retbad=False, verbose=True):
         return "Bad"
     return None
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+
 
 class latex2edx(object):
     '''
@@ -83,8 +85,8 @@ class latex2edx(object):
     This script can be run from any directory.
     '''
 
-    DescriptorTags = ['course','chapter','sequential','vertical','html','problem','video',
-                      'conditional', 'combinedopenended', 'randomize', 'discussion' ]
+    DescriptorTags = ['course', 'chapter', 'sequential', 'vertical', 'html', 'problem', 'video',
+                      'conditional', 'combinedopenended', 'randomize', 'discussion']
 
     def __init__(self,
                  fn,
@@ -116,7 +118,7 @@ class latex2edx(object):
         self.output_dir = path(output_dir)
         imdir = self.output_dir / 'static/images'
 
-        if do_images:	# make directories only if do_images
+        if do_images:  # make directories only if do_images
             if not os.path.exists(self.output_dir):
                 os.mkdir(self.output_dir)
             if not os.path.exists(self.output_dir / 'static'):
@@ -130,7 +132,7 @@ class latex2edx(object):
                                  verbose=verbose,
                                  imdir=imdir,
                                  imurl=imurl,
-            )
+                                 )
         self.p2x.convert()
         self.xhtml = self.p2x.xhtml
         self.do_merge = do_merge
@@ -145,7 +147,7 @@ class latex2edx(object):
 
         if output_fn is None or not output_fn:
             if fn.endswith('.tex'):
-                output_fn = fn[:-4]+'.xbundle'
+                output_fn = fn[:-4] + '.xbundle'
             else:
                 output_fn = fn + '.xbundle'
         self.output_fn = output_fn
@@ -161,7 +163,7 @@ class latex2edx(object):
                             self.process_askta,
                             self.process_showhide,
                             self.process_edxxml,
-                            self.process_dndtex,	# must come before process_include
+                            self.process_dndtex,  # must come before process_include
                             self.process_include,
                             self.process_includepy,
                             self.process_general_hint_system,
@@ -173,12 +175,11 @@ class latex2edx(object):
 
         self.URLNAMES = []
 
-
     def save_xml(self):
         '''
         Save XML file (as .xbundle, normally) to the output_fn
         '''
-        open(self.output_fn,'w').write(etree.tostring(self.xml, pretty_print=True))
+        open(self.output_fn, 'w').write(etree.tostring(self.xml, pretty_print=True))
 
     def export_sections_only(self):
         '''
@@ -216,13 +217,12 @@ class latex2edx(object):
 
         for tag in tags:
             for unit in self.xml.findall('.//%s' % tag):
-                print "--> exporting %s (%s) url_name=%s" % (unit.get('display_name', '<unknown display_name>'), 
+                print "--> exporting %s (%s) url_name=%s" % (unit.get('display_name', '<unknown display_name>'),
                                                              self.get_filename_and_linenum(unit),
                                                              unit.get('url_name', '<unknown>'),
-                                                         )
+                                                             )
                 xb.add_descriptors(unit)
                 xb.export_xml_to_directory(unit, dowrite=True)
-
 
     @property
     def xml(self):
@@ -238,7 +238,6 @@ class latex2edx(object):
                 filter(xml)
             self.the_xml = xml
         return self.the_xml
-
 
     def convert(self):
         '''
@@ -285,8 +284,8 @@ class latex2edx(object):
                 newchapters = []
                 for chapter in newcourse:
                     if chapter.get('url_name') in oldchapters:
-                        continue		# already in old course, skip
-                    oldcourse.append(chapter)	# wasn't in old course, move it there
+                        continue  # already in old course, skip
+                    oldcourse.append(chapter)  # wasn't in old course, move it there
                     newchapters.append(chapter.get('url_name'))
                 self.xb.write_xml_file(oldfn, oldcourse, force_overwrite=True)
                 os.unlink(fn)
@@ -341,13 +340,13 @@ class latex2edx(object):
             print "--> Warning: in policy settings turning %s in to false" % x
             return 'false'
 
-        policy_settings = {'start': fixdate, 'end': fixdate, 'due': fixdate, 
+        policy_settings = {'start': fixdate, 'end': fixdate, 'due': fixdate,
                            'graded': makebool, 'showanswer': None, 'format': None}
 
         if self.update_policy:
             course = tree.find('.//course')
             semester = course.get('semester', course.get('url_name'))
-            policydir = self.output_dir / 'policies' / semester 
+            policydir = self.output_dir / 'policies' / semester
             if not policydir.exists():
                 print "--> Creating directory %s" % policydir
                 os.system('mkdir -p "%s"' % policydir)
@@ -358,13 +357,13 @@ class latex2edx(object):
                 policy["course/%s" % semester] = OrderedDict(
                     start="2012-06-02T02:00",
                     end="2012-08-12T00:00",
-                    )
+                )
             else:
                 policy = json.load(open(policyfile), object_pairs_hook=OrderedDict)
 
             def copy_settings(elem, policy):
                 key = "%s/%s" % (elem.tag, elem.get('url_name'))
-                if not key in policy:
+                if key not in policy:
                     policy[key] = OrderedDict()
                 for setting, ffun in policy_settings.items():
                     val = elem.get(setting, None)
@@ -374,19 +373,19 @@ class latex2edx(object):
                         else:
                             try:
                                 sval = ffun(val)
-                            except Exception as err:
+                            except Exception:
                                 msg = "Error processing element %s in %s" % (elem.tag, self.get_filename_and_linenum(elem))
                                 raise Exception(msg)
                         policy[key][setting] = sval
 
             copy_settings(course, policy)		    # do course first
-            
+
             for chapter in tree.findall('.//chapter'):
                 copy_settings(chapter, policy)
                 for sequential in chapter.findall('.//sequential'):
                     copy_settings(sequential, policy)
-            
-            with open(policyfile,'w') as fp:
+
+            with open(policyfile, 'w') as fp:
                 fp.write(json.dumps(policy, indent=2))
 
         def suppress_policy_settings(elem):
@@ -399,7 +398,6 @@ class latex2edx(object):
                 suppress_policy_settings(chapter)
                 for sequential in chapter.findall('.//sequential'):
                     suppress_policy_settings(sequential)
-            
 
     @staticmethod
     def fix_table(tree):
@@ -407,7 +405,7 @@ class latex2edx(object):
         Force tables to have table-layout: auto, no borders on table data
         '''
         for table in tree.findall('.//table'):
-            table.set('style','table-layout:auto')
+            table.set('style', 'table-layout:auto')
             for td in table.findall('.//td'):
                 newstyle = td.get('style', '')
                 if newstyle:
@@ -418,7 +416,7 @@ class latex2edx(object):
     @staticmethod
     def fix_table_p(tree):
         '''
-        Force "tabular" tables to not have <p> as top-level within <td>.  
+        Force "tabular" tables to not have <p> as top-level within <td>.
         Those <p> mess up table spacing.
         '''
         for table in tree.findall('.//table[@class="tabular"]'):
@@ -426,7 +424,7 @@ class latex2edx(object):
                 if not len(td):
                     continue
                 tdtop = td[0]
-                if tdtop.tag=='p':
+                if tdtop.tag == 'p':
                     for elem in tdtop:
                         tdtop.addprevious(elem)
                 td.text = (td.text or '') + tdtop.text
@@ -440,7 +438,7 @@ class latex2edx(object):
         '''
         for div in tree.findall('.//div[@class="minipage"]'):
             div.tag = 'text'
-    
+
     def handle_refs(self, tree):
         '''
         Process references to sections of content -- create section numbering and
@@ -449,12 +447,12 @@ class latex2edx(object):
         '''
         if self.section_only:
             return
-        #EVH: Build course map from tree.
+        # EVH: Build course map from tree.
         course = tree.find('.//course')
         cnumber = course.get('number')
-        #EVH: Navigate course and set a 'tmploc' attribute with location for desired items
-        maplist = [] #['loc. str.']
-        mapdict = {} #{'location str.':['URL','display_name','refnum']}
+        # EVH: Navigate course and set a 'tmploc' attribute with location for desired items
+        maplist = []  # ['loc. str.']
+        mapdict = {}  # {'location str.':['URL','display_name','refnum']}
         chapnum = 0
         chapref = seqref = vertref = '0'
         for chapter in tree.findall('.//chapter'):
@@ -465,67 +463,67 @@ class latex2edx(object):
             chapurl = chapter.get('url_name')
             locstr = '{}'.format(chapnum)
             maplist.append(locstr)
-            mapdict[locstr] = ['../courseware/{}'.format(chapurl),chapter.get('display_name'),chapref]
-            labels = [chapter.find('./p/label'),chapter.find('./label'),chapter.find('./p/toclabel'),chapter.find('./toclabel')]
+            mapdict[locstr] = ['../courseware/{}'.format(chapurl), chapter.get('display_name'), chapref]
+            labels = [chapter.find('./p/label'), chapter.find('./label'), chapter.find('./p/toclabel'), chapter.find('./toclabel')]
             for label in labels:
                 if label is not None:
-                    label.set('tmploc',locstr+'.0')
+                    label.set('tmploc', locstr + '.0')
             seqnum = 0
             for child1 in chapter:
                 if child1.tag == 'p' and (child1.find('./') is not None):
                     seq = child1[0]
                 else:
                     seq = child1
-                if seq.tag not in ['sequential','vertical','section']:
+                if seq.tag not in ['sequential', 'vertical', 'section']:
                     continue
-                seqnum +=1
+                seqnum += 1
                 if seq.get('refnum') is not None:
                     seqref = seq.get('refnum')
                     vertref = '0'
                 sequrl = seq.get('url_name')
-                locstr = '{}.{}'.format(chapnum,seqnum)
+                locstr = '{}.{}'.format(chapnum, seqnum)
                 maplist.append(locstr)
-                mapdict[locstr] = ['../courseware/{}/{}'.format(chapurl,sequrl),seq.get('display_name'),'.'.join([chapref,seqref])]
-                labels = [seq.find('./p/label'),seq.find('./label'),seq.find('./p/toclabel'),seq.find('./toclabel')]
+                mapdict[locstr] = ['../courseware/{}/{}'.format(chapurl, sequrl), seq.get('display_name'), '.'.join([chapref, seqref])]
+                labels = [seq.find('./p/label'), seq.find('./label'), seq.find('./p/toclabel'), seq.find('./toclabel')]
                 for label in labels:
                     if label is not None:
-                        label.set('tmploc',locstr+'.0')
-                if seqnum==1:
-                    mapdict['{}'.format(chapnum)][0] = '../courseware/{}/{}/1'.format(chapurl,sequrl)
+                        label.set('tmploc', locstr + '.0')
+                if seqnum == 1:
+                    mapdict['{}'.format(chapnum)][0] = '../courseware/{}/{}/1'.format(chapurl, sequrl)
                 vertnum = 0
                 for child2 in seq:
                     if child2.tag == 'p' and (child2.find('./') is not None):
                         vert = child2.find('./')
                     else:
                         vert = child2
-                    if vert.tag not in ['sequential','vertical','section','problem','html']:
+                    if vert.tag not in ['sequential', 'vertical', 'section', 'problem', 'html']:
                         continue
                     vertnum += 1
                     if vert.get('refnum') is not None:
                         vertref = vert.get('refnum')
-                    locstr = '{}.{}.{}'.format(chapnum,seqnum,vertnum)
+                    locstr = '{}.{}.{}'.format(chapnum, seqnum, vertnum)
                     maplist.append(locstr)
-                    mapdict[locstr] = ['../courseware/{}/{}/{}'.format(chapurl,sequrl,vertnum),vert.get('display_name'),'.'.join([chapref,seqref,vertref])]
-                    labels = [vert.find('./p/label'),vert.find('./label'),vert.find('./p/toclabel'),vert.find('./toclabel')]
+                    mapdict[locstr] = ['../courseware/{}/{}/{}'.format(chapurl, sequrl, vertnum), vert.get('display_name'), '.'.join([chapref, seqref, vertref])]
+                    labels = [vert.find('./p/label'), vert.find('./label'), vert.find('./p/toclabel'), vert.find('./toclabel')]
                     for label in labels:
                         if label is not None:
-                            label.set('tmploc',locstr+'.0')
+                            label.set('tmploc', locstr + '.0')
                     for elem in vert.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]|.//div[@class="figure"]'):
-                        elem.set('tmploc',locstr)
+                        elem.set('tmploc', locstr)
                 locstr = '.'.join(locstr.split('.')[:-1])
                 for elem in seq.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]|.//div[@class="figure"]'):
                     if elem.get('tmploc') is None:
-                        elem.set('tmploc',locstr)
+                        elem.set('tmploc', locstr)
             locstr = '.'.join(locstr.split('.')[:-1])
             for elem in chapter.xpath('.//tocref|.//toclabel|.//label|.//table[@class="equation"]|.//table[@class="eqnarray"]|.//div[@class="figure"]'):
                 if elem.get('tmploc') is None:
-                    elem.set('tmploc',locstr)
-        #EVH: Handle figure references. Search for labels and build dictionary
-        figdict = {} #{'figlabel':'fignum'}
-        figattrib = {} #{'figlabel':{'attrib':'value'}}
+                    elem.set('tmploc', locstr)
+        # EVH: Handle figure references. Search for labels and build dictionary
+        figdict = {}  # {'figlabel':'fignum'}
+        figattrib = {}  # {'figlabel':{'attrib':'value'}}
         for fig in tree.findall('.//div[@class="figure"]'):
             locstr = fig.attrib.pop('tmploc')
-            #Retrieve Figure number if it is captioned
+            # Retrieve Figure number if it is captioned
             caption = fig.find('.//div[@class="caption"]/b')
             if caption is not None:
                 fignum = caption.text.split(' ')[1]
@@ -535,63 +533,63 @@ class latex2edx(object):
                 figlabel = label.text
                 figdict[figlabel] = fignum
                 plabel = label.getparent()
-                if plabel.tag == 'p': #TODO: Find a cleaner way to build the eTree
+                if plabel.tag == 'p':  # TODO: Find a cleaner way to build the eTree
                     label = plabel
                     plabel = plabel.getparent()
                 plabel.remove(label)
             if figlabel is not None:
                 # CHAD: for multi-image figures, collect all the image names
                 # TODO: Find an example and investigate how to refine (as above)
-                fig.set('id','fig{}'.format(fignum))
-                figattrib[figlabel] = {'href':'{}/#fig{}'.format(mapdict[locstr][0],fignum)}
+                fig.set('id', 'fig{}'.format(fignum))
+                figattrib[figlabel] = {'href': '{}/#fig{}'.format(mapdict[locstr][0], fignum)}
                 if self.popup_flag:
                     imgsrcs = []
                     for img in fig.findall('.//img'):
                         imgsrc = img.get('src')
                         imgsrcs.append(imgsrc)
-                    if len(imgsrcs)==1:  # single image figure
+                    if len(imgsrcs) == 1:  # single image figure
                         figfile = imgsrcs[0]
-                        figattrib[figlabel] = {'href':'{}'.format(figfile)}
+                        figattrib[figlabel] = {'href': '{}'.format(figfile)}
                         # TODO: Find a way to resize popup window to the figure
-                        figattrib[figlabel] = {'onClick':"window.open(this.href,\'{}\',\'width=400,height=200\',\'toolbar=1\'); return false;".format(cnumber)}
-                    else: # multi-image figure
+                        figattrib[figlabel] = {'onClick': "window.open(this.href, \'{}\',\'width=400,height=200\',\'toolbar=1\'); return false;".format(cnumber)}
+                    else:  # multi-image figure
                         htmlbodycontent = ""
                         for figfile in imgsrcs:
                             htmlbodycontent += "<img src=\"{}\" width=\"400\" height=\"200\">".format(figfile)
                         htmlstr = "\'<html><head></head><body>{}</body></html>\'".format(htmlbodycontent)
-                        figattrib[figlabel] = {'onClick':"return newWindow({},'Figure {}');".format(htmlstr,fignum)}
-                        figattrib[figlabel] = {'href':'javascript: void(0)'}
-        #EVH: Build cross reference dictionaries for ToC refs
-        toclist = [] #['toclabel']
-        tocdict = {} #{'toclabel',['locstr','label text']}
-        labeldict = {} #{'labeltag':['loc. str.','chapnum.labelnum']}
-        tocrefdict = {} #{'tocref':[['loc. str.'],['parent name']]}
-        labelcnt = {} #{'labeltag':cnt}
+                        figattrib[figlabel] = {'onClick': "return newWindow({}, 'Figure {}');".format(htmlstr, fignum)}
+                        figattrib[figlabel] = {'href': 'javascript: void(0)'}
+        # EVH: Build cross reference dictionaries for ToC refs
+        toclist = []  # ['toclabel']
+        tocdict = {}  # {'toclabel',['locstr','label text']}
+        labeldict = {}  # {'labeltag':['loc. str.','chapnum.labelnum']}
+        tocrefdict = {}  # {'tocref':[['loc. str.'],['parent name']]}
+        labelcnt = {}  # {'labeltag':cnt}
         chapref = '0'
         for label in tree.xpath('.//label|//toclabel'):
             locstr = label.get('tmploc')
-            if locstr.split('.')[-1]=='0':
+            if locstr.split('.')[-1] == '0':
                 locref = mapdict[locstr[:-2]][2]
             else:
                 locref = mapdict[locstr][2]
             labelref = label.text
             if locref.split('.')[0] != chapref:
                 chapref = locref.split('.')[0]
-                labelcnt = {} #Reset label count
+                labelcnt = {}  # Reset label count
             if locstr.split('.')[-1] == '0':
-                labeldict[labelref] = [locstr,locref]
+                labeldict[labelref] = [locstr, locref]
             else:
                 labeltag = labelref.split(':')[0]
                 if labeltag in labelcnt:
-                    labelcnt[labeltag]+=1
+                    labelcnt[labeltag] += 1
                 else:
-                    labelcnt[labeltag]=1
+                    labelcnt[labeltag] = 1
                 if chapref == '0':
-                    labelstr = '{}{}'.format(labeltag,labelcnt[labeltag])
+                    labelstr = '{}{}'.format(labeltag, labelcnt[labeltag])
                 else:
-                    labelstr = '{}{}.{}'.format(labeltag,chapref,labelcnt[labeltag])
-                labeldict[labelref] = [locstr,labelstr]
-            #Get label tail and parent text, and remove label
+                    labelstr = '{}{}.{}'.format(labeltag, chapref, labelcnt[labeltag])
+                labeldict[labelref] = [locstr, labelstr]
+            # Get label tail and parent text, and remove label
             labeltail = label.tail
             plabel = label.getparent()
             ptext = plabel.text
@@ -599,10 +597,10 @@ class latex2edx(object):
                 if ptext == '\n' or (ptext is None):
                     ptext = labeltail
                 else:
-                    ptext = ptext[:-1]+labeltail #remove final carriage return (usually from a p tag) and add tail
+                    ptext = ptext[:-1] + labeltail  # remove final carriage return (usually from a p tag) and add tail
             if label.tag == 'toclabel':
                 toclist.append(labelref)
-                tocdict[labelref] = [locstr,ptext]
+                tocdict[labelref] = [locstr, ptext]
             if plabel.tag == 'p':
                 label = plabel
                 plabel = plabel.getparent()
@@ -613,52 +611,52 @@ class latex2edx(object):
             locstr = tocref.get('tmploc')
             paref = tocref.getparent()
             paref.remove(tocref)
-            while paref.tag not in ['html','problem']:
+            while paref.tag not in ['html', 'problem']:
                 paref = paref.getparent()
-            #EVH: Prepend letter to identify content type
+            # EVH: Prepend letter to identify content type
             if paref.tag == 'problem':
-                parefname = 'P'+paref.get('display_name')
+                parefname = 'P' + paref.get('display_name')
                 oldtag = paref.get('measureable_outcomes')
                 if oldtag is None:
                     newtag = tagref.split(':')[1]
                 else:
-                    newtag = oldtag+','+tagref.split(':')[1]
-                paref.set('measureable_outcomes',newtag)
+                    newtag = oldtag + ',' + tagref.split(':')[1]
+                paref.set('measureable_outcomes', newtag)
             else:
-                parefname = 'H'+paref.get('display_name')
+                parefname = 'H' + paref.get('display_name')
             if tagref in tocrefdict:
                 tocrefdict[tagref][0].append(locstr)
                 tocrefdict[tagref][1].append(parefname)
             else:
-                tocrefdict[tagref] = [[locstr],[parefname]]
+                tocrefdict[tagref] = [[locstr], [parefname]]
             taglist = paref.find(".//p[@id='taglist']")
             if taglist is None:
-                taglist = etree.Element('p',id='taglist',tags=tagref)
-                paref.insert(0,taglist)
+                taglist = etree.Element('p', id='taglist', tags=tagref)
+                paref.insert(0, taglist)
             else:
-                tags = taglist.get('tags')+','+tagref
-                taglist.set('tags',tags+','+tagref)
-        #EVH: Parse taglist to create ToC button links at the top of each vertical
+                tags = taglist.get('tags') + ',' + tagref
+                taglist.set('tags', tags + ',' + tagref)
+        # EVH: Parse taglist to create ToC button links at the top of each vertical
         for taglist in tree.findall(".//p[@id='tags']"):
             tags = taglist.get('tags').split(',')
             for tocref in tags:
-                link = etree.SubElement(taglist,'button',{'type':"button",'border-radius':"2px",'title':"{}{}:\n{}".format(tocref.split(':')[0].upper(),labeldict[tocref][1],tocdict[tocref][1]),'style':"cursor:pointer",'class':"mo_button",'onClick':"window.location.href='../tocindex/#anchor{}{}';".format(tocref.split(':')[0].upper(),labeldict[tocref][1].replace(r'.',''))})
-                link.text = tocref.split(':')[0].upper()+labeldict[tocref][1]
-                link.set('id',tocref.split(':')[1])
-        tochead = ['h2','h3','h4']
+                link = etree.SubElement(taglist, 'button', {'type': "button", 'border-radius': "2px", 'title': "{}{}:\n{}".format(tocref.split(':')[0].upper(), labeldict[tocref][1], tocdict[tocref][1]), 'style': "cursor:pointer", 'class': "mo_button", 'onClick': "window.location.href='../tocindex/#anchor{}{}';".format(tocref.split(':')[0].upper(), labeldict[tocref][1].replace(r'.', ''))})
+                link.text = tocref.split(':')[0].upper() + labeldict[tocref][1]
+                link.set('id', tocref.split(':')[1])
+        tochead = ['h2', 'h3', 'h4']
         if len(toclist) != 0:
-            #EVH: Start building tocindex.html
+            # EVH: Start building tocindex.html
             toctree = etree.Element('html')
             toctree.append(etree.fromstring('<head></head>'))
-            tocbody = etree.SubElement(toctree,'body')
+            tocbody = etree.SubElement(toctree, 'body')
             tocbody.append(etree.Element('h1'))
             tocbody[0].text = 'Table of Contents'
-        while len(toclist)!=0:
+        while len(toclist) != 0:
             hlabel = False
             toclabel = toclist.pop(0)
             tocloc = tocdict[toclabel][0]
             tocname = tocdict[toclabel][1]
-            if tocloc.split('.')[-1]=='0':
+            if tocloc.split('.')[-1] == '0':
                 hlabel = True
                 tocloc = tocloc[:-2]
             while tocloc in maplist:
@@ -666,48 +664,48 @@ class latex2edx(object):
                 entryname = mapdict[tocentry][1]
                 toclevel = len(tocentry.split('.'))
                 if toclevel == 1:
-                    if tocentry.split('.')[0]!='1':
+                    if tocentry.split('.')[0] != '1':
                         tocbody.append(etree.Element('br'))
-                    #Insert chapter titles if no toclabel exist
+                    # Insert chapter titles if no toclabel exist
                     if not hlabel:
-                        tocitem = etree.Element('a',{'href':mapdict[tocentry][0]})
+                        tocitem = etree.Element('a', {'href': mapdict[tocentry][0]})
                         tocitem.append(etree.Element('h2'))
                         tocitem[0].text = entryname
                         tocbody.append(tocitem)
-            #if toclabel in tocrefdict:
+            # if toclabel in tocrefdict:
             if not (hlabel and toclabel in tocrefdict):
                 toctag = labeldict[toclabel][1]
-                tocbody.append(etree.Element('a',{'name':'anchor{}'.format(toctag.replace('.','').upper())}))
-                toctable = etree.Element('table',{'id':'label','class':'wikitable collapsible collapsed'})
+                tocbody.append(etree.Element('a', {'name': 'anchor{}'.format(toctag.replace('.', '').upper())}))
+                toctable = etree.Element('table', {'id': 'label', 'class': 'wikitable collapsible collapsed'})
                 toctable.append(etree.Element('tbody'))
-                tablecont = etree.SubElement(toctable[0],'tr')
-                tablecont = etree.SubElement(tablecont,'th')
-                tablecont.append(etree.Element('a',{'id':'ind{}l'.format(toctag),'onclick':"$('#ind{}').toggle();return false;".format(toctag),'name':'ind{}l'.format(toctag),'href':'#'}))
+                tablecont = etree.SubElement(toctable[0], 'tr')
+                tablecont = etree.SubElement(tablecont, 'th')
+                tablecont.append(etree.Element('a', {'id': 'ind{}l'.format(toctag), 'onclick': "$('#ind{}').toggle();return false;".format(toctag), 'name': 'ind{}l'.format(toctag), 'href': '#'}))
                 if hlabel:
-                    tablecont = etree.SubElement(tablecont[0],tochead[toclevel-1])
+                    tablecont = etree.SubElement(tablecont[0], tochead[toclevel - 1])
                     tablecont.text = entryname
                 else:
-                    tablecont[0].append(etree.Element('strong',{'itemprop':'name'}))
+                    tablecont[0].append(etree.Element('strong', {'itemprop': 'name'}))
                     tablecont[0][0].text = toctag.upper()
-                    tablecont = etree.SubElement(tablecont,'span',{'itemprop':'description'})
+                    tablecont = etree.SubElement(tablecont, 'span', {'itemprop': 'description'})
 
                     tablecont.text = tocname
 
-                tablecont = etree.SubElement(toctable[0],'tr',{'id':'ind{}'.format(toctag),'style':'display:none'})
-                tablecont = etree.SubElement(tablecont,'td')
+                tablecont = etree.SubElement(toctable[0], 'tr', {'id': 'ind{}'.format(toctag), 'style': 'display:none'})
+                tablecont = etree.SubElement(tablecont, 'td')
                 tablecont.append(etree.Element('h4'))
                 tablecont[0].text = 'Learn'
-                tablecont.append(etree.Element('ul',{'class':'{}learn'.format(toclabel.split(':')[0].upper())}))
+                tablecont.append(etree.Element('ul', {'class': '{}learn'.format(toclabel.split(':')[0].upper())}))
                 tablecont.append(etree.Element('h4'))
                 tablecont[2].text = 'Assess'
-                tablecont.append(etree.Element('ul',{'class':'{}assess'.format(toclabel.split(':')[0].upper())}))
+                tablecont.append(etree.Element('ul', {'class': '{}assess'.format(toclabel.split(':')[0].upper())}))
                 if toclabel in tocrefdict:
                     tocrefs = tocrefdict.pop(toclabel)
                     tocrefnames = tocrefs[1]
                     tocrefs = tocrefs[0]
                     for tocref in tocrefs:
                         tableli = etree.Element('li')
-                        tableli.append(etree.Element('a',{'href':mapdict[tocref][0],'itemprop':'name'}))
+                        tableli.append(etree.Element('a', {'href': mapdict[tocref][0], 'itemprop': 'name'}))
                         tocrefname = tocrefnames.pop(0)
                         tableli[0].text = tocrefname[1:]
                         if tocrefname[0] == 'H':
@@ -715,29 +713,29 @@ class latex2edx(object):
                         else:
                             tablecont[3].append(tableli)
             else:
-                toctable = etree.Element('a',{'href':mapdict[tocloc][0]})
+                toctable = etree.Element('a', {'href': mapdict[tocloc][0]})
                 if hlabel:
-                    tablecont = etree.SubElement(toctable,tochead[toclevel-1])
+                    tablecont = etree.SubElement(toctable, tochead[toclevel - 1])
                     tablecont.text = entryname
                 else:
-                    toctable.append(etree.Element('strong',{'itemprop':'name'}))
-                    toctable[0].text = toclabel.split(':')[0]+labeldict[toclabel][1]
-                    tablecont = etree.SubElement(toctable,'span',{'itemprop':'description'})
+                    toctable.append(etree.Element('strong', {'itemprop': 'name'}))
+                    toctable[0].text = toclabel.split(':')[0] + labeldict[toclabel][1]
+                    tablecont = etree.SubElement(toctable, 'span', {'itemprop': 'description'})
                     tablecont.text = tocname
             tocbody.append(toctable)
         if len(tocdict) != 0:
             print "Writing ToC index content..."
-            tocf = open('tocindex.html','w')
-            tocf.write(etree.tostring(toctree,method='html',pretty_print=True))
+            tocf = open('tocindex.html', 'w')
+            tocf.write(etree.tostring(toctree, method='html', pretty_print=True))
             tocf.close()
-        #EVH: Check for unused tocrefs
+        # EVH: Check for unused tocrefs
         for tocref in tocrefdict:
             print "\ntocref.text =", tocref
             print "WARNING: There is a reference to non-existent label %s" % tocref
             raw_input("Press ENTER to continue")
-        #EVH: Handle equation references. Search for labels and build dictionaries
-        eqndict = {} #{'eqnlabel':'eqnnum'}
-        eqnattrib = {} #{'eqnlabel':{'attrib':'value'}}
+        # EVH: Handle equation references. Search for labels and build dictionaries
+        eqndict = {}  # {'eqnlabel':'eqnnum'}
+        eqnattrib = {}  # {'eqnlabel':{'attrib':'value'}}
         chapref = '0'
         eqncnt = 0
         for table in tree.xpath('.//table[@class="equation"]|.//table[@class="eqnarray"]'):
@@ -746,83 +744,83 @@ class latex2edx(object):
             if chapref != locref.split('.')[0]:
                 chapref = locref.split('.')[0]
                 eqncnt = 0
-            for tr in table.findall('.//tr'): #Each row can have at most one label
+            for tr in table.findall('.//tr'):  # Each row can have at most one label
                 eqnnumcell = None
                 eqnlabel = []
                 for td in tr.findall('.//td'):
                     if td.get('class') == 'eqnnum':
                         eqnnumcell = td
                     elif td.text is not None:
-                        if re.search(r'\\label\{(.*?)\}',td.text,re.S) is not None:
+                        if re.search(r'\\label\{(.*?)\}', td.text, re.S) is not None:
                             eqncontent = td.text
-                            eqnlabel = re.findall(r'\\label\{(.*?)\}',eqncontent,re.S)
-                            eqncontent = re.sub(r'\\label{.*}',r'',eqncontent)
+                            eqnlabel = re.findall(r'\\label\{(.*?)\}', eqncontent, re.S)
+                            eqncontent = re.sub(r'\\label{.*}', r'', eqncontent)
                             td.text = eqncontent
                 if len(eqnlabel) != 0:
                     eqnlabel = eqnlabel[0]
                     eqncnt += 1
-                    eqnlabel = eqnlabel.replace(' ','')
+                    eqnlabel = eqnlabel.replace(' ', '')
                     if chapref == '0':
                         eqnnum = '{}'.format(eqncnt)
                     else:
-                        eqnnum = '{}{}'.format(chapref,eqncnt)
+                        eqnnum = '{}{}'.format(chapref, eqncnt)
                     eqndict[eqnlabel] = '({})'.format(eqnnum)
-                    #EVH: Set id for linking if pop-up flag is False
-                    tr.set('id','eqn{}'.format(eqnnum))
-                    eqnattrib[eqnlabel] = {'href':'{}/#eqn{}'.format(mapdict[locstr][0],eqnnum)}
-                if self.popup_flag and len(eqnlabel)!=0:
+                    # EVH: Set id for linking if pop-up flag is False
+                    tr.set('id', 'eqn{}'.format(eqnnum))
+                    eqnattrib[eqnlabel] = {'href': '{}/#eqn{}'.format(mapdict[locstr][0], eqnnum)}
+                if self.popup_flag and len(eqnlabel) != 0:
                     eqnattrib[eqnlabel]['href'] = 'javascript: void(0)'
-                    eqntablecontent = (etree.tostring(tr,encoding="utf-8",method="html")).rstrip()
-                    eqntablecontent = ''.join(re.findall(r'\[mathjax[a-z]*\](.*?)\[/mathjax[a-z]*\]',eqntablecontent,re.S))
-                    eqntablecontent = re.escape('$$'+eqntablecontent+'$$')
-                    if re.search(r'\\boxed',eqntablecontent,re.S) is not None:
-                        eqntablecontent = eqntablecontent.replace(r'\boxed','')
-                    eqntablecontent = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">{}</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">({})</td></tr></table>".format(eqntablecontent,eqnnum)
+                    eqntablecontent = (etree.tostring(tr, encoding="utf-8", method="html")).rstrip()
+                    eqntablecontent = ''.join(re.findall(r'\[mathjax[a-z]*\](.*?)\[/mathjax[a-z]*\]', eqntablecontent, re.S))
+                    eqntablecontent = re.escape('$$' + eqntablecontent + '$$')
+                    if re.search(r'\\boxed', eqntablecontent, re.S) is not None:
+                        eqntablecontent = eqntablecontent.replace(r'\boxed', '')
+                    eqntablecontent = "<table width=\"100%%\" cellspacing=\"0\" cellpadding=\"7\" style=\"table-layout:auto;border-style:hidden\"><tr><td style=\"width:80%%;vertical-align:middle;text-align:center;border-style:hidden\">{}</td><td style=\"width:20%%;vertical-align:middle;text-align:left;border-style:hidden\">({})</td></tr></table>".format(eqntablecontent, eqnnum)
                     mathjax = "<script type=\"text/javascript\" src=\"https://edx-static.s3.amazonaws.com/mathjax-MathJax-727332c/MathJax.js?config=TeX-MML-AM_HTMLorMML-full\"> </script>"
-                    htmlstr = "\'<html><head>{}</head><body>{}</body></html>\'".format(mathjax,eqntablecontent)
-                    eqnattrib[eqnlabel]['onClick'] = "return newWindow({},\'Equation {}\');".format(htmlstr,eqnnum)
+                    htmlstr = "\'<html><head>{}</head><body>{}</body></html>\'".format(mathjax, eqntablecontent)
+                    eqnattrib[eqnlabel]['onClick'] = "return newWindow({}, \'Equation {}\');".format(htmlstr, eqnnum)
                 # replace the necessary subelements to get desired behavior
-                if table.tag == 'equation': #Only one tr element in equation table, need to add 'td' elements
+                if table.tag == 'equation':  # Only one tr element in equation table, need to add 'td' elements
                     tr.clear()
-                    eqncell = etree.SubElement(tr,"td",attrib={'style':"width:80%;vertical-align:middle;text-align:center;border-style:hidden",'class':"equation"})
+                    eqncell = etree.SubElement(tr, "td", attrib={'style': "width:80%;vertical-align:middle;text-align:center;border-style:hidden", 'class': "equation"})
                     eqncell.text = eqncontent
                     eqnnumcell = None
                 if eqnnumcell is None:
-                    eqnnumcell = etree.SubElement(tr,"td",attrib={'style':"width:20%;vertical-align:middle;text-align:left;border-style:hidden",'class':"eqnnum"})
+                    eqnnumcell = etree.SubElement(tr, "td", attrib={'style': "width:20%;vertical-align:middle;text-align:left;border-style:hidden", 'class': "eqnnum"})
                 else:
                     tr.remove(eqnnumcell)
-                    eqnnumcell = etree.SubElement(tr,"td",attrib=eqnnumcell.attrib)
-                if len(eqnlabel)!=0:
+                    eqnnumcell = etree.SubElement(tr, "td", attrib=eqnnumcell.attrib)
+                if len(eqnlabel) != 0:
                     eqnnumcell.text = '({})'.format(eqnnum)
                     eqnnumsty = eqnnumcell.get('style')
-                    eqnnumsty = re.sub('text-align:[a-zA-Z]+;','',eqnnumsty)
+                    eqnnumsty = re.sub('text-align:[a-zA-Z]+;', '', eqnnumsty)
                     eqnnumsty += ';text-align:right'
-                    eqnnumcell.set('style',eqnnumsty)
-        #EVH: Find and replace references everywhere with ref number and link
+                    eqnnumcell.set('style', eqnnumsty)
+        # EVH: Find and replace references everywhere with ref number and link
         for aref in tree.findall('.//ref'):
             reflabel = aref.text
             if reflabel in figdict:
                 aref.tag = 'a'
                 aref.text = figdict[reflabel]
                 for attrib in figattrib[reflabel]:
-                    aref.set(attrib,figattrib[reflabel][attrib])
+                    aref.set(attrib, figattrib[reflabel][attrib])
             elif reflabel in labeldict:
                 aref.tag = 'a'
                 aref.text = labeldict[reflabel][1]
                 locstr = labeldict[reflabel][0]
-                if locstr.split('.')[-1]=='0':
+                if locstr.split('.')[-1] == '0':
                     locstr = locstr[:-2]
-                aref.set('href',mapdict[locstr][0])
-                aref.set('target',"_blank")
+                aref.set('href', mapdict[locstr][0])
+                aref.set('target', "_blank")
             elif reflabel in eqndict:
                 aref.tag = 'a'
                 aref.text = eqndict[reflabel]
                 for attrib in eqnattrib[reflabel]:
-                    aref.set(attrib,eqnattrib[reflabel][attrib])
+                    aref.set(attrib, eqnattrib[reflabel][attrib])
             else:
                 print "WARNING: There is a reference to non-existent label %s" % aref.text
                 raw_input("Press ENTER to continue")
-    
+
     def process_askta(self, tree):
         '''
         add "Ask TA!" links
@@ -841,15 +839,15 @@ class latex2edx(object):
         \edXaskta{label="Email TA" subject:"help"}
         '''
 
-        special_attribs = [ 'url_base', 'cnt', 'label' ]
+        special_attribs = ['url_base', 'cnt', 'label']
 
         if not hasattr(self, 'askta_data'):
             subject = "Question about {name}"
-            body = "This is a question about the problem at COURSE_URL/{url_name}\n\n" 
-            self.askta_data = { 'cnt': 0, 'label': 'Ask TA!', 'to':'', 'cc':'', 'subject':subject, 
-                                'body': body,
-                                'url_base': 'https://edx.org',
-            }
+            body = "This is a question about the problem at COURSE_URL/{url_name}\n\n"
+            self.askta_data = {'cnt': 0, 'label': 'Ask TA!', 'to': '', 'cc': '', 'subject': subject,
+                               'body': body,
+                               'url_base': 'https://edx.org',
+                               }
 
         for askta in tree.findall('.//askta'):
             text = askta.text
@@ -857,7 +855,7 @@ class latex2edx(object):
             if text:
                 argset = split_args_with_quoted_strings(text)
                 try:
-                    args = dict([x.split('=',1) for x in argset])
+                    args = dict([x.split('=', 1) for x in argset])
                     for arg in args:
                         args[arg] = self.stripquotes(args[arg], checkinternal=True)
                 except Exception, err:
@@ -945,7 +943,7 @@ class latex2edx(object):
             script.text = jscode
 
     @staticmethod
-    def stripquotes(x,checkinternal=False):
+    def stripquotes(x, checkinternal=False):
         if x.startswith('"') and x.endswith('"'):
             if checkinternal and '"' in x[1:-1]:
                 return x
@@ -984,7 +982,7 @@ class latex2edx(object):
         p = xml.getparent()
         todrop = xml
         where2add = xml
-        if p.tag=='p' and not p.text.strip():	# if in empty <p> then remove that <p>
+        if p.tag == 'p' and not p.text.strip():	 # if in empty <p> then remove that <p>
             todrop = p
             where2add = p
             p = p.getparent()
@@ -1010,25 +1008,25 @@ class latex2edx(object):
                 print "Error: edXshowhide must be given an id argument.  Aborting."
                 raise Exception
             print "---> showhide %s" % shid
-            #jscmd = "javascript:toggleDisplay('%s','hide','show')" % shid
+            # jscmd = "javascript:toggleDisplay('%s', 'hide', 'show')" % shid
             jscmd = "javascript:$('#%s').toggle();" % shid
-    
+
             shtable = etree.Element('table')
             showhide.addnext(shtable)
-    
-            desc = showhide.get('description','')
-            shtable.set('class',"wikitable collapsible collapsed")
-            shdiv = etree.XML('<tbody><tr><th> %s [<a onclick="%s" href="javascript:void(0);" id="%sl">show</a>]</th></tr></tbody>' % (desc,jscmd,shid))
+
+            desc = showhide.get('description', '')
+            shtable.set('class', "wikitable collapsible collapsed")
+            shdiv = etree.XML('<tbody><tr><th> %s [<a onclick="%s" href="javascript:void(0);" id="%sl">show</a>]</th></tr></tbody>' % (desc, jscmd, shid))
             shtable.append(shdiv)
-    
-            tr = etree.SubElement(shdiv,'tr')
-            tr.set('id',shid)
-            tr.set('style','display:none')
-            tr.append(showhide)	# move showhide to become td of table
+
+            tr = etree.SubElement(shdiv, 'tr')
+            tr.set('id', shid)
+            tr.set('style', 'display:none')
+            tr.append(showhide)	 # move showhide to become td of table
             showhide.tag = 'td'
             showhide.attrib.pop('id')
             showhide.attrib.pop('description')
-    
+
     def process_include(self, tree, do_python=False):
         '''
         Include XML or python file.
@@ -1042,8 +1040,8 @@ class latex2edx(object):
             cmd += "py"
         for include in tree.findall(tag):
             incfn = include.text
-            linenum = include.get('linenum','<unavailable>')
-            texfn = include.get('filename','<unavailable>')
+            linenum = include.get('linenum', '<unavailable>')
+            texfn = include.get('filename', '<unavailable>')
             if incfn is None:
                 print "Error: %s must specify file to include!" % cmd
                 raise Exception(self.standard_error_msg(include))
@@ -1054,7 +1052,7 @@ class latex2edx(object):
             try:
                 incdata = open(incfn).read()
             except Exception, err:
-                print "Error %s: cannot open include file %s to read" % (err,incfn)
+                print "Error %s: cannot open include file %s to read" % (err, incfn)
                 raise Exception(self.standard_error_msg(include))
 
             # if python script, then check its syntax
@@ -1072,21 +1070,21 @@ class latex2edx(object):
                 else:
                     incxml = etree.fromstring(incdata)
             except Exception, err:
-                print "Error %s parsing XML for include file %s" % (err,incfn)
+                print "Error %s parsing XML for include file %s" % (err, incfn)
                 print "See tex file %s line %s" % (texfn, linenum)
                 raise Exception(self.standard_error_msg(include))
-    
-	    # remove parent <p> if it exists
+
+        # remove parent <p> if it exists
             parent = include.getparent()
             pp = parent.getparent()
-            if parent.tag=='p' and not parent.text.strip() and pp is not None:
+            if parent.tag == 'p' and not parent.text.strip() and pp is not None:
                 parent.addprevious(include)
                 pp.remove(parent)
 
             print "--> including file %s at line %s" % (incfn, linenum)
-            if incxml.tag=='html' and len(incxml)>0:		# strip out outer <html> container
+            if incxml.tag == 'html' and len(incxml) > 0:  # strip out outer <html> container
                 for k in incxml:
-                    include.addprevious(k)	
+                    include.addprevious(k)
             else:
                 include.addprevious(incxml)
             p = include.getparent()
@@ -1101,7 +1099,7 @@ class latex2edx(object):
 
     @staticmethod
     def get_filename_and_linenum(elem):
-        linenum = elem.get('linenum','<unavailable>')
+        linenum = elem.get('linenum', '<unavailable>')
         texfn = elem.get('tex_filename', elem.get('filename', '<unavailable>'))
         return "file %s line %s" % (texfn, linenum)
 
@@ -1116,10 +1114,10 @@ class latex2edx(object):
         tag = './/edxdndtex'
         for dndxml in tree.findall(tag):
             dndfn = dndxml.text
-            linenum = dndxml.get('linenum','<unavailable>')
-            texfn = dndxml.get('filename','<unavailable>')
+            linenum = dndxml.get('linenum', '<unavailable>')
+            texfn = dndxml.get('filename', '<unavailable>')
             if dndfn is None:
-                print "Error: %s must specify dnd tex filename!" % cmd
+                print "Error: %s must specify dnd tex filename!" % tag  # EVH changed 'cmd' to 'tag'
                 print "See tex file %s line %s" % (texfn, linenum)
                 raise
             dndfn = dndfn.strip()
@@ -1134,13 +1132,13 @@ class latex2edx(object):
             try:
                 dndsrc = open(dndfn).read()
             except Exception, err:
-                print "Error %s: cannot open dnd tex file %s to read" % (err,dndfn)
+                print "Error %s: cannot open dnd tex file %s to read" % (err, dndfn)
                 print "See tex file %s line %s" % (texfn, linenum)
                 raise
 
             # Use latex2dnd to compile dnd tex into edX XML.
-            # 
-            # For dndfile.tex, at least two files must be produced: dndfile_dnd.xml and 
+            #
+            # For dndfile.tex, at least two files must be produced: dndfile_dnd.xml and
             # dndfile_dnd.png
             #
             # we copy all the *.png files to static/images/<dndfile>/
@@ -1198,7 +1196,7 @@ class latex2edx(object):
         libpath = path(os.path.abspath(mydir + '/python_lib'))
         ghsfn = libpath / 'general_hint_system.py'
 
-        # find all instances of <edx_general_hint_system />, 
+        # find all instances of <edx_general_hint_system />,
         # but at most one per problem
 
         for problem in tree.findall('.//problem'):
@@ -1245,9 +1243,9 @@ class latex2edx(object):
         which the user did not provide one.  Do this by recursively walking the
         xml tree.
         '''
-        #print "add_url_names: %s" % xml.tag
+        # print "add_url_names: %s" % xml.tag
         if xml.tag in self.DescriptorTags:
-            if not xml.tag=='course':
+            if not xml.tag == 'course':
                 dn = xml.get('display_name', '')
                 if not dn:
                     dn = xml.getparent().get('display_name', '') + '_' + xml.tag
@@ -1255,7 +1253,7 @@ class latex2edx(object):
                 if 'url_name' in xml.keys() and not new_un == xml.get('url_name'):
                     print "Warning: url_name %s changed to %s" % (xml.get('url_name'), new_un)
                 xml.set('url_name', new_un)
-        if not xml.tag in ['problem', 'html']:
+        if xml.tag not in ['problem', 'html']:
             for child in xml:
                 self.add_url_names(child)
 
@@ -1274,9 +1272,9 @@ class latex2edx(object):
                }
         if not s:
             s = tag
-        for m,v in map.items():
+        for m, v in map.items():
             for ch in m:
-                s = s.replace(ch,v)
+                s = s.replace(ch, v)
         if s in self.URLNAMES and not s.endswith(tag):
             s = '%s_%s' % (tag, s)
         while s in self.URLNAMES:
@@ -1291,22 +1289,22 @@ class latex2edx(object):
         attribute strings are space delimited, and optional for elements
         like chapter, sequential, vertical, text
         '''
-        attrib_string = elem.get('attrib_string','')
+        attrib_string = elem.get('attrib_string', '')
         if attrib_string:
-            attrib_list=split_args_with_quoted_strings(attrib_string)    
-            if len(attrib_list)==1 & len(attrib_list[0].split('='))==1: # a single number n is interpreted as weight="n"
-                elem.set('weight',attrib_list[0]) 
-            else: # the normal case, can remove backwards compatibility later if desired
-                for s in attrib_list: 
+            attrib_list = split_args_with_quoted_strings(attrib_string)
+            if len(attrib_list) == 1 & len(attrib_list[0].split('=')) == 1:  # a single number n is interpreted as weight="n"
+                elem.set('weight', attrib_list[0])
+            else:  # the normal case, can remove backwards compatibility later if desired
+                for s in attrib_list:
                     attrib_and_val = s.split('=')
                     if len(attrib_and_val) != 2:
                         print "ERROR! the attribute list '%s' for element %s is not properly formatted" % (attrib_string, elem.tag)
                         # print "attrib_and_val=%s" % attrib_and_val
                         print etree.tostring(elem)
                         sys.exit(-1)
-                    elem.set(attrib_and_val[0],attrib_and_val[1].strip("\"")) # remove extra quotes
+                    elem.set(attrib_and_val[0], attrib_and_val[1].strip("\""))  # remove extra quotes
         if 'attrib_string' in elem.keys():
-            elem.attrib.pop('attrib_string') # remove attrib_string
+            elem.attrib.pop('attrib_string')  # remove attrib_string
 
     def fix_attrib_string(self, xml):
         '''
@@ -1326,19 +1324,19 @@ class latex2edx(object):
         for tag in self.DescriptorTags:
             for elem in xml.findall('.//%s' % tag):
                 parent = elem.getparent()
-                if parent.tag=='p':
+                if parent.tag == 'p':
                     for pcont in parent:
-                        parent.addprevious(pcont)	# move each element in <p> up before <p>
-                    parent.getparent().remove(parent)	# remove the <p>
-    
+                        parent.addprevious(pcont)  # move each element in <p> up before <p>
+                    parent.getparent().remove(parent)  # remove the <p>
+
 
 def CommandLine():
     import pkg_resources  # part of setuptools
     version = pkg_resources.require("latex2edx")[0].version
     parser = optparse.OptionParser(usage="usage: %prog [options] filename.tex",
                                    version="%prog version " + version)
-    parser.add_option('-v', '--verbose', 
-                      dest='verbose', 
+    parser.add_option('-v', '--verbose',
+                      dest='verbose',
                       default=False, action='store_true',
                       help='verbose error messages')
     parser.add_option("-o", "--output-xbundle",
@@ -1398,7 +1396,7 @@ def CommandLine():
                       help="enable equation and figure popup windows on clicking their references",)
     (opts, args) = parser.parse_args()
 
-    if len(args)<1:
+    if len(args) < 1:
         print 'latex2edx: wrong number of arguments'
         parser.print_help()
         sys.exit(-2)
@@ -1420,6 +1418,5 @@ def CommandLine():
                   xml_only=opts.xml_only,
                   units_only=opts.units_only,
                   popup_flag=opts.popups,
-        )
+                  )
     c.convert()
-    
