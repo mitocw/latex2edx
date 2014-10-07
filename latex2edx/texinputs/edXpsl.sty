@@ -3,55 +3,185 @@
 %        enumerate, paralist
 %
 
-\usepackage{verbatim}
-\usepackage{graphicx}
-\usepackage{color}
-\usepackage{url}
-\let\vurl\url
-\usepackage{hyperref}
-\usepackage{amsmath}
-\usepackage{indentfirst}
+\RequirePackage{xparse}
+\ExplSyntaxOn
 
-\usepackage{xparse}
+\RequirePackage{verbatim}
+\RequirePackage{graphicx}
+\RequirePackage{color}
+\RequirePackage{url}
+  \cs_set_eq:NN \vurl \url
+\RequirePackage{hyperref}
+\RequirePackage{amsmath}
+\RequirePackage{indentfirst}
+\RequirePackage[
+  left   = 1   in,
+  right  = 1   in,
+  top    = 0.8 in,
+  bottom = 1.4 in,
+]{geometry}
+\RequirePackage{fancyhdr}
 
 % edX commands understood by latex2edx.py
-\NewDocumentEnvironment{edXcourse}{m m o}{{\noindent\Large\bf edX Course: {#1}} \hfill Display Name: \texttt{#2}}{}
-\NewDocumentEnvironment{edXchapter}{m o}{\section{#1}}{}
-\NewDocumentEnvironment{edXsequential}{m o}{\subsection{#1}}{}
-\NewDocumentEnvironment{edXvertical}{m o}{\subsection*{#1}\vspace{-2mm}}{}
-\NewDocumentEnvironment{edXshowhide}{m m o}{\begin{quote}{{\bf Showhide: #2 (ID: #1):}}}{\end{quote}}
-\newenvironment{edXscript}{\noindent \underline{\texttt{Python code:}} \verbatim}{\endverbatim}
-\newenvironment{edXanswer}{\verbatim}{\endverbatim}
-\newenvironment{edXjavascript}{\verbatim}{\endverbatim}
-\newenvironment{edXproblem}[2]{\subsubsection{{\bf #1}}}{}
-\newenvironment{edXtext}[1]{\subsubsection{{\bf #1}}}{}
-\newenvironment{edXmath}{$$}{$$}
-\newcommand\edXsolution[1]{#1}
-\newcommand\edXinline[1]{#1}
-\newcommand\edXinclude[1]{\texttt{#1}}
-\newcommand\edXincludepy[1]{}
-\newcommand\edXdndtex[1]{}
-\newcommand\edXxml[1]{\texttt{#1}}
-\newcommand\edXbr[1]{\par}
-%\newcommand\edXabox[1]{\fbox{\parbox{0.9\hsize}{\urlstyle{tt} \vurl{#1}}}}
-\newcommand\edXabox[1]{ANSWER BOX HERE}
+\NewDocumentEnvironment { edXcourse } { m m o }
+ {
+  \group_begin:
+  \Large
+  \textbf {edX ~ Course: ~ #1}
+  \group_end:
 
-\renewcommand\texttt[1]{\urlstyle{tt} \vurl{#1}}
+  \hfill
+
+  Display ~ Name: ~ \texttt {#2}
+ } { }
+
+\NewDocumentEnvironment { edXchapter } { m o }
+ {
+  \section {#1}
+ } { }
+
+\NewDocumentEnvironment { edXsequential } { m o }
+ {
+  \subsection {#1}
+ } { }
+
+\NewDocumentEnvironment { edXvertical } { m o }
+ {
+  \subsection* {#1}
+  \vspace {-2mm}
+ } { }
+
+\NewDocumentEnvironment { edXshowhide } { m m o }
+ {
+  \begin{quote}
+   {
+    \textbf { Showhide: ~ #2 ~ (ID: ~ #1): }
+   }
+ } {
+  \end{quote}
+ }
+
+\NewDocumentEnvironment { edXscript } { }
+ {
+  \noindent
+  \underline { \texttt { Python ~ code: } }
+  \verbatim
+ } {
+  \endverbatim
+ }
+
+\NewDocumentEnvironment { edXanswer } { }
+ {
+  \verbatim
+ } {
+  \endverbatim
+ }
+
+\NewDocumentEnvironment { edXjavascript } { }
+ {
+  \verbatim
+ } {
+  \endverbatim
+ }
+
+\NewDocumentEnvironment { edXproblem } { m m }
+ {
+  \subsubsection {\textbf{#1}}
+ } { }
+
+\NewDocumentEnvironment { edXtext } { m }
+ {
+  \subsubsection{\textbf{#1}}
+ } { }
+
+\NewDocumentEnvironment { edXmath }
+ {
+  \begin{displaymath}
+ } {
+  \end{displaymath}
+ }
+ 
+\NewDocumentCommand \edXsolution  { m } {#1}
+\NewDocumentCommand \edXinline    { m } {#1}
+\NewDocumentCommand \edXincludepy { m } { }
+\NewDocumentCommand \edXdndtex    { m } { }
+\NewDocumentCommand \edXbr        { m } { \par }
+\NewDocumentCommand \edXabox      { m } { ANSWER ~ BOX ~ HERE }
+\NewDocumentCommand \edXinclude   { m } { \texttt {#1} }
+\NewDocumentCommand \edXxml       { m } { \texttt {#1} }
+%\NewDocumentCommand \edXabox { m }
+% {
+%  \fbox
+%   {
+%    \parbox { 0.9 \hsize }
+%    \group_begin:
+%      \urlstyle { tt }
+%      \vurl {#1}
+%    \group_end:
+%   }
+% }
+
+\RenewDocumentCommand \texttt { m }
+ {
+  \urlstyle { tt }
+  \vurl {#1}
+ }
+
+\cs_new:Npn \edx_header_line_format:nn #1#2
+ {
+  \group_begin:
+  \fontsize{10}{12}
+  \selectfont
+  \textsc {#1}
+  \hfill
+  \textbf {#2}
+  \group_end:
+ }
 
 % Create header on every page
-\RequirePackage[left=1in,right=1in,top=0.8in,bottom=1.4in]{geometry}
-\RequirePackage{fancyhdr}
-\fancypagestyle{203x}{
-\setlength{\voffset}{0.6in}
-\setlength{\textheight}{8in}
-\setlength{\parskip}{0.2pc}
-\fancyhead{}
-\headheight = 3.6pc
-\chead{\hrule\vspace{0.3pc}
-{\fontsize{10}{12}{\scshape 2.03x Fall 2014: Dynamics I} \hfill \LaTeX\ {\bf edX Course}}\\[-3ex]
-\vspace{12pt}
-{\fontsize{10}{12}{\scshape Massachusetts Institute of Technology} \hfill {\bf Development}}\\[-3ex]
-\vspace{12pt}
-{\fontsize{10}{12}{\scshape Department of Mechanical Engineering} \hfill {\bf Eric Heubel}}}
-}
-\pagestyle{203x}
+\fancypagestyle{203x}
+ {
+  \setlength \voffset    { 0.6 in }
+  \setlength \textheight { 8   in }
+  \setlength \parskip    { 0.2 pc }
+  \setlength \headheight { 0.3 pc }
+
+  \fancyhead {} 
+
+  \chead
+   {
+    \hrule
+    \vspace{0.3pc}
+
+    \edx_header_line_format:nn
+     {
+      2.03x ~ Fall ~ 2014: ~ Dynamics ~ I
+     } {
+      \LaTeX{} ~ edX ~ Course
+     }
+
+    \\[-3ex]
+    \vspace{12pt}
+
+    \edx_header_line_format:nn
+     {
+      Massachusetts ~ Institute ~ of ~ Technology
+     } {
+      Development
+     }
+
+    \\[-3ex]
+    \vspace{12pt}
+
+    \edx_header_line_format:nn
+     {
+      Department ~ of ~ Mechanical ~ Engineering
+     } {
+      Eric ~ Heubel
+     }
+   }
+ }
+
+\pagestyle { 203x }
+
+\ExplSyntaxOff
