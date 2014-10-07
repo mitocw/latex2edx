@@ -763,7 +763,7 @@ class latex2edx(object):
                     if chapref == '0':
                         eqnnum = '{}'.format(eqncnt)
                     else:
-                        eqnnum = '{}{}'.format(chapref, eqncnt)
+                        eqnnum = '{}.{}'.format(chapref, eqncnt)
                     eqndict[eqnlabel] = '({})'.format(eqnnum)
                     # EVH: Set id for linking if pop-up flag is False
                     tr.set('id', 'eqn{}'.format(eqnnum))
