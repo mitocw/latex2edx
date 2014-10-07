@@ -44,7 +44,7 @@ class TestToC(unittest.TestCase):
             self.assertTrue(chaps[1].get('refnum') == '1')
             equation = xml.find('.//td[@class="equation"]')
             self.assertTrue(re.findall(r'\\label\{(.*?)\}', equation.text,
-                            re.S)[0] == 'eq:deriv')
+                            re.S)[0] == 'eq:pythagorean')
 
     def test_toc2(self):
         testdir = path(l2e.__file__).parent / 'testtex'
@@ -72,6 +72,12 @@ class TestToC(unittest.TestCase):
             # Check for popup format
             self.assertTrue(href[1].get('href') == 'javascript: void(0)')
             self.assertTrue(href[2].get('href') == 'javascript: void(0)')
+            # Check for taglist in problem
+            cfn = path(tmdir) / 'problem/p0.xml'
+            data = open(cfn).read()
+            xml = etree.fromstring(data)
+            taglist = xml.find('.//p[@id="taglist"]')
+            self.assertTrue(taglist.get('tags') == 'mo:explore,mo:problem')
 
 if __name__ == '__main__':
     unittest.main()

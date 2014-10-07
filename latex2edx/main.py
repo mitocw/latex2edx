@@ -570,13 +570,15 @@ class latex2edx(object):
             locstr = label.get('tmploc')
             if locstr.split('.')[-1] == '0':
                 locref = mapdict[locstr[:-2]][2]
+                hlabel = True
             else:
                 locref = mapdict[locstr][2]
+                hlabel = False
             labelref = label.text
             if locref.split('.')[0] != chapref:
                 chapref = locref.split('.')[0]
                 labelcnt = {}  # Reset label count
-            if locstr.split('.')[-1] == '0':
+            if hlabel:
                 labeldict[labelref] = [locstr, locref]
             else:
                 labeltag = labelref.split(':')[0]
@@ -634,8 +636,7 @@ class latex2edx(object):
                 taglist = etree.Element('p', id='taglist', tags=tagref)
                 paref.insert(0, taglist)
             else:
-                tags = taglist.get('tags') + ',' + tagref
-                taglist.set('tags', tags + ',' + tagref)
+                taglist.set('tags', taglist.get('tags') + ',' + tagref)
         # EVH: Parse taglist to create ToC button links at the top of each vertical
         for taglist in tree.findall(".//p[@id='tags']"):
             tags = taglist.get('tags').split(',')
@@ -732,7 +733,7 @@ class latex2edx(object):
         for tocref in tocrefdict:
             print "\ntocref.text =", tocref
             print "WARNING: There is a reference to non-existent label %s" % tocref
-            raw_input("Press ENTER to continue")
+            # raw_input("Press ENTER to continue")
         # EVH: Handle equation references. Search for labels and build dictionaries
         eqndict = {}  # {'eqnlabel':'eqnnum'}
         eqnattrib = {}  # {'eqnlabel':{'attrib':'value'}}

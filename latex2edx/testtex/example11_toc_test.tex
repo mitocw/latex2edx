@@ -23,6 +23,7 @@
 Measurable outcomes for this section:
 \begin{enumerate}
   \item \toclabel{mo:explore} Explore the edX platform
+  \item \toclabel{mo:problem} Answer an edX question
 \end{enumerate}
 
 Example unnumbered figure:
@@ -43,6 +44,12 @@ Example numbered figure: %note that in the example below, the line breaks are un
   \end{center}
 \end{figure}
 
+Example equation:
+\begin{equation}
+  c^2 = a^2 + b^2
+  \label{eq:pythagorean}
+\end{equation}
+
 Example multifigure:
 \begin{figure}
   \begin{center}
@@ -57,7 +64,7 @@ Example multifigure:
 \end{edXtext}
 
 \begin{edXproblem}{Example problem}{url_name="p0"}
-\tocref{mo:explore}
+\tocref{mo:explore} \tocref{mo:problem}
 
 First example question for the first learning objective (a.k.a measurable outcome).
 
@@ -70,11 +77,13 @@ First example question for the first learning objective (a.k.a measurable outcom
 
 %%====================================== CHAPTER 1
 \begin{edXchapter}{Module 1}[start="2014-10-06"]
+\toclabel{chap:equation}
 
 %%-------------------------------------- SEQUENTIAL 1-1: Lecture 1
 \begin{edXsequential}{A lecture section}
 
 \begin{edXtext}{Example text}[url_name="text-L1"]
+\tocref{mo:explore} \tocref{mo:undefined}
 
 In Section \ref{chap:intro} we saw example figure references.  Here are some equations.
 
