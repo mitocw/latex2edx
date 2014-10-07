@@ -7,30 +7,32 @@
 % Note:
 % The \def directives in the last block of this file should be included in the preamble of the main course .tex
 
-\usepackage{verbatim}
-\usepackage{graphicx}
-\usepackage{color}
-\usepackage{url}
-\let\vurl\url
-\usepackage{hyperref}
-\hypersetup{colorlinks=true,urlcolor=blue}
-\usepackage{amssymb,amsmath,amsthm}
-\usepackage{indentfirst}
-\usepackage{fullpage}
-\usepackage{makeidx}
-\usepackage{ifthen}
-\usepackage{listings}
-\usepackage{environ}
-\usepackage{xparse}
-\usepackage{xstring}
-\usepackage{xcolor}
+\RequirePackage{xparse}
+\ExplSyntaxOn
 
-\providecommand\phantomsection{}
+\RequirePackage{verbatim}
+\RequirePackage{graphicx}
+\RequirePackage{color}
+\RequirePackage{url}
+  \cs_set_eq:NN \vurl \url
+\RequirePackage{hyperref}
+\RequirePackage{amsmath}
+\RequirePackage{indentfirst}
+\RequirePackage{makeidx}
+\RequirePackage{ifthen}
+\RequirePackage{environ}
+\RequirePackage{xstring}
+\RequirePackage{xcolor}
+\RequirePackage[left=1in,right=1in,top=0.8in,bottom=1.4in]{geometry}
+\RequirePackage{fancyhdr}
+
+\hypersetup{colorlinks=true,urlcolor=blue}
 
 %Set table of contents
-\def\addchaptoc#1{\phantomsection\addcontentsline{toc}{chapter}{#1}}
-\def\addsectoc#1{\phantomsection\addcontentsline{toc}{section}{#1}}
-\def\addsubtoc#1{\phantomsection\addcontentsline{toc}{subsection}{#1}}
+\ProvideDocumentCommand \phantomsection{}{}
+\NewDocumentCommand \addchaptoc{m}{\phantomsection\addcontentsline{toc}{chapter}{#1}}
+\NewDocumentCommand \addsectoc{m}{\phantomsection\addcontentsline{toc}{section}{#1}}
+\NewDocumentCommand \addsubtoc{m}{\phantomsection\addcontentsline{toc}{subsection}{#1}}
 
 % =================================================
 % edX commands understood by latex2edx
@@ -38,36 +40,36 @@
 \NewDocumentEnvironment{edXchapter}{m o}{\chapter{#1}}{}
 \NewDocumentEnvironment{edXchapter*}{m o}{\chapter*{#1}\addchaptoc{#1}}{}
 %---
-\newcommand{\sectionname}{}
-\newcommand{\subsectionname}{}
-\NewDocumentEnvironment{edXsequential}{m o}{\section{\color{red} #1} \renewcommand{\sectionname}{#1}}{\clearpage}
-\NewDocumentEnvironment{edXsequential*}{m o}{\section*{\color{red} #1} \renewcommand{\sectionname}{#1}\addsectoc{#1}}{\clearpage}
-\NewDocumentEnvironment{edXvertical}{m o}{\subsection{\color{red} \bf In Section: \thesection\ \sectionname\\ edXvertical: #1} \renewcommand{\subsectionname}{#1} \setboolean{inVertical}{true}\addsubtoc{edXvertical: #1}}{\setboolean{inVertical}{false}}
-\NewDocumentEnvironment{edXvertical*}{m o}{\subsection*{\color{red} \bf In Section: \thesection\ \sectionname\\ edXvertical: #1} \renewcommand{\subsectionname}{#1} \setboolean{inVertical}{true}\addsubtoc{edXvertical: #1}}{\setboolean{inVertical}{false}}
+\NewDocumentCommand \sectionname{}{}
+\NewDocumentCommand \subsectionname{}{}
+\NewDocumentEnvironment{edXsequential}{m o}{\section{\color{red} #1} \RenewDocumentCommand \sectionname{m}{#1}}{\clearpage}
+\NewDocumentEnvironment{edXsequential*}{m o}{\section*{\color{red} #1} \RenewDocumentCommand \sectionname{m}{#1}\addsectoc{#1}}{\clearpage}
+\NewDocumentEnvironment{edXvertical}{m o}{\subsection{\color{red} \bf In Section: \thesection\ \sectionname\\ edXvertical: #1} \RenewDocumentCommand \subsectionname{m}{#1} \setboolean{inVertical}{true}\addsubtoc{edXvertical: #1}}{\setboolean{inVertical}{false}}
+\NewDocumentEnvironment{edXvertical*}{m o}{\subsection*{\color{red} \bf In Section: \thesection\ \sectionname\\ edXvertical: #1} \RenewDocumentCommand \subsectionname{m}{#1} \setboolean{inVertical}{true}\addsubtoc{edXvertical: #1}}{\setboolean{inVertical}{false}}
 \NewDocumentEnvironment{edXshowhide}{m m o}{\begin{quote}{{\bf Showhide: #2 (ID: #1):}}}{\end{quote}}
 \NewDocumentEnvironment{edXproblem}{m g}{\subsection*{\color{red} In \ifthenelse{\boolean{inVertical}}{Vertical}{Section\addsubtoc{edXproblem: #1}}: \thesection\ \sectionname\\ edXproblem: #1\IfNoValueTF{#2}{}{\IfInteger{#2}{: #2 Points}{}}}}{}
 \NewDocumentEnvironment{edXtext}{m o}{\subsection*{\color{red} In \ifthenelse{\boolean{inVertical}}{Vertical}{Section\addsubtoc{edXtext: #1}}: \thesection\ \sectionname\\ edXtext: #1}}{}
 %---
-\newenvironment{edXscript}{\noindent \underline{\texttt{Python code:}} \verbatim}{\endverbatim}
-\newenvironment{edXanswer}{\verbatim}{\endverbatim}
-\newenvironment{edXjavascript}{\verbatim}{\endverbatim}
-\newenvironment{edXmath}{$$}{$$}
-\newcommand\edXinline[1]{#1}
-\newcommand\edXinclude[1]{\texttt{#1}}
-\newcommand\edXincludepy[1]{}
-\newcommand\edXxml[1]{\lstset{language=XML}\lstinline^#1^}
-\newcommand\edXbr[1]{\par}
-\NewDocumentCommand{\edXvideo}{m m o}{\href{http://www.youtube.com/watch?v=#2}{\color{blue} \underline{#1}}} %\edXvideo{Description}{youtube_id}[source=""]
-\def\edXinlinevideo#1{\edXvideo{at this YouTube link}{#1}} %Wrapper for Chad's code
-\newcommand\edXdiscussion[2]{{\bf Discussion: }#1}{} %\edXdiscussion{Display Name}{discussion_category="", overwrite: discussion_id="" discussion_target=""}
+\NewDocumentEnvironment{edXscript}{}{\noindent \underline{\texttt{Python code:}} \verbatim}{\endverbatim}
+\NewDocumentEnvironment{edXanswer}{}{\verbatim}{\endverbatim}
+\NewDocumentEnvironment{edXjavascript}{}{\verbatim}{\endverbatim}
+\NewDocumentEnvironment{edXmath}{}{\begin{displaymath}}{\end{displaymath}}
+\NewDocumentCommand \edXinline{m}{#1}
+\NewDocumentCommand \edXinclude{m}{\texttt{#1}}
+\NewDocumentCommand \edXincludepy{m}{}
+\NewDocumentCommand \edXdndtex{m}{}
+\NewDocumentCommand \edXxml{m}{\lstset{language=XML}\lstinline^#1^}
+\NewDocumentCommand \edXbr{m}{\par}
+\NewDocumentCommand \edXvideo{m m o}{\href{http://www.youtube.com/watch?v=#2}{\color{blue} \underline{#1}}} %\edXvideo{Description}{youtube_id}[source=""]
+\NewDocumentCommand \edXinlinevideo{m}{\edXvideo{at this YouTube link}{#1}} %Wrapper for Chad's code
+\NewDocumentCommand \edXdiscussion{m m}{{\bf Discussion: }#1}{} %\edXdiscussion{Display Name}{discussion_category="", overwrite: discussion_id="" discussion_target=""}
 \NewEnviron{edXsolution}{\ifthenelse{\boolean{showSolution}}{\color{blue} \noindent \underline{edXsolution} \BODY}{}}
-\newcommand\edXabox[1]{\ifthenelse{\boolean{showAboxCode}}{\fbox{\parbox{0.9\hsize}{\urlstyle{tt} \vurl{#1}}}}{{\color{blue} \bf Assessment content removed}}}
+\NewDocumentCommand \edXabox{m}{\ifthenelse{\boolean{showAboxCode}}{\fbox{\parbox{0.9\hsize}{\urlstyle{tt} \vurl{#1}}}}{{\color{blue} \bf Assessment content removed}}}
 % CrossRef addition (for Measurable Outcomes and the like)
-\setlength\fboxsep{0pt}
-\newcommand{\tocref}[1]{\ {\color{cyan} \colorbox{gray!20}{\framebox(28,14){\ref{#1}}}}}
-\newcommand{\toclabel}[1]{\label{#1}}
-% =================================================
-\renewcommand\texttt[1]{\urlstyle{tt} \vurl{#1}}
+\setlength{\fboxsep}{0pt}
+\NewDocumentCommand \tocref{m}{\ {\color{cyan} \colorbox{gray!20}{\framebox(28,14){\ref{#1}}}}}
+\NewDocumentCommand \toclabel{m}{\label{#1}}% =================================================
+\RenewDocumentCommand \texttt{m}{\urlstyle{tt} \vurl{#1}}
 
 % Initialize toggling parameters for PDF output
 \newboolean{inVertical}
@@ -82,22 +84,24 @@
 
 % PDF document formating
 \pagestyle{plain}
-\headheight 0pt
-\headsep 0pt
+\setlength{\headheight}{0pt}
+\setlength{\headsep}{0pt}
 \raggedbottom
-\textwidth 6.5in
-\textheight 9.5in
-\topmargin -0.25in
-\oddsidemargin 0.0in
-\parskip 5pt plus 1pt minus 1pt
-\baselineskip -10pt
-\parindent 0in
-\abovecaptionskip 0.50em
-\belowcaptionskip -0.15em
-\renewcommand\floatpagefraction{.9}
-\renewcommand\topfraction{.9}
-\renewcommand\bottomfraction{.9}
-\renewcommand\textfraction{.1}
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{9.5in}
+\setlength{\topmargin}{-0.25in}
+\setlength{\oddsidemargin}{0.0in}
+\setlength{\parskip}{5pt plus 1pt minus 1pt}
+\setlength{\baselineskip}{-10pt}
+\setlength{\parindent}{0in}
+\setlength{\abovecaptionskip}{0.50em}
+\setlength{\belowcaptionskip}{-0.15em}
+\RenewDocumentCommand \floatpagefraction{}{.9}
+\RenewDocumentCommand \topfraction{}{.9}
+\RenewDocumentCommand \bottomfraction{}{.9}
+\RenewDocumentCommand \textfraction{}{.1}
+
+\ExplSyntaxOff
 
 \makeindex
 
