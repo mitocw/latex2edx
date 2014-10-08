@@ -643,8 +643,7 @@ class latex2edx(object):
             for tocref in tags:
                 if tocref not in labeldict:
                     continue
-                link = etree.SubElement(taglist, 'button', {'type': "button",
-                    'border-radius': "2px", 'title': "{}:\n{}".format(labeldict[tocref][1].upper(), tocdict[tocref][1]), 'style': "cursor:pointer", 'class': "mo_button", 'onClick': "window.location.href='../tocindex/#anchor{}';".format(labeldict[tocref][1].upper().replace(r'.', ''))})
+                link = etree.SubElement(taglist, 'button', {'type': "button", 'border-radius': "2px", 'title': "{}:\n{}".format(labeldict[tocref][1].upper(), tocdict[tocref][1]), 'style': "cursor:pointer", 'class': "mo_button", 'onClick': "window.location.href='../tocindex/#anchor{}';".format(labeldict[tocref][1].upper().replace(r'.', ''))})
                 link.text = labeldict[tocref][1].upper()
                 link.set('id', tocref.split(':')[1])
         tochead = ['h2', 'h3', 'h4']
