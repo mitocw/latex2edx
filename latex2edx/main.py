@@ -638,7 +638,7 @@ class latex2edx(object):
             else:
                 taglist.set('tags', taglist.get('tags') + ',' + tagref)
         # EVH: Parse taglist to create ToC button links at the top of each vertical
-        for taglist in tree.findall(".//p[@id='tags']"):
+        for taglist in tree.findall(".//p[@id='taglist']"):
             tags = taglist.get('tags').split(',')
             for tocref in tags:
                 link = etree.SubElement(taglist, 'button', {'type': "button", 'border-radius': "2px", 'title': "{}{}:\n{}".format(tocref.split(':')[0].upper(), labeldict[tocref][1], tocdict[tocref][1]), 'style': "cursor:pointer", 'class': "mo_button", 'onClick': "window.location.href='../tocindex/#anchor{}{}';".format(tocref.split(':')[0].upper(), labeldict[tocref][1].replace(r'.', ''))})
