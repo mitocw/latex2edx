@@ -641,6 +641,8 @@ class latex2edx(object):
         for taglist in tree.findall(".//p[@id='taglist']"):
             tags = taglist.get('tags').split(',')
             for tocref in tags:
+                if tocref not in labeldict:
+                    continue
                 link = etree.SubElement(taglist, 'button', {'type': "button", 'border-radius': "2px", 'title': "{}{}:\n{}".format(tocref.split(':')[0].upper(), labeldict[tocref][1], tocdict[tocref][1]), 'style': "cursor:pointer", 'class': "mo_button", 'onClick': "window.location.href='../tocindex/#anchor{}{}';".format(tocref.split(':')[0].upper(), labeldict[tocref][1].replace(r'.', ''))})
                 link.text = tocref.split(':')[0].upper() + labeldict[tocref][1]
                 link.set('id', tocref.split(':')[1])
