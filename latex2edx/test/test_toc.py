@@ -1,3 +1,7 @@
+'''
+Test cross-reference and Table of Contents generating modules from
+`latex2edx/main.py`
+'''
 import os
 import re
 import unittest
@@ -10,74 +14,80 @@ from latex2edx.test.util import make_temp_directory
 
 
 class TestToC(unittest.TestCase):
+    '''
+    This class inherits the `unittest.TestCase` class and contains the methods
+    `test_toc1` and `test_toc2` that test the proper functionality of the
+    latex2edx `label`, `ref`, `toclabel`, and `tocref` commands.
+    '''
 
     def test_toc1(self):
+        '''
+        Test the output of `latex2edx example11_toc_test.tex` for proper label
+        and reference tags, as well as figure numbering.
+        '''
         testdir = path(l2e.__file__).parent / 'testtex'
-        fn = testdir / 'example11_toc_test.tex'
-        print "file %s" % fn
+        tfn = testdir / 'example11_toc_test.tex'
+        print "file %s" % tfn
         with make_temp_directory() as tmdir:
-            nfn = '%s/%s' % (tmdir, fn.basename())
+            nfn = '%s/%s' % (tmdir, tfn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
             os.chdir(tmdir)
-
-            try:
-                l2eout = latex2edx(nfn, output_dir=tmdir)
-                l2eout.convert()
-            except Exception as err:
-                print "Error = %s" % str(err)
+            l2eout = latex2edx(nfn, output_dir=tmdir)
+            l2eout.convert()
 
             xhfn = nfn[:-4] + '.xhtml'
             xml = etree.fromstring(open(xhfn).read())
             toclabels = xml.findall('.//toclabel')
-            self.assertTrue(toclabels[0].text == 'chap:intro')
-            self.assertTrue(toclabels[1].text == 'mo:explore')
+            self.assertEqual(toclabels[0].text, 'chap:intro')
+            self.assertEqual(toclabels[1].text, 'mo:explore')
             tocref = xml.find('.//tocref')
-            self.assertTrue(tocref.text == 'mo:explore')
+            self.assertEqual(tocref.text, 'mo:explore')
             labels = xml.findall('.//label')
-            for label in labels:
-                self.assertTrue(label.text in ['fig:single', 'fig:multi'])
-            captions = xml.findall('.//div[@class="caption"]')
-            for caption in captions:
-                self.assertTrue(caption[0].text in ['Figure 1', 'Figure 2'])
+            self.assertEqual(labels[0].text, 'fig:single')
+            self.assertEqual(labels[1].text, 'fig:multi')
+            captions = xml.findall('.//div[@class="caption"]/b')
+            self.assertEqual(captions[0].text, 'Figure 1')
+            self.assertEqual(captions[1].text, 'Figure 2')
             chaps = xml.findall('.//chapter')
-            self.assertTrue(chaps[0].get('refnum') is None)
-            self.assertTrue(chaps[1].get('refnum') == '1')
+            self.assertIsNone(chaps[0].get('refnum'))
+            self.assertEqual(chaps[1].get('refnum'), '1')
             equation = xml.find('.//td[@class="equation"]')
-            self.assertTrue(re.findall(r'\\label\{(.*?)\}', equation.text,
-                            re.S)[0] == 'eq:pythagorean')
+            self.assertEqual(re.findall(r'\\label\{(.*?)\}', equation.text,
+                                        re.S)[0], 'eq:pythagorean')
 
     def test_toc2(self):
+        '''
+        Test the output of `latex2edx --popups example11_toc_test.tex` for
+        proper equation numbering and button links to the static tocindex.html
+        file.
+        '''
         testdir = path(l2e.__file__).parent / 'testtex'
-        fn = testdir / 'example11_toc_test.tex'
-        print "file %s" % fn
+        tfn = testdir / 'example11_toc_test.tex'
+        print "file %s" % tfn
         with make_temp_directory() as tmdir:
-            nfn = '%s/%s' % (tmdir, fn.basename())
+            nfn = '%s/%s' % (tmdir, tfn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
             os.chdir(tmdir)
-
-            try:
-                l2eout = latex2edx(nfn, output_dir=tmdir, popup_flag=True)
-                l2eout.convert()
-            except Exception as err:
-                print "Error = %s" % str(err)
+            l2eout = latex2edx(nfn, output_dir=tmdir, popup_flag=True)
+            l2eout.convert()
 
             cfn = path(tmdir) / 'html/text-L1.xml'
             data = open(cfn).read()
             xml = etree.fromstring(data)
             href = xml.findall('.//a[@href]')
             # Check the reference link text
-            self.assertTrue(href[0].text == '0')  # Non-numbered chapter
-            self.assertTrue(href[1].text == '(1.2)')  # Numbered equation 2
-            self.assertTrue(href[2].text == '(1.3)')  # Numbered equation 3
+            self.assertEqual(href[0].text, '0')  # Non-numbered chapter
+            self.assertEqual(href[1].text, '(1.2)')  # Numbered equation 2
+            self.assertEqual(href[2].text, '(1.3)')  # Numbered equation 3
             # Check for popup format
-            self.assertTrue(href[1].get('href') == 'javascript: void(0)')
-            self.assertTrue(href[2].get('href') == 'javascript: void(0)')
+            self.assertEqual(href[1].get('href'), 'javascript: void(0)')
+            self.assertEqual(href[2].get('href'), 'javascript: void(0)')
             # Check for taglist in problem
             cfn = path(tmdir) / 'problem/p0.xml'
             data = open(cfn).read()
             xml = etree.fromstring(data)
             taglist = xml.find('.//p[@id="taglist"]')
-            self.assertTrue(taglist.get('tags') == 'mo:explore,mo:problem')
+            self.assertEqual(taglist.get('tags'), 'mo:explore,mo:problem')
 
 if __name__ == '__main__':
     unittest.main()
