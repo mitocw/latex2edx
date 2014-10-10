@@ -766,21 +766,20 @@ class latex2edx(object):
                 tablecont.append(etree.Element(
                     'ul', {'class': '{}assess'.format(toclabel.split(':')[0].
                                                       upper())}))
-                if toclabel in tocrefdict:
-                    tocrefs = tocrefdict.pop(toclabel)
-                    tocrefnames = tocrefs[1]
-                    tocrefs = tocrefs[0]
-                    for tocref in tocrefs:
-                        tableli = etree.Element('li')
-                        tableli.append(etree.Element(
-                            'a', {'href': mapdict[tocref][0],
-                                  'itemprop': 'name'}))
-                        tocrefname = tocrefnames.pop(0)
-                        tableli[0].text = tocrefname[1:]
-                        if tocrefname[0] == 'H':
-                            tablecont[1].append(tableli)
-                        else:
-                            tablecont[3].append(tableli)
+                tocrefs = tocrefdict.pop(toclabel)
+                tocrefnames = tocrefs[1]
+                tocrefs = tocrefs[0]
+                for tocref in tocrefs:
+                    tableli = etree.Element('li')
+                    tableli.append(etree.Element(
+                        'a', {'href': mapdict[tocref][0],
+                              'itemprop': 'name'}))
+                    tocrefname = tocrefnames.pop(0)
+                    tableli[0].text = tocrefname[1:]
+                    if tocrefname[0] == 'H':
+                        tablecont[1].append(tableli)
+                    else:
+                        tablecont[3].append(tableli)
             else:
                 toctable = etree.Element('a', {'href': mapdict[tocloc][0]})
                 if hlabel:
@@ -900,7 +899,8 @@ class latex2edx(object):
                         "return newWindow({}, \'Equation {}\');".
                         format(htmlstr, eqnnum))
                 # replace the necessary subelements to get desired behavior
-                if table.tag == 'equation':  # Only one tr element, add 'td'
+                if table.get('class') == 'equation':
+                    # Only one 'tr' element in equation table, need to add 'td'
                     tr.clear()
                     eqncell = etree.SubElement(
                         tr, "td", attrib={

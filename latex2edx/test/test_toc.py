@@ -87,7 +87,8 @@ class TestToC(unittest.TestCase):
             data = open(cfn).read()
             xml = etree.fromstring(data)
             taglist = xml.find('.//p[@id="taglist"]')
-            self.assertEqual(taglist.get('tags'), 'mo:explore,mo:problem')
+            self.assertEqual(taglist.get('tags'),
+                             'mo:explore,mo:problem,chap:intro')
 
 if __name__ == '__main__':
     unittest.main()
