@@ -803,12 +803,33 @@ class latex2edx(object):
             tocf.write(etree.tostring(
                 toctree, method='html', pretty_print=True))
             tocf.close()
+
+        class MissingLabel(Exception):
+            '''
+            Exception raised when a referrence to a non-existent label is found
+            '''
+
+            def __init__(self, value):
+                '''
+                Add a new value to the Exception call
+                Arg: value (str)
+                '''
+                self.value = value
+
+            def __str__(self):
+                '''
+                Return the value of the Exception as a string
+                '''
+                return repr(self.value)
+
         # EVH: Check for unused tocrefs
         for tocref in tocrefdict:
-            print "\ntocref.text =", tocref
-            print ("WARNING: There is a reference to non-existent label %s"
-                   % tocref)
-            # raw_input("Press ENTER to continue")
+            try:
+                raise MissingLabel(tocref)
+            except MissingLabel as referr:
+                print ('WARNING: There is a reference to non-existent '
+                       'ToC label: {}'.format(str(referr)))
+
         # EVH: Handle equation refs. Search for labels and build dictionaries
         eqndict = {}  # {'eqnlabel':'eqnnum'}
         eqnattrib = {}  # {'eqnlabel':{'attrib':'value'}}
@@ -928,9 +949,11 @@ class latex2edx(object):
                 for attrib in eqnattrib[reflabel]:
                     aref.set(attrib, eqnattrib[reflabel][attrib])
             else:
-                print ("WARNING: There is a reference to non-existent label %s"
-                       % aref.text)
-                raw_input("Press ENTER to continue")
+                try:
+                    raise MissingLabel(aref.text)
+                except MissingLabel as referr:
+                    print ('WARNING: There is a reference to non-existent '
+                           'label: {}'.format(str(referr)))
 
     def process_askta(self, tree):
         '''
