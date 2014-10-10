@@ -721,8 +721,7 @@ class latex2edx(object):
                         tocitem.append(etree.Element('h2'))
                         tocitem[0].text = entryname
                         tocbody.append(tocitem)
-            # if toclabel in tocrefdict:
-            if not (hlabel and toclabel in tocrefdict):
+            if toclabel in tocrefdict:
                 toctag = labeldict[toclabel][1]
                 tocbody.append(etree.Element(
                     'a', {'name': 'anchor{}'.format(toctag.replace('.', '').
@@ -791,8 +790,7 @@ class latex2edx(object):
                 else:
                     toctable.append(etree.Element(
                         'strong', {'itemprop': 'name'}))
-                    toctable[0].text = (toclabel.split(':')[0] +
-                                        labeldict[toclabel][1])
+                    toctable[0].text = labeldict[toclabel][1].upper()
                     tablecont = etree.SubElement(
                         toctable, 'span', {'itemprop': 'description'})
                     tablecont.text = tocname
