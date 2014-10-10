@@ -23,7 +23,7 @@
 Measurable outcomes for this section:
 \begin{enumerate}
   \item \toclabel{mo:explore} Explore the edX platform
-  \item \toclabel{mo:problem} Answer an edX question
+  \item Answer an edX question \toclabel{mo:problem}
 \end{enumerate}
 
 Example unnumbered figure:
@@ -71,16 +71,21 @@ First example question for the first learning objective (a.k.a measurable outcom
 \end{edXproblem}
 
 \end{edXsequential}
-%%--------------------------------------
 
+%%--------------------------------------
 \end{edXchapter*}
 
 %%====================================== CHAPTER 1
 \begin{edXchapter}{Module 1}[start="2014-10-06"]
-\toclabel{chap:equation}
+
+% Hidden Learning Objectives, should only appear in ToC
+\begin{enumerate}
+  \item \toclabel{mo:hidden} Complete the course
+\end{enumerate}
 
 %%-------------------------------------- SEQUENTIAL 1-1: Lecture 1
 \begin{edXsequential}{A lecture section}
+\label{sec:lecture1}
 
 \begin{edXtext}{Example text}[url_name="text-L1"]
 \tocref{mo:explore} \tocref{mo:undefined}
@@ -106,8 +111,41 @@ The label for this reference \ref{eq:unused} has not been defined.
 \end{edXtext}
 
 \end{edXsequential}
-%%--------------------------------------
 
+%%-------------------------------------- SEQUENTIAL 1-2: Lecture 2
+\begin{edXsequential}{Another lecture section}
+
+\begin{edXvertical}{A vertical grouping}
+\toclabel{subsec:group1}
+
+\begin{edXtext}{More references}
+
+In this sequential, we have a vertical element with introductory text and a Figure \ref{fig:examplefig}.
+\begin{figure}
+  \begin{center}
+    \includegraphics{example-image.png}
+    \caption{Example single figure}
+    \label{fig:examplefig}
+  \end{center}
+\end{figure}
+
+\end{edXtext}
+
+\begin{edXproblem}{Example Problem 1}{url_name="p1"}
+
+Followed by a problem with an Equation \ref{eq:sum}.
+\begin{equation}
+  \boxed{A = B + C}
+  \label{eq:sum}
+\end{equation}
+
+\end{edXproblem}
+
+\end{edXvertical}
+
+\end{edXsequential}
+
+%%--------------------------------------
 \end{edXchapter}
 
 %%======================================
