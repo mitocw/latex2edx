@@ -1,7 +1,7 @@
 import os
 import re
 import unittest
-from path import path	# needs path.py
+from path import path  # needs path.py
 from lxml import etree
 from StringIO import StringIO
 
@@ -13,7 +13,7 @@ from latex2edx.test.util import make_temp_directory
 class TestedXinclude(unittest.TestCase):
 
     def test_edXinclude1(self):
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example7.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:
@@ -22,9 +22,9 @@ class TestedXinclude(unittest.TestCase):
             os.chdir(tmdir)
             l2e = latex2edx(nfn, output_dir=tmdir)
             l2e.convert()
-            xbfn = nfn[:-4]+'.xbundle'
+            xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
-            xb = open(xbfn).read()
+            # xb = open(xbfn).read()
 
             cfn = path(tmdir) / 'chapter/Unit_2.xml'
             assert(os.path.exists(cfn))
@@ -39,7 +39,7 @@ class TestedXinclude(unittest.TestCase):
             assert(os.path.exists(cfn))
 
     def test_edXinclude2(self):
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example7_bad.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:

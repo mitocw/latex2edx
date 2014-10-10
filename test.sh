@@ -2,8 +2,8 @@
 
 EXPECTED_ARGS=1
 E_BADARGS=65
-MAX_PYLINT_VIOLATIONS=2534
-MAX_PEP8_VIOLATIONS=1243
+MAX_PYLINT_VIOLATIONS=2339
+MAX_PEP8_VIOLATIONS=1073
 PACKAGE_NAME=latex2edx
 
 progname=$(basename $0) 
@@ -116,14 +116,14 @@ if [[ pylint_violations!="" && pylint_violations -gt MAX_PYLINT_VIOLATIONS ]]; t
 	echo "$pylint_violations is too many PyLint Violations, failing test (allowed $MAX_PYLINT_VIOLATIONS)"
 	exit_code=$[exit_code + 1]
 else
-	echo "$pylint_violations: OK"
+	echo "PyLint Violations = $pylint_violations: OK"
 fi
 
 if [[ pep8_violations!="" && pep8_violations -gt MAX_PEP8_VIOLATIONS ]]; then
 	echo "$pep8_violations is too many PEP-8 Violations, failing test (allowed $MAX_PEP8_VIOLATIONS"	
 	exit_code=$[exit_code + 1]
 else
-	echo "$pep8_violations: OK"
+	echo "PEP-8 Violations = $pep8_violations: OK"
 fi
 
 

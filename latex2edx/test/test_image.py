@@ -1,6 +1,6 @@
 import os
 import unittest
-from path import path	# needs path.py
+from path import path  # needs path.py
 from StringIO import StringIO
 
 import latex2edx as l2emod
@@ -12,7 +12,7 @@ class TestImage(unittest.TestCase):
 
     def test_image1(self):
         # make sure includegraphics works
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example-html-text.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:
@@ -21,7 +21,7 @@ class TestImage(unittest.TestCase):
             os.chdir(tmdir)
             l2e = latex2edx(nfn, output_dir=tmdir)
             l2e.convert()
-            xbfn = nfn[:-4]+'.xbundle'
+            xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
             xb = open(xbfn).read()
             self.assertIn('<img src="/static/images/example-image.png" width="660"/>', xb)

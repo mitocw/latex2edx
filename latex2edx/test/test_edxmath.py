@@ -1,6 +1,6 @@
 import os
 import unittest
-from path import path	# needs path.py
+from path import path  # needs path.py
 from lxml import etree
 from StringIO import StringIO
 
@@ -12,20 +12,20 @@ from latex2edx.test.util import make_temp_directory
 class TestedXmath(unittest.TestCase):
 
     def test_edXmath1(self):
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example6.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
             os.mkdir('%s/dnd' % tmdir)
-            os.system('cp %s/quadratic.tex %s/dnd/'  % (testdir, tmdir))
+            os.system('cp %s/quadratic.tex %s/dnd/' % (testdir, tmdir))
             os.chdir(tmdir)
             l2e = latex2edx(nfn, output_dir=tmdir)
             l2e.convert()
-            xbfn = nfn[:-4]+'.xbundle'
+            xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
-            xb = open(xbfn).read()
+            # xb = open(xbfn).read()
 
             cfn = path(tmdir) / 'problem/p1.xml'
             assert(os.path.exists(cfn))

@@ -1,6 +1,6 @@
 import os
 import unittest
-from path import path	# needs path.py
+from path import path  # needs path.py
 from StringIO import StringIO
 
 import latex2edx as l2emod
@@ -11,7 +11,7 @@ from latex2edx.test.util import make_temp_directory
 class TestOutput_Fmts(unittest.TestCase):
 
     def test_output_fmts1(self):
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example6.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:
@@ -25,14 +25,14 @@ class TestOutput_Fmts(unittest.TestCase):
             except Exception as err:
                 print err
 
-            xbfn = nfn[:-4]+'.xbundle'
+            xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
 
             cfn = path(tmdir) / 'course/2013_Fall.xml'
             self.assertTrue(not os.path.exists(cfn))
 
     def test_output_fmts2(self):
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example9_section_only.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:
@@ -46,7 +46,7 @@ class TestOutput_Fmts(unittest.TestCase):
             except Exception as err:
                 print err
 
-            xbfn = nfn[:-4]+'.xbundle'
+            xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
 
             cfn = path(tmdir) / 'course/2013_Fall.xml'
@@ -63,7 +63,7 @@ class TestOutput_Fmts(unittest.TestCase):
             self.assertTrue(os.path.exists(cfn))
 
     def test_output_fmts3(self):
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example9_section_only.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:
@@ -77,7 +77,7 @@ class TestOutput_Fmts(unittest.TestCase):
             except Exception as err:
                 print err
 
-            xbfn = nfn[:-4]+'.xbundle'
+            xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
 
             cfn = path(tmdir) / 'course/2013_Fall.xml'
@@ -97,7 +97,7 @@ class TestOutput_Fmts(unittest.TestCase):
         '''
         units only (problems)
         '''
-        testdir = path(l2emod.__file__).parent / 'testtex'  
+        testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example1.tex'
         print "file %s" % fn
         with make_temp_directory() as tmdir:
@@ -111,7 +111,7 @@ class TestOutput_Fmts(unittest.TestCase):
             except Exception as err:
                 print err
 
-            xbfn = nfn[:-4]+'.xbundle'
+            xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
 
             cfn = path(tmdir) / 'course/2013_Fall.xml'

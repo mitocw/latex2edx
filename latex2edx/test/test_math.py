@@ -17,6 +17,7 @@ class MakeTeX(object):
     def fp(self):
         return StringIO(self.buf)
 
+
 class TestMath(unittest.TestCase):
 
     def test_math1(self):

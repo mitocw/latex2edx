@@ -61,6 +61,8 @@ Options::
                           content
     --units-only          export only units, including problem, html -- no
                           course, chapter, section
+    --popups              enable equation and figure popup windows on clicking
+                          their references
 
 Quick Example
 -------------

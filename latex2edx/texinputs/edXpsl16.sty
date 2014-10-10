@@ -1,0 +1,129 @@
+% Author: Eric Heubel
+% Filename: edXpsl.sty
+
+% Description:
+% Style file for compiling MITx course to PDF using the 'book' document class. The following commands are customized for generating a course in the Aero Astro (16) style.
+
+% Note:
+% The \def directives in the last block of this file should be included in the preamble of the main course .tex
+
+\RequirePackage{xparse}
+\ExplSyntaxOn
+
+\RequirePackage{verbatim}
+\RequirePackage{graphicx}
+\RequirePackage{color}
+\RequirePackage{url}
+  \cs_set_eq:NN \vurl \url
+\RequirePackage{hyperref}
+\RequirePackage{amsmath}
+\RequirePackage{indentfirst}
+\RequirePackage{makeidx}
+\RequirePackage{ifthen}
+\RequirePackage{environ}
+\RequirePackage{xstring}
+\RequirePackage{xcolor}
+\RequirePackage[left=1in,right=1in,top=0.8in,bottom=1.4in]{geometry}
+\RequirePackage{fancyhdr}
+
+\hypersetup{colorlinks=true,urlcolor=blue}
+
+%Set table of contents
+\ProvideDocumentCommand \phantomsection{}{}
+\NewDocumentCommand \addchaptoc{m}{\phantomsection\addcontentsline{toc}{chapter}{#1}}
+\NewDocumentCommand \addsectoc{m}{\phantomsection\addcontentsline{toc}{section}{#1}}
+\NewDocumentCommand \addsubtoc{m}{\phantomsection\addcontentsline{toc}{subsection}{#1}}
+
+% =================================================
+% edX commands understood by latex2edx
+\NewDocumentEnvironment{edXcourse}{m m o}{{\title{{\Huge \bf #2}\\ \vspace{1em}{\Huge edX Course: #1}\\ \vspace{1em} \IfNoValueTF{#3}{}{\texttt{#3}}}}\maketitle \tableofcontents \newpage}{}
+\NewDocumentEnvironment{edXchapter}{m o}{\chapter{#1}}{}
+\NewDocumentEnvironment{edXchapter*}{m o}{\chapter*{#1}\addchaptoc{#1}}{}
+%---
+\NewDocumentCommand \sectionname{}{}
+\NewDocumentCommand \subsectionname{}{}
+\NewDocumentEnvironment{edXsequential}{m o}{\section{\color{red} #1} \RenewDocumentCommand \sectionname{m}{#1}}{\clearpage}
+\NewDocumentEnvironment{edXsequential*}{m o}{\section*{\color{red} #1} \RenewDocumentCommand \sectionname{m}{#1}\addsectoc{#1}}{\clearpage}
+\NewDocumentEnvironment{edXvertical}{m o}{\subsection{\color{red} \bf In Section: \thesection\ \sectionname\\ edXvertical: #1} \RenewDocumentCommand \subsectionname{m}{#1} \setboolean{inVertical}{true}\addsubtoc{edXvertical: #1}}{\setboolean{inVertical}{false}}
+\NewDocumentEnvironment{edXvertical*}{m o}{\subsection*{\color{red} \bf In Section: \thesection\ \sectionname\\ edXvertical: #1} \RenewDocumentCommand \subsectionname{m}{#1} \setboolean{inVertical}{true}\addsubtoc{edXvertical: #1}}{\setboolean{inVertical}{false}}
+\NewDocumentEnvironment{edXshowhide}{m m o}{\begin{quote}{{\bf Showhide: #2 (ID: #1):}}}{\end{quote}}
+\NewDocumentEnvironment{edXproblem}{m g}{\subsection*{\color{red} In \ifthenelse{\boolean{inVertical}}{Vertical}{Section\addsubtoc{edXproblem: #1}}: \thesection\ \sectionname\\ edXproblem: #1\IfNoValueTF{#2}{}{\IfInteger{#2}{: #2 Points}{}}}}{}
+\NewDocumentEnvironment{edXtext}{m o}{\subsection*{\color{red} In \ifthenelse{\boolean{inVertical}}{Vertical}{Section\addsubtoc{edXtext: #1}}: \thesection\ \sectionname\\ edXtext: #1}}{}
+%---
+\NewDocumentEnvironment{edXscript}{}{\noindent \underline{\texttt{Python code:}} \verbatim}{\endverbatim}
+\NewDocumentEnvironment{edXanswer}{}{\verbatim}{\endverbatim}
+\NewDocumentEnvironment{edXjavascript}{}{\verbatim}{\endverbatim}
+\NewDocumentEnvironment{edXmath}{}{\begin{displaymath}}{\end{displaymath}}
+\NewDocumentCommand \edXinline{m}{#1}
+\NewDocumentCommand \edXinclude{m}{\texttt{#1}}
+\NewDocumentCommand \edXincludepy{m}{}
+\NewDocumentCommand \edXdndtex{m}{}
+\NewDocumentCommand \edXxml{m}{\lstset{language=XML}\lstinline^#1^}
+\NewDocumentCommand \edXbr{m}{\par}
+\NewDocumentCommand \edXvideo{m m o}{\href{http://www.youtube.com/watch?v=#2}{\color{blue} \underline{#1}}} %\edXvideo{Description}{youtube_id}[source=""]
+\NewDocumentCommand \edXinlinevideo{m}{\edXvideo{at this YouTube link}{#1}} %Wrapper for Chad's code
+\NewDocumentCommand \edXdiscussion{m m}{{\bf Discussion: }#1}{} %\edXdiscussion{Display Name}{discussion_category="", overwrite: discussion_id="" discussion_target=""}
+\NewEnviron{edXsolution}{\ifthenelse{\boolean{showSolution}}{\color{blue} \noindent \underline{edXsolution} \BODY}{}}
+\NewDocumentCommand \edXabox{m}{\ifthenelse{\boolean{showAboxCode}}{\fbox{\parbox{0.9\hsize}{\urlstyle{tt} \vurl{#1}}}}{{\color{blue} \bf Assessment content removed}}}
+% CrossRef addition (for Measurable Outcomes and the like)
+\setlength{\fboxsep}{0pt}
+\NewDocumentCommand \tocref{m}{\ {\color{cyan} \colorbox{gray!20}{\framebox(28,14){\ref{#1}}}}}
+\NewDocumentCommand \toclabel{m}{\label{#1}}% =================================================
+\RenewDocumentCommand \texttt{m}{\urlstyle{tt} \vurl{#1}}
+
+% Initialize toggling parameters for PDF output
+\newboolean{inVertical}
+\setboolean{inVertical}{false}
+\newboolean{showAboxCode}
+\setboolean{showAboxCode}{false}
+\newboolean{showSolution}
+\setboolean{showSolution}{false}
+
+% Constrain allowed graphics
+\DeclareGraphicsExtensions{.png,.pdf,.jpg}
+
+% PDF document formating
+\pagestyle{plain}
+\setlength{\headheight}{0pt}
+\setlength{\headsep}{0pt}
+\raggedbottom
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{9.5in}
+\setlength{\topmargin}{-0.25in}
+\setlength{\oddsidemargin}{0.0in}
+\setlength{\parskip}{5pt plus 1pt minus 1pt}
+\setlength{\baselineskip}{-10pt}
+\setlength{\parindent}{0in}
+\setlength{\abovecaptionskip}{0.50em}
+\setlength{\belowcaptionskip}{-0.15em}
+\RenewDocumentCommand \floatpagefraction{}{.9}
+\RenewDocumentCommand \topfraction{}{.9}
+\RenewDocumentCommand \bottomfraction{}{.9}
+\RenewDocumentCommand \textfraction{}{.1}
+
+\ExplSyntaxOff
+
+\makeindex
+
+% -------------------------------------------------
+% THESE COMMANDS ACTUALLY NEED TO BE INCLUDED IN THE MAIN COURSE TeX FILE
+% Setup custom macros: Modify latex2edx and LaTeX commands (using \def)
+% Create auto number formatting for edX content
+\providecommand\xspace{ }
+\def\beginedxtext#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{subsection}}\begin{edXtext}{\thesubsection\xspace #1}[url_name="\thesubsection-#1"] \edXxml{<h2 class="problem-header">#1</h2>}\\}
+\def\endedxtext{\end{edXtext}}
+\def\beginedxproblem#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{subsection}}\begin{edXproblem}{\thesubsection\xspace #1}{url_name="#1\thechapter"}}
+\def\endedxproblem{\end{edXproblem}}
+\def\beginedxvertical#1{\begin{edXvertical}{\thesubsection\xspace #1}[url_name="\thesubsection-#1"]}
+\def\endedxvertical{\end{edXvertical}}
+\def\beginedxsequential#1{\begin{edXsequential}{#1}[url_name="\thesection-#1"]}
+\def\endedxsequential{\end{edXsequential}}
+%Obsolete --
+\def\beginedxsection#1{\begin{edXsequential}{#1}[url_name="\thesection-#1"]}
+\def\endedxsection{\end{edXsequential}}
+%--
+\def\beginedxchapter#1{\begin{edXchapter}{#1}[url_name="\thechapter-#1"]}
+\def\endedxchapter{\end{edXchapter}}
+\def\beginedxchapterstar#1{\begin{edXchapter*}{#1}[url_name="#1"]}
+\def\endedxchapterstar{\end{edXchapter*}}
+% -------------------------------------------------

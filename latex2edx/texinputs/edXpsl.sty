@@ -1,7 +1,10 @@
-%
-% Notes: edXpsl does not like certain pacakages.  This includes:
-%        enumerate, paralist
-%
+% Filename: edXpsl.sty
+
+% Description:
+% Style file for compiling MITx course to PDF using the 'article' document class.
+
+% Note:
+% Directives using the \def command included in the main course TEX file are interpreted by both the LaTeX => PDF converters and latex2edx executable.
 
 \RequirePackage{xparse}
 \ExplSyntaxOn
@@ -14,6 +17,11 @@
 \RequirePackage{hyperref}
 \RequirePackage{amsmath}
 \RequirePackage{indentfirst}
+\RequirePackage{makeidx}
+\RequirePackage{ifthen}
+\RequirePackage{environ}
+\RequirePackage{xstring}
+\RequirePackage{xcolor}
 \RequirePackage[
   left   = 1   in,
   right  = 1   in,
@@ -22,17 +30,27 @@
 ]{geometry}
 \RequirePackage{fancyhdr}
 
+%Set up table of contents entries
+\providecommand \phantomsection { }
+\NewDocumentCommand \addchaptoc { m } { \phantomsection \addcontentsline {toc} {section} {#1} }
+\NewDocumentCommand \addsectoc { m } { \phantomsection \addcontentsline {toc} {subsection} {#1} }
+\NewDocumentCommand \addsubtoc { m } { \phantomsection \addcontentsline {toc} {subsubsection} {#1} }
+
 % edX commands understood by latex2edx.py
 \NewDocumentEnvironment { edXcourse } { m m o }
  {
   \group_begin:
-  \Large
-  \textbf {edX ~ Course: ~ #1}
+  \title
+   {
+    {\Huge \bf #2}\\
+  \vspace {1em}
+  {\Huge edX ~ Course: ~ #1}
+  \vspace {1em}
+  \IfNoValueTF {#3} {} {\texttt {#3} } }
   \group_end:
-
-  \hfill
-
-  Display ~ Name: ~ \texttt {#2}
+  \maketitle
+  \tableofcontents
+  \newpage
  } { }
 
 \NewDocumentEnvironment { edXchapter } { m o }
@@ -40,14 +58,37 @@
   \section {#1}
  } { }
 
+\NewDocumentEnvironment { edXchapter* } { m o }
+ {
+  \section* {#1}
+  \addchaptoc {#1}
+ } { }
+
 \NewDocumentEnvironment { edXsequential } { m o }
  {
   \subsection {#1}
- } { }
+ } {
+  \clearpage
+ }
+
+\NewDocumentEnvironment { edXsequential* } { m o }
+ {
+  \subsection* {#1}
+  \addsectoc {#1}
+ } {
+  \clearpage
+ }
 
 \NewDocumentEnvironment { edXvertical } { m o }
  {
   \subsection* {#1}
+  \vspace {-2mm}
+ } { }
+
+\NewDocumentEnvironment { edXvertical* } { m o }
+ {
+  \subsection* {#1}
+  \addsubtoc {#1}
   \vspace {-2mm}
  } { }
 
@@ -60,6 +101,16 @@
  } {
   \end{quote}
  }
+
+\NewDocumentEnvironment { edXproblem } { m g }
+ {
+  \subsubsection { \textbf {#1} }
+ } { }
+
+\NewDocumentEnvironment { edXtext } { m o }
+ {
+  \subsubsection { \textbf {#1} }
+ } { }
 
 \NewDocumentEnvironment { edXscript } { }
  {
@@ -84,48 +135,85 @@
   \endverbatim
  }
 
-\NewDocumentEnvironment { edXproblem } { m m }
- {
-  \subsubsection {\textbf{#1}}
- } { }
-
-\NewDocumentEnvironment { edXtext } { m }
- {
-  \subsubsection{\textbf{#1}}
- } { }
-
-\NewDocumentEnvironment { edXmath }
+\NewDocumentEnvironment { edXmath } { }
  {
   \begin{displaymath}
  } {
   \end{displaymath}
  }
- 
-\NewDocumentCommand \edXsolution  { m } {#1}
+
 \NewDocumentCommand \edXinline    { m } {#1}
+\NewDocumentCommand \edXinclude   { m } { \texttt {#1} }
 \NewDocumentCommand \edXincludepy { m } { }
 \NewDocumentCommand \edXdndtex    { m } { }
-\NewDocumentCommand \edXbr        { m } { \par }
-\NewDocumentCommand \edXabox      { m } { ANSWER ~ BOX ~ HERE }
-\NewDocumentCommand \edXinclude   { m } { \texttt {#1} }
 \NewDocumentCommand \edXxml       { m } { \texttt {#1} }
-%\NewDocumentCommand \edXabox { m }
-% {
-%  \fbox
-%   {
-%    \parbox { 0.9 \hsize }
-%    \group_begin:
-%      \urlstyle { tt }
-%      \vurl {#1}
-%    \group_end:
-%   }
-% }
+\NewDocumentCommand \edXbr        { m } { \par }
+\NewDocumentCommand \edXvideo     { m m o }
+ {
+  \href { http://www.youtube.com/watch?v=#2 } { \color{blue} \underline {#1} }
+ }
+\NewDocumentCommand \edXdiscussion { m m } { \textbf { Discussion: } #1 } { }
+\NewEnviron{ edXsolution }
+ {
+  \ifthenelse
+   {
+    \boolean { showSolution }
+   } {
+    \color {blue}
+    \noindent
+    \underline { edXsolution }
+    \BODY
+   } { }
+ } { }
+
+\NewDocumentCommand \edXabox      { m }
+ {
+  \ifthenelse
+   {
+    \boolean{showAboxCode}
+   } {
+    \fbox
+     {
+      \parbox {0.9 \hsize}
+      \group_begin:
+       \urlstyle { tt }
+       \vurl {#1}
+      \group_end:
+     }
+   } {
+    \group_begin:
+     \color {blue}
+     \textbf { Assessment content removed }
+    \group_end:
+   }
+ }
+
+% ToCRef addition (for links to a static table of a contents: tocindex.html)
+\setlength \fboxsep { 0 pt }
+\NewDocumentCommand \tocref { m }
+ {
+%  \ 
+  \group_begin:
+   \color {cyan}
+   \colorbox {gray!20} { \framebox (28,14) { \ref {#1} } }
+  \group_end:
+ }
+\NewDocumentCommand \toclabel { m } { \label {#1} }
+% =================================================
 
 \RenewDocumentCommand \texttt { m }
  {
   \urlstyle { tt }
   \vurl {#1}
  }
+
+% Initialize toggling parameters for PDF output
+\newboolean { inVertical }
+\setboolean { inVertical } {false}
+\newboolean { showAboxCode }
+\setboolean { showAboxCode } {false}
+\newboolean { showSolution }
+\setboolean { showSolution } {false}
 
 \cs_new:Npn \edx_header_line_format:nn #1#2
  {
