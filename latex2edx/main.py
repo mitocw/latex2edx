@@ -735,10 +735,10 @@ class latex2edx(object):
                 tablecont = etree.SubElement(tablecont, 'th')
                 tablecont.append(etree.Element(
                     'a',
-                    {'id': 'ind{}l'.format(toctag),
+                    {'id': 'ind{}l'.format(toctag.replace('.', 'p')),
                      'onclick': ("$('#ind{}').toggle();return false;".
-                                 format(toctag)),
-                     'name': 'ind{}l'.format(toctag), 'href': '#'}))
+                                 format(toctag.replace('.', 'p'))),
+                     'name': 'ind{}l'.format(toctag.replace('.', 'p')), 'href': '#'}))
                 if hlabel:
                     tablecont = etree.SubElement(
                         tablecont[0], tochead[toclevel - 1])
@@ -754,7 +754,7 @@ class latex2edx(object):
 
                 tablecont = etree.SubElement(
                     toctable[0], 'tr',
-                    {'id': 'ind{}'.format(toctag), 'style': 'display:none'})
+                    {'id': 'ind{}'.format(toctag.replace('.', 'p')), 'style': 'display:none'})
                 tablecont = etree.SubElement(tablecont, 'td')
                 tablecont.append(etree.Element('h4'))
                 tablecont[0].text = 'Learn'
