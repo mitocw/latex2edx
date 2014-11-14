@@ -115,9 +115,12 @@
 % Setup custom macros: Modify latex2edx and LaTeX commands (using \def)
 % Create auto number formatting for edX content
 \providecommand\xspace{ }
-\def\beginedxtext#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{edXvertical}}\begin{edXtext}{\theedXvertical\xspace #1}[url_name="\theedXvertical-#1"] \edXxml{<h2 class="problem-header">#1</h2>}\\}
+\def\beginedxtext#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{edXvertical}}
+\begin{edXtext}{\theedXvertical\xspace #1}[url_name="\theedXvertical-#1"]
+\edXxml{<h2 class="problem-header">#1</h2>}\\}
 \def\endedxtext{\end{edXtext}}
-\def\beginedxproblem#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{edXvertical}}\begin{edXproblem}{\thesubsection\xspace #1}{url_name="#1\theedXchapter"}}
+\def\beginedxproblem#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{edXvertical}}
+\begin{edXproblem}{\thesubsection\xspace #1}{url_name="#1\theedXchapter"}}
 \def\endedxproblem{\end{edXproblem}}
 \def\beginedxvertical#1{\begin{edXvertical}{\theedXvertical\xspace #1}[url_name="\theedXvertical-#1"]}
 \def\endedxvertical{\end{edXvertical}}
