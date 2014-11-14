@@ -29,6 +29,7 @@
   bottom = 1.4 in,
 ]{geometry}
 \RequirePackage{fancyhdr}
+\RequirePackage[T1]{fontenc}
 
 %Set up table of contents entries
 \providecommand \phantomsection { }
@@ -37,6 +38,10 @@
 \NewDocumentCommand \addsubtoc { m } { \phantomsection \addcontentsline {toc} {subsubsection} {#1} }
 
 % edX commands understood by latex2edx.py
+\newcounter { edXchapter }
+\newcounter { edXsequential } [ edXchapter ]
+\newcounter { edXvertical } [ edXsequential ]
+
 \NewDocumentEnvironment { edXcourse } { m m o }
  {
   \group_begin:
@@ -55,7 +60,9 @@
 
 \NewDocumentEnvironment { edXchapter } { m o }
  {
-  \section {#1}
+  \refstepcounter {edXchapter}
+  \section* {#1}
+  \addchaptoc {\protect \makebox [1ex] [l] {\arabic {edXchapter} } \quad #1}
  } { }
 
 \NewDocumentEnvironment { edXchapter* } { m o }
@@ -66,7 +73,9 @@
 
 \NewDocumentEnvironment { edXsequential } { m o }
  {
-  \subsection {#1}
+  \refstepcounter {edXsequential}
+  \subsection* {#1}
+  \addsectoc {\protect \makebox [1ex] [l] {\arabic {edXsequential} } \quad #1}
  } {
   \clearpage
  }
@@ -81,7 +90,9 @@
 
 \NewDocumentEnvironment { edXvertical } { m o }
  {
+  \refstepcounter {edXvertical}
   \subsection* {#1}
+  \addsubtoc {\protect \makebox [1ex] [l] {\arabic {edXvertical} } \quad #1}
   \vspace {-2mm}
  } { }
 
@@ -104,12 +115,12 @@
 
 \NewDocumentEnvironment { edXproblem } { m g }
  {
-  \subsubsection { \textbf {#1} }
+  \subsubsection* { \textbf {#1} }
  } { }
 
 \NewDocumentEnvironment { edXtext } { m o }
  {
-  \subsubsection { \textbf {#1} }
+  \subsubsection* { \textbf {#1} }
  } { }
 
 \NewDocumentEnvironment { edXscript } { }

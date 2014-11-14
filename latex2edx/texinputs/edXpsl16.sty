@@ -25,6 +25,7 @@
 \RequirePackage{xcolor}
 \RequirePackage[left=1in,right=1in,top=0.8in,bottom=1.4in]{geometry}
 \RequirePackage{fancyhdr}
+\RequirePackage[T1]{fontenc}
 
 \hypersetup{colorlinks=true,urlcolor=blue}
 
@@ -36,19 +37,23 @@
 
 % =================================================
 % edX commands understood by latex2edx
+\newcounter { edXchapter }
+\newcounter { edXsequential } [ edXchapter ]
+\newcounter { edXvertical } [ edXsequential ]
+
 \NewDocumentEnvironment{edXcourse}{m m o}{{\title{{\Huge \bf #2}\\ \vspace{1em}{\Huge edX Course: #1}\\ \vspace{1em} \IfNoValueTF{#3}{}{\texttt{#3}}}}\maketitle \tableofcontents \newpage}{}
-\NewDocumentEnvironment{edXchapter}{m o}{\chapter{#1}}{}
+\NewDocumentEnvironment{edXchapter}{m o}{\refstepcounter{edXchapter} \chapter*{\chaptername\ \arabic{edXchapter}\\ \vspace{1em} #1} \addchaptoc{\protect \makebox[1ex][l]{\arabic{edXchapter}}\quad #1}}{}
 \NewDocumentEnvironment{edXchapter*}{m o}{\chapter*{#1}\addchaptoc{#1}}{}
 %---
 \NewDocumentCommand \sectionname{}{}
 \NewDocumentCommand \subsectionname{}{}
-\NewDocumentEnvironment{edXsequential}{m o}{\section{\color{red} #1} \RenewDocumentCommand \sectionname{m}{#1}}{\clearpage}
+\NewDocumentEnvironment{edXsequential}{m o}{\refstepcounter{edXsequential} \section*{\arabic{edXsequential}\ \color{red} #1} \RenewDocumentCommand \sectionname{m}{#1}\addsectoc{\protect \makebox[1ex][l]{\arabic{edXsequential}}\quad #1}}{\clearpage}
 \NewDocumentEnvironment{edXsequential*}{m o}{\section*{\color{red} #1} \RenewDocumentCommand \sectionname{m}{#1}\addsectoc{#1}}{\clearpage}
-\NewDocumentEnvironment{edXvertical}{m o}{\subsection{\color{red} \bf In Section: \thesection\ \sectionname\\ edXvertical: #1} \RenewDocumentCommand \subsectionname{m}{#1} \setboolean{inVertical}{true}\addsubtoc{edXvertical: #1}}{\setboolean{inVertical}{false}}
-\NewDocumentEnvironment{edXvertical*}{m o}{\subsection*{\color{red} \bf In Section: \thesection\ \sectionname\\ edXvertical: #1} \RenewDocumentCommand \subsectionname{m}{#1} \setboolean{inVertical}{true}\addsubtoc{edXvertical: #1}}{\setboolean{inVertical}{false}}
+\NewDocumentEnvironment{edXvertical}{m o}{\refstepcounter{edXvertical} \subsection*{\arabic{edXvertical}\ \color{red} \bf In Section: \arabic{edXchapter}.\arabic{edXsequential}\ \sectionname\\ edXvertical: #1} \RenewDocumentCommand \subsectionname{m}{#1} \setboolean{inVertical}{true}\addsubtoc{\protect \makebox[1ex][l]{\arabic{edXvertical}}\quad edXvertical: #1}}{\setboolean{inVertical}{false}}
+\NewDocumentEnvironment{edXvertical*}{m o}{\subsection*{\color{red} \bf In Section: \arabic{edXchapter}.\arabic{edXsequential}\ \sectionname\\ edXvertical: #1} \RenewDocumentCommand \subsectionname{m}{#1} \setboolean{inVertical}{true}\addsubtoc{edXvertical: #1}}{\setboolean{inVertical}{false}}
 \NewDocumentEnvironment{edXshowhide}{m m o}{\begin{quote}{{\bf Showhide: #2 (ID: #1):}}}{\end{quote}}
-\NewDocumentEnvironment{edXproblem}{m g}{\subsection*{\color{red} In \ifthenelse{\boolean{inVertical}}{Vertical}{Section\addsubtoc{edXproblem: #1}}: \thesection\ \sectionname\\ edXproblem: #1\IfNoValueTF{#2}{}{\IfInteger{#2}{: #2 Points}{}}}}{}
-\NewDocumentEnvironment{edXtext}{m o}{\subsection*{\color{red} In \ifthenelse{\boolean{inVertical}}{Vertical}{Section\addsubtoc{edXtext: #1}}: \thesection\ \sectionname\\ edXtext: #1}}{}
+\NewDocumentEnvironment{edXproblem}{m g}{\subsection*{\color{red} In \ifthenelse{\boolean{inVertical}}{Vertical: \arabic{edXvertical}}{Section: \arabic{edXsequential}\ \sectionname \addsubtoc{edXproblem: #1}}\\ edXproblem: #1\IfNoValueTF{#2}{}{\IfInteger{#2}{: #2 Points}{}}}}{}
+\NewDocumentEnvironment{edXtext}{m o}{\subsection*{\color{red} In \ifthenelse{\boolean{inVertical}}{Vertical: \arabic{edXvertical}}{Section: \arabic{edXsequential}\ \sectionname \addsubtoc{edXtext: #1}}\\ edXtext: #1}}{}
 %---
 \NewDocumentEnvironment{edXscript}{}{\noindent \underline{\texttt{Python code:}} \verbatim}{\endverbatim}
 \NewDocumentEnvironment{edXanswer}{}{\verbatim}{\endverbatim}
@@ -58,7 +63,7 @@
 \NewDocumentCommand \edXinclude{m}{\texttt{#1}}
 \NewDocumentCommand \edXincludepy{m}{}
 \NewDocumentCommand \edXdndtex{m}{}
-\NewDocumentCommand \edXxml{m}{\lstset{language=XML}\lstinline^#1^}
+\NewDocumentCommand \edXxml{m}{#1}
 \NewDocumentCommand \edXbr{m}{\par}
 \NewDocumentCommand \edXvideo{m m o}{\href{http://www.youtube.com/watch?v=#2}{\color{blue} \underline{#1}}} %\edXvideo{Description}{youtube_id}[source=""]
 \NewDocumentCommand \edXinlinevideo{m}{\edXvideo{at this YouTube link}{#1}} %Wrapper for Chad's code
@@ -110,19 +115,19 @@
 % Setup custom macros: Modify latex2edx and LaTeX commands (using \def)
 % Create auto number formatting for edX content
 \providecommand\xspace{ }
-\def\beginedxtext#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{subsection}}\begin{edXtext}{\thesubsection\xspace #1}[url_name="\thesubsection-#1"] \edXxml{<h2 class="problem-header">#1</h2>}\\}
+\def\beginedxtext#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{edXvertical}}\begin{edXtext}{\theedXvertical\xspace #1}[url_name="\theedXvertical-#1"] \edXxml{<h2 class="problem-header">#1</h2>}\\}
 \def\endedxtext{\end{edXtext}}
-\def\beginedxproblem#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{subsection}}\begin{edXproblem}{\thesubsection\xspace #1}{url_name="#1\thechapter"}}
+\def\beginedxproblem#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{edXvertical}}\begin{edXproblem}{\thesubsection\xspace #1}{url_name="#1\theedXchapter"}}
 \def\endedxproblem{\end{edXproblem}}
-\def\beginedxvertical#1{\begin{edXvertical}{\thesubsection\xspace #1}[url_name="\thesubsection-#1"]}
+\def\beginedxvertical#1{\begin{edXvertical}{\theedXvertical\xspace #1}[url_name="\theedXvertical-#1"]}
 \def\endedxvertical{\end{edXvertical}}
-\def\beginedxsequential#1{\begin{edXsequential}{#1}[url_name="\thesection-#1"]}
+\def\beginedxsequential#1{\begin{edXsequential}{#1}[url_name="\theedXsequential-#1"]}
 \def\endedxsequential{\end{edXsequential}}
 %Obsolete --
-\def\beginedxsection#1{\begin{edXsequential}{#1}[url_name="\thesection-#1"]}
+\def\beginedxsection#1{\begin{edXsequential}{#1}[url_name="\theedXsequential-#1"]}
 \def\endedxsection{\end{edXsequential}}
 %--
-\def\beginedxchapter#1{\begin{edXchapter}{#1}[url_name="\thechapter-#1"]}
+\def\beginedxchapter#1{\begin{edXchapter}{#1}[url_name="\theedXchapter-#1"]}
 \def\endedxchapter{\end{edXchapter}}
 \def\beginedxchapterstar#1{\begin{edXchapter*}{#1}[url_name="#1"]}
 \def\endedxchapterstar{\end{edXchapter*}}
