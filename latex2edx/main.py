@@ -575,9 +575,9 @@ class latex2edx(object):
                         imgsrcs.append(imgsrc)
                     if len(imgsrcs) == 1:  # single image figure
                         figfile = imgsrcs[0]
-                        figattrib[figlabel] = {'href': '{}'.format(figfile)}
                         # TODO: Find a way to resize popup window to the figure
                         figattrib[figlabel] = {
+                            'href': '{}'.format(figfile),
                             'onClick': ("window.open(this.href, \'{}\',"
                                         "\'width=400,height=200\',"
                                         "\'toolbar=1\'); return false;".
@@ -593,8 +593,8 @@ class latex2edx(object):
                             format(htmlbodycontent))
                         figattrib[figlabel] = {
                             'onClick': ("return newWindow({}, 'Figure {}');".
-                                        format(htmlstr, fignum))}
-                        figattrib[figlabel] = {'href': 'javascript: void(0)'}
+                                        format(htmlstr, fignum)),
+                            'href': 'javascript: void(0)'}
         # EVH: Build cross reference dictionaries for ToC refs
         toclist = []  # ['toclabel']
         tocdict = {}  # {'toclabel',['locstr','label text']}
