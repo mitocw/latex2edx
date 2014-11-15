@@ -962,7 +962,7 @@ class latex2edx(object):
                 aref.set('href', (relurl + rawref))
             elif reflabel in labeldict:
                 aref.tag = 'a'
-                aref.text = labeldict[reflabel][1].upper().replace(':', ' ')
+                aref.text = labeldict[reflabel][1].replace(':', ' ')
                 aref.set('href', ('../' * (len(locstr.split('.')) - 1) +
                                   labeldict[reflabel][0]))
                 aref.set('target', "_blank")
