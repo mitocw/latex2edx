@@ -464,7 +464,7 @@ class latex2edx(object):
             locstr = '{}'.format(chapnum)
             maplist.append(locstr)
             mapdict[locstr] = [
-                '../courseware/{}'.format(chapurl),
+                '{}'.format(chapurl),
                 chapter.get('display_name'), chapref]
             labels = [
                 chapter.find('./p/label'), chapter.find('./label'),
@@ -488,7 +488,7 @@ class latex2edx(object):
                 locstr = '{}.{}'.format(chapnum, seqnum)
                 maplist.append(locstr)
                 mapdict[locstr] = [
-                    '../courseware/{}/{}'.format(chapurl, sequrl),
+                    '{}/{}'.format(chapurl, sequrl),
                     seq.get('display_name'), '.'.join([chapref, seqref])]
                 labels = [
                     seq.find('./p/label'), seq.find('./label'),
@@ -498,7 +498,7 @@ class latex2edx(object):
                         label.set('tmploc', locstr + '.0')
                 if seqnum == 1:
                     mapdict['{}'.format(chapnum)][0] = (
-                        '../courseware/{}/{}/1'.format(chapurl, sequrl))
+                        '{}/{}/1'.format(chapurl, sequrl))
                 vertnum = 0
                 for child2 in seq:
                     if child2.tag == 'p' and (child2.find('./') is not None):
@@ -514,8 +514,7 @@ class latex2edx(object):
                     locstr = '{}.{}.{}'.format(chapnum, seqnum, vertnum)
                     maplist.append(locstr)
                     mapdict[locstr] = [
-                        '../courseware/{}/{}/{}'.format(chapurl, sequrl,
-                                                        vertnum),
+                        '{}/{}/{}'.format(chapurl, sequrl, vertnum),
                         vert.get('display_name'),
                         '.'.join([chapref, seqref, vertref])]
                     labels = [
@@ -527,20 +526,20 @@ class latex2edx(object):
                     for elem in vert.xpath('.//tocref|.//toclabel|.//label|'
                                            './/table[@class="equation"]|'
                                            './/table[@class="eqnarray"]|'
-                                           './/div[@class="figure"]'):
+                                           './/div[@class="figure"]|.//ref'):
                         elem.set('tmploc', locstr)
                 locstr = '.'.join(locstr.split('.')[:-1])
                 for elem in seq.xpath('.//tocref|.//toclabel|.//label|'
                                       './/table[@class="equation"]|'
                                       './/table[@class="eqnarray"]|'
-                                      './/div[@class="figure"]'):
+                                      './/div[@class="figure"]|.//ref'):
                     if elem.get('tmploc') is None:
                         elem.set('tmploc', locstr)
             locstr = '.'.join(locstr.split('.')[:-1])
             for elem in chapter.xpath('.//tocref|.//toclabel|.//label|'
                                       './/table[@class="equation"]|'
                                       './/table[@class="eqnarray"]|'
-                                      './/div[@class="figure"]'):
+                                      './/div[@class="figure"]|.//ref'):
                 if elem.get('tmploc') is None:
                     elem.set('tmploc', locstr)
         # EVH: Handle figure references. Search for labels and build dictionary
@@ -598,24 +597,24 @@ class latex2edx(object):
         # EVH: Build cross reference dictionaries for ToC refs
         toclist = []  # ['toclabel']
         tocdict = {}  # {'toclabel',['locstr','label text']}
-        labeldict = {}  # {'labeltag':['loc. str.','chapnum.labelnum']}
-        tocrefdict = {}  # {'tocref':[['loc. str.'],['parent name']]}
+        labeldict = {}  # {'labeltag':['loc. URL','chapnum.labelnum']}
+        tocrefdict = {}  # {'tocref':[['locstr'],['parent name']]}
         labelcnt = {}  # {'labeltag':cnt}
         chapref = '0'
         for label in tree.xpath('.//label|//toclabel'):
             locstr = label.get('tmploc')
             if locstr.split('.')[-1] == '0':
-                locref = mapdict[locstr[:-2]][2]
+                locstr = locstr[:-2]
                 hlabel = True
             else:
-                locref = mapdict[locstr][2]
                 hlabel = False
+            locref = mapdict[locstr][2]
             labelref = label.text
             if locref.split('.')[0] != chapref:
                 chapref = locref.split('.')[0]
                 labelcnt = {}  # Reset label count
             if hlabel:
-                labeldict[labelref] = [locstr, locref]
+                labeldict[labelref] = [mapdict[locstr][0], locref]
             else:
                 labeltag = labelref.split(':')[0]
                 if labeltag in labelcnt:
@@ -623,11 +622,11 @@ class latex2edx(object):
                 else:
                     labelcnt[labeltag] = 1
                 if chapref == '0':
-                    labelstr = '{}{}'.format(labeltag, labelcnt[labeltag])
+                    labelstr = '{}:{}'.format(labeltag, labelcnt[labeltag])
                 else:
-                    labelstr = '{}{}.{}'.format(labeltag, chapref,
-                                                labelcnt[labeltag])
-                labeldict[labelref] = [locstr, labelstr]
+                    labelstr = '{}:{}.{}'.format(labeltag, chapref,
+                                                 labelcnt[labeltag])
+                labeldict[labelref] = [mapdict[locstr][0], labelstr]
             # Get label tail and parent text, and remove label
             labeltail = label.tail
             plabel = label.getparent()
@@ -670,12 +669,14 @@ class latex2edx(object):
                 tocrefdict[tagref] = [[locstr], [parefname]]
             taglist = paref.find(".//p[@id='taglist']")
             if taglist is None:
-                taglist = etree.Element('p', id='taglist', tags=tagref)
+                taglist = etree.Element('p', id='taglist', tmploc=locstr,
+                                        tags=tagref)
                 paref.insert(0, taglist)
             else:
                 taglist.set('tags', taglist.get('tags') + ',' + tagref)
         # EVH: Parse taglist to create ToC button links at the top of each vert
         for taglist in tree.findall(".//p[@id='taglist']"):
+            locstr = taglist.get('tmploc')
             tags = taglist.get('tags').split(',')
             for tocref in tags:
                 if tocref not in labeldict:
@@ -683,14 +684,23 @@ class latex2edx(object):
                 link = etree.SubElement(
                     taglist, 'button',
                     {'type': "button", 'border-radius': "2px",
-                     'title': "{}:\n{}".format(labeldict[tocref][1].upper(),
+                     'title': "{}:\n{}".format(labeldict[tocref][1].upper().
+                                               replace(':', ''),
                                                tocdict[tocref][1]),
                      'style': "cursor:pointer", 'class': "mo_button",
-                     'onClick': ("window.location.href='../tocindex/#anchor"
-                                 "{}';".format(labeldict[tocref][1].
-                                               upper().replace(r'.', '')))})
-                link.text = labeldict[tocref][1].upper()
+                     'onClick': ("window.location.href='{}"
+                                 "tocindex/#anchor{}';".
+                                 format(('../' * len(locstr.split('.'))),
+                                        labeldict[tocref][1].
+                                        upper().replace(r'.', 'p').
+                                        replace(':', '')))})
+                link.text = labeldict[tocref][1].upper().replace(':', '')
                 link.set('id', tocref.split(':')[1])
+                # Create new URL location pointing to ToC
+                labeldict[tocref][0] = ('../tocindex/#anchor{}'.
+                                        format(labeldict[tocref][1].
+                                               upper().replace(r'.', 'p').
+                                               replace(':', '')))
         tochead = ['h2', 'h3', 'h4']
         if len(toclist) != 0:
             # EVH: Start building tocindex.html
@@ -717,15 +727,16 @@ class latex2edx(object):
                     # Insert chapter titles if no toclabel exist
                     if not hlabel:
                         tocitem = etree.Element(
-                            'a', {'href': mapdict[tocentry][0]})
+                            'a', {'href': ('../courseware/' +
+                                           mapdict[tocentry][0])})
                         tocitem.append(etree.Element('h2'))
                         tocitem[0].text = entryname
                         tocbody.append(tocitem)
             if toclabel in tocrefdict:
-                toctag = labeldict[toclabel][1]
+                toctag = labeldict[toclabel][1].replace(':', '')
                 tocbody.append(etree.Element(
-                    'a', {'name': 'anchor{}'.format(toctag.replace('.', '').
-                                                    upper())}))
+                    'a', {'name': 'anchor{}'.format(toctag.upper().
+                                                    replace('.', 'p'))}))
                 toctable = etree.Element(
                     'table',
                     {'id': 'label',
@@ -738,7 +749,8 @@ class latex2edx(object):
                     {'id': 'ind{}l'.format(toctag.replace('.', 'p')),
                      'onclick': ("$('#ind{}').toggle();return false;".
                                  format(toctag.replace('.', 'p'))),
-                     'name': 'ind{}l'.format(toctag.replace('.', 'p')), 'href': '#'}))
+                     'name': 'ind{}l'.format(toctag.replace('.', 'p')),
+                     'href': '#'}))
                 if hlabel:
                     tablecont = etree.SubElement(
                         tablecont[0], tochead[toclevel - 1])
@@ -754,7 +766,8 @@ class latex2edx(object):
 
                 tablecont = etree.SubElement(
                     toctable[0], 'tr',
-                    {'id': 'ind{}'.format(toctag.replace('.', 'p')), 'style': 'display:none'})
+                    {'id': 'ind{}'.format(toctag.replace('.', 'p')),
+                     'style': 'display:none'})
                 tablecont = etree.SubElement(tablecont, 'td')
                 tablecont.append(etree.Element('h4'))
                 tablecont[0].text = 'Learn'
@@ -772,7 +785,8 @@ class latex2edx(object):
                 for tocref in tocrefs:
                     tableli = etree.Element('li')
                     tableli.append(etree.Element(
-                        'a', {'href': mapdict[tocref][0],
+                        'a', {'href': ('../courseware/' +
+                                       mapdict[tocref][0]),
                               'itemprop': 'name'}))
                     tocrefname = tocrefnames.pop(0)
                     tableli[0].text = tocrefname[1:]
@@ -781,7 +795,8 @@ class latex2edx(object):
                     else:
                         tablecont[3].append(tableli)
             else:
-                toctable = etree.Element('a', {'href': mapdict[tocloc][0]})
+                toctable = etree.Element('a', {'href': ('../courseware/' +
+                                                        mapdict[tocloc][0])})
                 if hlabel:
                     tablecont = etree.SubElement(
                         toctable, tochead[toclevel - 1])
@@ -789,14 +804,19 @@ class latex2edx(object):
                 else:
                     toctable.append(etree.Element(
                         'strong', {'itemprop': 'name'}))
-                    toctable[0].text = labeldict[toclabel][1].upper()
+                    toctable[0].text = (labeldict[toclabel][1].upper().
+                                        replace(':', ''))
                     tablecont = etree.SubElement(
                         toctable, 'span', {'itemprop': 'description'})
                     tablecont.text = tocname
             tocbody.append(toctable)
         if len(tocdict) != 0:
             print "Writing ToC index content..."
-            tocf = open('tocindex.html', 'w')
+            if not os.path.exists(self.output_dir):
+                os.mkdir(self.output_dir)
+            if not os.path.exists(self.output_dir / 'tabs'):
+                os.mkdir(self.output_dir / 'tabs')
+            tocf = open(self.output_dir / 'tabs' / 'tocindex.html', 'w')
             tocf.write(etree.tostring(
                 toctree, method='html', pretty_print=True))
             tocf.close()
@@ -928,24 +948,31 @@ class latex2edx(object):
         # EVH: Find and replace references everywhere with ref number and link
         for aref in tree.findall('.//ref'):
             reflabel = aref.text
+            locstr = aref.attrib.pop('tmploc')
+            if self.popup_flag:
+                relurl = ''
+            else:
+                relurl = '../' * (len(locstr.split('.')) - 1)
             if reflabel in figdict:
                 aref.tag = 'a'
                 aref.text = figdict[reflabel]
                 for attrib in figattrib[reflabel]:
                     aref.set(attrib, figattrib[reflabel][attrib])
+                rawref = aref.get('href')
+                aref.set('href', (relurl + rawref))
             elif reflabel in labeldict:
                 aref.tag = 'a'
-                aref.text = labeldict[reflabel][1]
-                locstr = labeldict[reflabel][0]
-                if locstr.split('.')[-1] == '0':
-                    locstr = locstr[:-2]
-                aref.set('href', mapdict[locstr][0])
+                aref.text = labeldict[reflabel][1].upper().replace(':', ' ')
+                aref.set('href', ('../' * (len(locstr.split('.')) - 1) +
+                                  labeldict[reflabel][0]))
                 aref.set('target', "_blank")
             elif reflabel in eqndict:
                 aref.tag = 'a'
                 aref.text = eqndict[reflabel]
                 for attrib in eqnattrib[reflabel]:
                     aref.set(attrib, eqnattrib[reflabel][attrib])
+                rawref = aref.get('href')
+                aref.set('href', (relurl + rawref))
             else:
                 try:
                     raise MissingLabel(aref.text)
