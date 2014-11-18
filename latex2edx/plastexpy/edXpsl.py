@@ -228,7 +228,7 @@ class tocref(Base.Command):
 
 
 class href(Base.Command):
-    args = 'self'
+    args = '{ url } self'
 
 
 class edXaskta(Base.Command):
