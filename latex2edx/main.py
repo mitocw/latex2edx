@@ -884,9 +884,10 @@ class latex2edx(object):
                         eqnnum = '{}.{}'.format(chapref, eqncnt)
                     eqndict[eqnlabel] = '({})'.format(eqnnum)
                     # EVH: Set id for linking if pop-up flag is False
-                    tr.set('id', 'eqn{}'.format(eqnnum))
+                    tr.set('id', 'eqn{}'.format(eqnnum.replace('.', 'p')))
                     eqnattrib[eqnlabel] = {
-                        'href': '{}/#eqn{}'.format(mapdict[locstr][0], eqnnum)}
+                        'href': '{}/#eqn{}'.format(mapdict[locstr][0],
+                                                   eqnnum.replace('.', 'p'))}
                 if self.popup_flag and len(eqnlabel) != 0:
                     eqnattrib[eqnlabel]['href'] = 'javascript: void(0)'
                     eqntablecontent = (etree.tostring(
