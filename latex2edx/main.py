@@ -622,11 +622,12 @@ class latex2edx(object):
                 else:
                     labelcnt[labeltag] = 1
                 if chapref == '0':
-                    labelstr = '{}:{}'.format(labeltag, labelcnt[labeltag])
+                    labelnum = '{}'.format(labelcnt[labeltag])
                 else:
-                    labelstr = '{}:{}.{}'.format(labeltag, chapref,
-                                                 labelcnt[labeltag])
-                labeldict[labelref] = [mapdict[locstr][0], labelstr]
+                    labelnum = '{}.{}'.format(chapref, labelcnt[labeltag])
+                if ':' in labelref:
+                    labeltag += ':' + labelnum
+                labeldict[labelref] = [mapdict[locstr][0], labeltag]
             # Get label tail and parent text, and remove label
             labeltail = label.tail
             plabel = label.getparent()
@@ -655,10 +656,13 @@ class latex2edx(object):
             if paref.tag == 'problem':
                 parefname = 'P' + paref.get('display_name')
                 oldtag = paref.get('measureable_outcomes')
+                tagname = tagref
+                if ':' in tagname:
+                    tagname = tagname.split(':')[1]
                 if oldtag is None:
-                    newtag = tagref.split(':')[1]
+                    newtag = tagname
                 else:
-                    newtag = oldtag + ',' + tagref.split(':')[1]
+                    newtag = oldtag + ',' + tagname
                 paref.set('measureable_outcomes', newtag)
             else:
                 parefname = 'H' + paref.get('display_name')
@@ -679,6 +683,9 @@ class latex2edx(object):
             locstr = taglist.get('tmploc')
             tags = taglist.get('tags').split(',')
             for tocref in tags:
+                tocrefid = tocref
+                if ':' in tocrefid:
+                    tocrefid = tocrefid.split(':')[1]
                 if tocref not in labeldict:
                     continue
                 link = etree.SubElement(
@@ -695,7 +702,7 @@ class latex2edx(object):
                                         upper().replace(r'.', 'p').
                                         replace(':', '')))})
                 link.text = labeldict[tocref][1].upper().replace(':', '')
-                link.set('id', tocref.split(':')[1])
+                link.set('id', tocrefid)
                 # Create new URL location pointing to ToC
                 labeldict[tocref][0] = ('../tocindex/#anchor{}'.
                                         format(labeldict[tocref][1].
@@ -866,9 +873,9 @@ class latex2edx(object):
                     if td.get('class') == 'eqnnum':
                         eqnnumcell = td
                     elif td.text is not None:
+                        eqncontent = td.text
                         if re.search(r'\\label\{(.*?)\}',
-                                     td.text, re.S) is not None:
-                            eqncontent = td.text
+                                     eqncontent, re.S) is not None:
                             eqnlabel = re.findall(r'\\label\{(.*?)\}',
                                                   eqncontent, re.S)
                             eqncontent = re.sub(r'\\label{.*}', r'',

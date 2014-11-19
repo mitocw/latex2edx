@@ -79,10 +79,33 @@
   \chapter* {#1}
   \addchaptoc {#1}
  } { }
-%---
+%===
+% Course 16 custom format
 \NewDocumentCommand \sectionname { } { }
 
 \NewDocumentCommand \subsectionname { } { }
+
+%---
+% Deprecated
+\NewDocumentEnvironment { edXsection } { m o }
+ {
+  \refstepcounter { edXsequential }
+  \section* { \arabic { edXsequential } ~ \color{red} #1}
+  \RenewDocumentCommand \sectionname { } {#1}
+  \addsectoc{ \protect \makebox [1ex] [l] { \arabic { edXsequential } } \quad #1}
+ } {
+  \clearpage
+ }
+
+\NewDocumentEnvironment { edXsection* } { m o }
+ {
+  \section* {\color{red} #1}
+  \RenewDocumentCommand \sectionname { } {#1}
+  \addsectoc {#1}
+ } {
+  \clearpage
+ }
+%---
 
 \NewDocumentEnvironment { edXsequential } { m o }
  {
@@ -191,7 +214,8 @@
    \addsubsubtoc {edXtext: ~ #1}
   }
  }{ }
-%---
+%===
+
 \NewDocumentEnvironment { edXscript } { }
  {
   \noindent
@@ -343,7 +367,7 @@
 \def\endedxvertical{\end{edXvertical}}
 \def\beginedxsequential#1{\begin{edXsequential}{#1}[url_name="\theedXsequential-#1"]}
 \def\endedxsequential{\end{edXsequential}}
-%Obsolete --
+%edXsection is deprecated --
 \def\beginedxsection#1{\begin{edXsequential}{#1}[url_name="\theedXsequential-#1"]}
 \def\endedxsection{\end{edXsequential}}
 %--
