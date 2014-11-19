@@ -86,6 +86,26 @@
   \addchaptoc {#1}
  } { }
 
+%---
+% Deprecated
+\NewDocumentEnvironment { edXsection } { m o }
+ {
+  \refstepcounter {edXsequential}
+  \subsection* {#1}
+  \addsectoc {\protect \makebox [1ex] [l] {\arabic {edXsequential} } \quad #1}
+ } {
+  \clearpage
+ }
+
+\NewDocumentEnvironment { edXsection* } { m o }
+ {
+  \subsection* {#1}
+  \addsectoc {#1}
+ } {
+  \clearpage
+ }
+%---
+
 \NewDocumentEnvironment { edXsequential } { m o }
  {
   \refstepcounter {edXsequential}
