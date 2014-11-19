@@ -14,6 +14,7 @@
 \RequirePackage{graphicx}
 \RequirePackage{color}
 \RequirePackage{url}
+  \cs_set_eq:NN \vurl \url
 \RequirePackage{hyperref}
 \RequirePackage{amsmath}
 \RequirePackage{indentfirst}
@@ -34,6 +35,9 @@
 \NewDocumentCommand \addchaptoc { m } { \phantomsection \addcontentsline {toc} {chapter} {#1} }
 \NewDocumentCommand \addsectoc { m } { \phantomsection \addcontentsline {toc} {section} {#1} }
 \NewDocumentCommand \addsubtoc { m } { \phantomsection \addcontentsline {toc} {subsection} {#1} }
+\NewDocumentCommand \addsubsubtoc { m } { \phantomsection \addcontentsline {toc} {subsubsection} {#1} }
+
+\setcounter { tocdepth } {3}
 
 % =================================================
 % edX commands understood by latex2edx
@@ -48,9 +52,9 @@
    {
     {\Huge \bf #2}\\
   \vspace{1em}
-  {\Huge edX ~ Course: ~ #1}
+  {\Huge edX ~ Course: ~ #1}\\
   \vspace {1em}
-  \IfNoValueTF {#3} { } { \urlstyle { tt } \url {#3} } }
+  \IfNoValueTF {#3} { } { \texttt{#3} } }
   \group_end:
   \maketitle
   \tableofcontents
@@ -163,6 +167,7 @@
    edXproblem: ~ #1
    \IfNoValueTF {#2} { } {\IfInteger {#2} {: ~ #2 Points} { }}
    \group_end:
+   \addsubsubtoc {edXproblem: ~ #1}
   }
  } { }
 
@@ -183,13 +188,14 @@
     }\\
    edXtext: ~ #1
    \group_end:
+   \addsubsubtoc {edXtext: ~ #1}
   }
  }{ }
 %---
 \NewDocumentEnvironment { edXscript } { }
  {
   \noindent
-  \underline { \urlstyle { tt } \url { Python ~ code: } }
+  \underline { \texttt { Python ~ code: } }
   \verbatim
  } {
   \endverbatim
@@ -216,12 +222,13 @@
   \end{displaymath}
  }
 
+\NewDocumentCommand \edXgitlink   { m m } { \href {#1} {#2} }
 \NewDocumentCommand \edXinline    { m } {#1}
-\NewDocumentCommand \edXinclude   { m } { \urlstyle { tt } \url {#1} }
+\NewDocumentCommand \edXinclude   { m } { \texttt {#1} }
 \NewDocumentCommand \edXincludepy { m } { }
 \NewDocumentCommand \edXdndtex    { m } { }
 \NewDocumentCommand \edXxml       { m } { \texttt {#1} }
-\NewDocumentCommand \edXbr        { m } { \par }
+\NewDocumentCommand \edXbr        { } { \par }
 
 \NewDocumentCommand \edXvideo     { m m o }
  {
@@ -229,7 +236,7 @@
  }
 %\edXvideo{Description}{youtube_id}[source=""]
 
-\NewDocumentCommand \edXdiscussion { m m } { \textbf { Discussion: } #1 } { }
+\NewDocumentCommand \edXdiscussion { m m } { \textbf { Discussion: } ~ #1 } { }
 %\edXdiscussion{Display Name}{discussion_category="", overwrite: discussion_id="" discussion_target=""}
 \NewEnviron{ edXsolution }
  {
@@ -254,14 +261,13 @@
      {
       \parbox {0.9 \hsize}
       \group_begin:
-       \urlstyle { tt }
-       \vurl {#1}
+       \texttt {#1}
       \group_end:
      }
    } {
     \group_begin:
      \color {blue}
-     \textbf { Assessment content removed }
+     \textbf { Assessment ~ content ~ removed }
     \group_end:
    }
  }
@@ -279,13 +285,19 @@
 \NewDocumentCommand \toclabel { m } { \label {#1} }
 % =================================================
 
+\RenewDocumentCommand \texttt { m }
+ {
+  \urlstyle { tt }
+  \vurl {#1}
+ }
+
 % Initialize toggling parameters for PDF output
-\newboolean{inVertical}
-\setboolean{inVertical}{false}
-\newboolean{showAboxCode}
-\setboolean{showAboxCode}{false}
-\newboolean{showSolution}
-\setboolean{showSolution}{false}
+\newboolean { inVertical }
+\setboolean { inVertical } { false }
+\newboolean { showAboxCode }
+\setboolean { showAboxCode } { false }
+\newboolean { showSolution }
+\setboolean { showSolution } { false }
 
 % Constrain allowed graphics
 \DeclareGraphicsExtensions{.png,.pdf,.jpg}
