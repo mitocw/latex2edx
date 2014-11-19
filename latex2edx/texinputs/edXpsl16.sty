@@ -324,3 +324,31 @@
 
 \ExplSyntaxOff
 \makeindex
+
+% -------------------------------------------------
+% THESE COMMANDS ACTUALLY NEED TO BE INCLUDED IN THE MAIN COURSE TeX FILE
+% Setup custom macros: Modify latex2edx and LaTeX commands (using \def)
+% Create auto number formatting for edX content
+\providecommand\xspace{ }
+\def\theedXsequential{\theedXchapter.\arabic{edXsequential}}
+\def\theedXvertical{\theedXsequential.\arabic{edXvertical}}
+\def\beginedxtext#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{subsection}}
+\begin{edXtext}{\theedXvertical\xspace #1}[url_name="\theedXvertical-#1"]
+\edXxml{<h2 class="problem-header">#1</h2>}\\}
+\def\endedxtext{\end{edXtext}}
+\def\beginedxproblem#1{\ifthenelse{\boolean{inVertical}}{}{\refstepcounter{subsection}}
+\begin{edXproblem}{\theedXvertical\xspace #1}{url_name="#1\theedXchapter"}}
+\def\endedxproblem{\end{edXproblem}}
+\def\beginedxvertical#1{\begin{edXvertical}{\theedXvertical\xspace #1}[url_name="\theedXvertical-#1"]}
+\def\endedxvertical{\end{edXvertical}}
+\def\beginedxsequential#1{\begin{edXsequential}{#1}[url_name="\theedXsequential-#1"]}
+\def\endedxsequential{\end{edXsequential}}
+%Obsolete --
+\def\beginedxsection#1{\begin{edXsequential}{#1}[url_name="\theedXsequential-#1"]}
+\def\endedxsection{\end{edXsequential}}
+%--
+\def\beginedxchapter#1{\begin{edXchapter}{#1}[url_name="\theedXchapter-#1"]}
+\def\endedxchapter{\end{edXchapter}}
+\def\beginedxchapterstar#1{\begin{edXchapter*}{#1}[url_name="#1"]}
+\def\endedxchapterstar{\end{edXchapter*}}
+% -------------------------------------------------
