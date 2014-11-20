@@ -1,10 +1,10 @@
 '''
 Run unittest on xbundle.py
 '''
-from latex2edx.xbundle import XBundle
 import unittest
 from lxml import etree
-import os
+from latex2edx.test.util import make_temp_directory
+from latex2edx.xbundle import XBundle
 # ----------------------------------------------------------------------------
 # tests
 
@@ -29,7 +29,6 @@ class TestXBundle(unittest.TestCase):
 
         pxmls = """
 <policies semester='2013_Spring'>
-  <gradingpolicy>y:2</gradingpolicy>
   <policy>x:1</policy>
 </policies>
 """
@@ -40,16 +39,12 @@ class TestXBundle(unittest.TestCase):
 
         xbin = str(xb)
 
-        tdir = 'testdata'
-        if not os.path.exists(tdir):
-            os.mkdir(tdir)
-        xb.export_to_directory(tdir)
-
         # test round trip
-
-        xb2 = XBundle()
-        xb2.import_from_directory(tdir + '/mitx.01')
-
+        with make_temp_directory() as tdir:
+            xb.export_to_directory(tdir)
+            xb2 = XBundle()
+            xb2.import_from_directory(tdir + '/mitx.01')
+        
         xbreloaded = str(xb2)
 
         if not xbin == xbreloaded:
