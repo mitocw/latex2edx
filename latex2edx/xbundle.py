@@ -434,7 +434,8 @@ class XBundle(object):
         coursex.set('url_name',semester)
         coursex.set('org',self.course.get('org', ''))
         if newfmt:
-            coursex.set('course',self.course.get('number', ''))
+            coursex.set('course', self.course.get('course',
+                        self.course.get('number', '')))
         else:
             coursex.set('number',self.course.get('number', ''))	# backwards compatibility
 
