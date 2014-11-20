@@ -637,68 +637,6 @@ class XBundle(object):
                 self.add_descriptors(elem, desc.get('url_name', ''))	# recurse
 
 #-----------------------------------------------------------------------------
-# tests
-
-def RunTests():
-    import unittest
-
-    class TestXBundle(unittest.TestCase):
-        def testRoundTrip(self):
-
-            print "Testing XBundle round trip import -> export"
-            xb = XBundle()
-            cxmls = '''
-<course semester="2013_Spring" course="mitx.01">
-  <chapter display_name="Intro">
-    <sequential display_name="Overview">
-      <html display_name="Overview text">
-        hello world
-      </html>
-    </sequential>
-    <!-- a comment -->
-  </chapter>
-</course>
-'''
-
-            pxmls = """
-<policies semester='2013_Spring'>
-  <gradingpolicy>y:2</gradingpolicy>
-  <policy>x:1</policy>
-</policies>
-"""
-
-            xb.set_course(etree.XML(cxmls))
-            xb.add_policies(etree.XML(pxmls))
-            xb.add_about_file("overview.html","hello overview")
-
-            xbin = str(xb)
-
-            tdir = 'testdata'
-            if not os.path.exists(tdir):
-                os.mkdir(tdir)
-            xb.export_to_directory(tdir)
-
-            # test round trip
-
-            xb2 = XBundle()
-            xb2.import_from_directory(tdir + '/mitx.01')
-
-            xbreloaded = str(xb2)
-
-            if not xbin==xbreloaded:
-                print "xbin"
-                print xbin
-                print "xbreloaded"
-                print xbreloaded
-
-            self.assertEqual(xbin,xbreloaded)
-
-    ts = unittest.makeSuite(TestXBundle)
-    ttr = unittest.TextTestRunner()
-    ttr.run(ts)
-
-
-#-----------------------------------------------------------------------------
 # main
 
 if __name__=='__main__':
@@ -706,7 +644,6 @@ if __name__=='__main__':
     def usage():
         print "Usage: python xbundle.py [--force-studio] [cmd] [infn] [outfn]"
         print "where:"
-        print "  cmd = test:    run unit tests"
         print "  cmd = convert: convert between xbundle and edX directory format"
         print "                 the xbundle filename must end with .xml"
         print "  --force-studio forces <sequential> to always be followed by <vertical> in export"
@@ -728,10 +665,7 @@ if __name__=='__main__':
 
     cmd = sys.argv[argc]
     
-    if cmd=='test':
-        RunTests()
-
-    elif cmd=='convert':
+    if cmd=='convert':
         argc += 1
         infn = sys.argv[argc]
         outfn = sys.argv[argc+1]
