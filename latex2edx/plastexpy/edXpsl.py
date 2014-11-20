@@ -47,7 +47,6 @@ class EdXchapterStar(MyBaseEnvironment):
 class edXchapter(EdXchapterStar):
     macroName = 'edXchapter'
     counter = 'edXchapter'
-    position = 0
     forcePars = True
 
     def invoke(self, tex):
@@ -65,7 +64,6 @@ class edXsection(EdXsectionStar):
     # turns into edXsequential
     macroName = 'edXsection'
     counter = 'edXsequential'
-    position = 0
     forcePars = True
 
     def invoke(self, tex):
@@ -81,7 +79,6 @@ class EdXsequentialStar(MyBaseEnvironment):
 class edXsequential(EdXsequentialStar):
     macroName = 'edXsequential'
     counter = 'edXsequential'
-    position = 0
     forcePars = True
 
     def invoke(self, tex):
@@ -97,7 +94,6 @@ class EdXverticalStar(MyBaseEnvironment):
 class edXvertical(EdXverticalStar):
     macroName = 'edXvertical'
     counter = 'edXvertical'
-    position = 0
     forcePars = True
 
     def invoke(self, tex):
