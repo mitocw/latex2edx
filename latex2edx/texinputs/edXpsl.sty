@@ -29,24 +29,44 @@
   bottom = 1.4 in,
 ]{geometry}
 \RequirePackage{fancyhdr}
+\RequirePackage[T1]{fontenc}
+\RequirePackage{titling}
 
 %Set up table of contents entries
-\providecommand \phantomsection { }
+\ProvideDocumentCommand \phantomsection { } { }
 \NewDocumentCommand \addchaptoc { m } { \phantomsection \addcontentsline {toc} {section} {#1} }
 \NewDocumentCommand \addsectoc { m } { \phantomsection \addcontentsline {toc} {subsection} {#1} }
 \NewDocumentCommand \addsubtoc { m } { \phantomsection \addcontentsline {toc} {subsubsection} {#1} }
+\NewDocumentCommand \addsubsubtoc { m } { \phantomsection \addcontentsline {toc} {paragraph} {#1} }
+
+\setcounter { tocdepth } {4}
+\date { \today }
+\author { }
 
 % edX commands understood by latex2edx.py
+\newcounter { edXchapter }
+\newcounter { edXsequential } [ edXchapter ]
+\newcounter { edXvertical } [ edXsequential ]
+
 \NewDocumentEnvironment { edXcourse } { m m o }
  {
+  \NewDocumentCommand \CourseDisplay { } {#2}
+  \NewDocumentCommand \CourseNumber { } {#1}
+  \IfNoValueTF {#3}
+   {
+    \NewDocumentCommand \CourseOptions { } {~}
+   } {
+    \NewDocumentCommand \CourseOptions { } { \texttt{#3} }
+   }
   \group_begin:
   \title
    {
     {\Huge \bf #2}\\
-  \vspace {1em}
-  {\Huge edX ~ Course: ~ #1}
-  \vspace {1em}
-  \IfNoValueTF {#3} {} {\texttt {#3} } }
+    \vspace {1em}
+    {\Huge edX ~ Course: ~ #1}\\
+    \vspace {1em}
+    \IfNoValueTF {#3} { } {\texttt {#3} }
+   }
   \group_end:
   \maketitle
   \tableofcontents
@@ -55,7 +75,9 @@
 
 \NewDocumentEnvironment { edXchapter } { m o }
  {
-  \section {#1}
+  \refstepcounter {edXchapter}
+  \section* {#1}
+  \addchaptoc {\protect \makebox [1ex] [l] {\arabic {edXchapter} } \quad #1}
  } { }
 
 \NewDocumentEnvironment { edXchapter* } { m o }
@@ -64,9 +86,31 @@
   \addchaptoc {#1}
  } { }
 
+%---
+% Deprecated
+\NewDocumentEnvironment { edXsection } { m o }
+ {
+  \refstepcounter {edXsequential}
+  \subsection* {#1}
+  \addsectoc {\protect \makebox [1ex] [l] {\arabic {edXsequential} } \quad #1}
+ } {
+  \clearpage
+ }
+
+\NewDocumentEnvironment { edXsection* } { m o }
+ {
+  \subsection* {#1}
+  \addsectoc {#1}
+ } {
+  \clearpage
+ }
+%---
+
 \NewDocumentEnvironment { edXsequential } { m o }
  {
-  \subsection {#1}
+  \refstepcounter {edXsequential}
+  \subsection* {#1}
+  \addsectoc {\protect \makebox [1ex] [l] {\arabic {edXsequential} } \quad #1}
  } {
   \clearpage
  }
@@ -79,13 +123,15 @@
   \clearpage
  }
 
-\NewDocumentEnvironment { edXvertical } { m o }
+\NewDocumentEnvironment { edXvertical } { g o }
  {
+  \refstepcounter {edXvertical}
   \subsection* {#1}
+  \addsubtoc {\protect \makebox [1ex] [l] {\arabic {edXvertical} } \quad #1}
   \vspace {-2mm}
  } { }
 
-\NewDocumentEnvironment { edXvertical* } { m o }
+\NewDocumentEnvironment { edXvertical* } { g o }
  {
   \subsection* {#1}
   \addsubtoc {#1}
@@ -104,12 +150,14 @@
 
 \NewDocumentEnvironment { edXproblem } { m g }
  {
-  \subsubsection { \textbf {#1} }
+  \subsubsection* { \textbf {#1} }
+  \addsubsubtoc {#1}
  } { }
 
 \NewDocumentEnvironment { edXtext } { m o }
  {
-  \subsubsection { \textbf {#1} }
+  \subsubsection* { \textbf {#1} }
+  \addsubsubtoc {#1}
  } { }
 
 \NewDocumentEnvironment { edXscript } { }
@@ -142,17 +190,18 @@
   \end{displaymath}
  }
 
+\NewDocumentCommand \edXgitlink   { m m } { \href {#1} {#2} }
 \NewDocumentCommand \edXinline    { m } {#1}
 \NewDocumentCommand \edXinclude   { m } { \texttt {#1} }
 \NewDocumentCommand \edXincludepy { m } { }
 \NewDocumentCommand \edXdndtex    { m } { }
 \NewDocumentCommand \edXxml       { m } { \texttt {#1} }
-\NewDocumentCommand \edXbr        { m } { \par }
+\NewDocumentCommand \edXbr        { } { \par }
 \NewDocumentCommand \edXvideo     { m m o }
  {
   \href { http://www.youtube.com/watch?v=#2 } { \color{blue} \underline {#1} }
  }
-\NewDocumentCommand \edXdiscussion { m m } { \textbf { Discussion: } #1 } { }
+\NewDocumentCommand \edXdiscussion { m m } { \textbf { Discussion: } ~ #1 } { }
 \NewEnviron{ edXsolution }
  {
   \ifthenelse
@@ -176,14 +225,13 @@
      {
       \parbox {0.9 \hsize}
       \group_begin:
-       \urlstyle { tt }
-       \vurl {#1}
+       \texttt {#1}
       \group_end:
      }
    } {
     \group_begin:
      \color {blue}
-     \textbf { Assessment content removed }
+     \textbf { Assessment ~ content ~ removed }
     \group_end:
    }
  }
@@ -226,13 +274,13 @@
   \group_end:
  }
 
-% Create header on every page
-\fancypagestyle{203x}
+% Create header on every page but title
+\fancypagestyle{body}
  {
   \setlength \voffset    { 0.6 in }
   \setlength \textheight { 8   in }
   \setlength \parskip    { 0.2 pc }
-  \setlength \headheight { 0.3 pc }
+  \setlength \headheight { 0.5 in }
 
   \fancyhead {} 
 
@@ -243,9 +291,9 @@
 
     \edx_header_line_format:nn
      {
-      2.03x ~ Fall ~ 2014: ~ Dynamics ~ I
+      \CourseDisplay
      } {
-      \LaTeX{} ~ edX ~ Course
+      \LaTeX{} 2 edX ~ Course
      }
 
     \\[-3ex]
@@ -253,9 +301,9 @@
 
     \edx_header_line_format:nn
      {
-      Massachusetts ~ Institute ~ of ~ Technology
+      \CourseOptions
      } {
-      Development
+      \CourseNumber
      }
 
     \\[-3ex]
@@ -263,13 +311,13 @@
 
     \edx_header_line_format:nn
      {
-      Department ~ of ~ Mechanical ~ Engineering
+      \thedate
      } {
-      Eric ~ Heubel
+      \theauthor
      }
    }
  }
 
-\pagestyle { 203x }
+\pagestyle { body }
 
 \ExplSyntaxOff

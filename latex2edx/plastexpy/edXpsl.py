@@ -7,6 +7,13 @@ log = getLogger()
 status = getLogger('status')
 
 
+def ProcessOptions(options, document):
+    context = document.context
+    context.newcounter('edXchapter', initial=0)
+    context.newcounter('edXsequential', resetby='edXchapter', initial=0)
+    context.newcounter('edXvertical', resetby='edXsequential', initial=0)
+
+
 class MyBaseCommand(Base.Command):  # add filename and linenum attributes
     def invoke(self, tex):
         Command.invoke(self, tex)
@@ -39,8 +46,7 @@ class EdXchapterStar(MyBaseEnvironment):
 
 class edXchapter(EdXchapterStar):
     macroName = 'edXchapter'
-    counter = 'chapter'
-    position = 0
+    counter = 'edXchapter'
     forcePars = True
 
     def invoke(self, tex):
@@ -57,8 +63,7 @@ class EdXsectionStar(MyBaseEnvironment):
 class edXsection(EdXsectionStar):
     # turns into edXsequential
     macroName = 'edXsection'
-    counter = 'section'
-    position = 0
+    counter = 'edXsequential'
     forcePars = True
 
     def invoke(self, tex):
@@ -73,8 +78,7 @@ class EdXsequentialStar(MyBaseEnvironment):
 
 class edXsequential(EdXsequentialStar):
     macroName = 'edXsequential'
-    counter = 'section'
-    position = 0
+    counter = 'edXsequential'
     forcePars = True
 
     def invoke(self, tex):
@@ -89,8 +93,12 @@ class EdXverticalStar(MyBaseEnvironment):
 
 class edXvertical(EdXverticalStar):
     macroName = 'edXvertical'
-    counter = 'subsection'
-    position = 0
+    counter = 'edXvertical'
+    forcePars = True
+
+    def invoke(self, tex):
+        self.position = self.ownerDocument.context.counters[self.counter].value + 1
+        return MyBaseEnvironment.invoke(self, tex)
 
 
 class edXabox(MyBaseCommand):
@@ -216,7 +224,7 @@ class tocref(Base.Command):
 
 
 class href(Base.Command):
-    args = 'self'
+    args = '{ url } self'
 
 
 class edXaskta(Base.Command):
