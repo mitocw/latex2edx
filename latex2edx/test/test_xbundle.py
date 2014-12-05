@@ -47,12 +47,6 @@ class TestXBundle(unittest.TestCase):
         
         xbreloaded = str(xb2)
 
-        if not xbin == xbreloaded:
-            print "xbin"
-            print xbin
-            print "xbreloaded"
-            print xbreloaded
-
         self.assertEqual(xbin, xbreloaded)
 
 if __name__ == '__main__':
