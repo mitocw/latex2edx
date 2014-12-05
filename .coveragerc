@@ -7,3 +7,4 @@ source = ./latex2edx
 exclude_lines =
     pragma: no cover
     if __name__ == "__main__":
+    if __name__ == '__main__':
