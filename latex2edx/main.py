@@ -649,6 +649,7 @@ class latex2edx(object):
             tagref = tocref.text
             locstr = tocref.get('tmploc')
             paref = tocref.getparent()
+            paref.text += tocref.tail
             paref.remove(tocref)
             while paref.tag not in ['html', 'problem']:
                 paref = paref.getparent()
