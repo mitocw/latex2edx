@@ -969,6 +969,14 @@ class latex2edx(object):
                     aref.set(attrib, figattrib[reflabel][attrib])
                 rawref = aref.get('href')
                 aref.set('href', (relurl + rawref))
+            elif reflabel in tocdict:
+                aref.tag = 'a'
+                aref.text = labeldict[reflabel][1].replace(':', ' ')
+                aref.set('href', ('../' * (len(locstr.split('.')) - 1) +
+                                  '../tocindex/#anchor{}'.
+                                  format(labeldict[reflabel][1].
+                                         upper().replace(r'.', 'p').
+                                         replace(':', ''))))
             elif reflabel in labeldict:
                 aref.tag = 'a'
                 aref.text = labeldict[reflabel][1].replace(':', ' ')
