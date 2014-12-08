@@ -640,6 +640,11 @@ class latex2edx(object):
             if label.tag == 'toclabel':
                 toclist.append(labelref)
                 tocdict[labelref] = [locstr, ptext]
+                # Change URL to point to the ToC location
+                labeldict[labelref][0] = ('../tocindex/#anchor{}'.
+                                          format(labeldict[labelref][1].
+                                                 upper().replace(r'.', 'p').
+                                                 replace(':', '')))
             if plabel.tag == 'p':
                 label = plabel
                 plabel = plabel.getparent()
@@ -696,19 +701,11 @@ class latex2edx(object):
                                                replace(':', ''),
                                                tocdict[tocref][1]),
                      'style': "cursor:pointer", 'class': "mo_button",
-                     'onClick': ("window.location.href='{}"
-                                 "tocindex/#anchor{}';".
-                                 format(('../' * len(locstr.split('.'))),
-                                        labeldict[tocref][1].
-                                        upper().replace(r'.', 'p').
-                                        replace(':', '')))})
+                     'onClick': ("window.location.href='{}{}".
+                                 format('../' * (len(locstr.split('.')) - 1),
+                                        labeldict[tocref][0]))})
                 link.text = labeldict[tocref][1].upper().replace(':', '')
                 link.set('id', tocrefid)
-                # Create new URL location pointing to ToC
-                labeldict[tocref][0] = ('../tocindex/#anchor{}'.
-                                        format(labeldict[tocref][1].
-                                               upper().replace(r'.', 'p').
-                                               replace(':', '')))
         tochead = ['h2', 'h3', 'h4']
         if len(toclist) != 0:
             # EVH: Start building tocindex.html
@@ -969,14 +966,6 @@ class latex2edx(object):
                     aref.set(attrib, figattrib[reflabel][attrib])
                 rawref = aref.get('href')
                 aref.set('href', (relurl + rawref))
-            elif reflabel in tocdict:
-                aref.tag = 'a'
-                aref.text = labeldict[reflabel][1].replace(':', ' ')
-                aref.set('href', ('../' * (len(locstr.split('.')) - 1) +
-                                  '../tocindex/#anchor{}'.
-                                  format(labeldict[reflabel][1].
-                                         upper().replace(r'.', 'p').
-                                         replace(':', ''))))
             elif reflabel in labeldict:
                 aref.tag = 'a'
                 aref.text = labeldict[reflabel][1].replace(':', ' ')
