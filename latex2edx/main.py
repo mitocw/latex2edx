@@ -1152,10 +1152,23 @@ class latex2edx(object):
             where2add = p
             p = p.getparent()
 
-            # move from xml to parent
-            for child in xml:
-                where2add.addprevious(child)
-            p.remove(todrop)
+        # move from xml to parent
+        if xml.text:
+            if p.text:
+                p.text += xml.text
+            else:
+                p.text = xml.text
+        for child in xml:
+            where2add.addprevious(child)
+        if xml.tail:
+            if len(p.getchildren()) != 0:
+                if p.getchildren()[-1].tail:
+                    p.getchildren()[-1].tail += xml.tail
+                else:
+                    p.getchildren()[-1].tail = xml.tail
+            else:
+                p.text += xml.tail
+        p.remove(todrop)
 
     def process_edxxml(self, tree):
         '''
