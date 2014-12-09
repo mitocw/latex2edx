@@ -526,20 +526,23 @@ class latex2edx(object):
                     for elem in vert.xpath('.//tocref|.//toclabel|.//label|'
                                            './/table[@class="equation"]|'
                                            './/table[@class="eqnarray"]|'
-                                           './/div[@class="figure"]|.//ref'):
+                                           './/div[@class="figure"]|'
+                                           './/ref|.//index'):
                         elem.set('tmploc', locstr)
                 locstr = '.'.join(locstr.split('.')[:-1])
                 for elem in seq.xpath('.//tocref|.//toclabel|.//label|'
                                       './/table[@class="equation"]|'
                                       './/table[@class="eqnarray"]|'
-                                      './/div[@class="figure"]|.//ref'):
+                                      './/div[@class="figure"]|'
+                                      './/ref|.//index'):
                     if elem.get('tmploc') is None:
                         elem.set('tmploc', locstr)
             locstr = '.'.join(locstr.split('.')[:-1])
             for elem in chapter.xpath('.//tocref|.//toclabel|.//label|'
                                       './/table[@class="equation"]|'
                                       './/table[@class="eqnarray"]|'
-                                      './/div[@class="figure"]|.//ref'):
+                                      './/div[@class="figure"]|'
+                                      './/ref|.//index'):
                 if elem.get('tmploc') is None:
                     elem.set('tmploc', locstr)
         # EVH: Handle figure references. Search for labels and build dictionary
@@ -951,6 +954,22 @@ class latex2edx(object):
                     eqnnumsty = re.sub('text-align:[a-zA-Z]+;', '', eqnnumsty)
                     eqnnumsty += ';text-align:right'
                     eqnnumcell.set('style', eqnnumsty)
+
+        # EVH: Build keymap dictionary for keywords specified by the \index
+        # command
+        keymap = {}  # {keyword: [[URL], [display_name]]}
+        for indexref in tree.findall('.//index'):
+            locstr = indexref.get('tmploc')
+            keyref = indexref.text
+            if keyref in keymap:
+                keymap[keyref][0].append(mapdict[locstr][0])
+                keymap[keyref][1].append(mapdict[locstr][1])
+            else:
+                keymap[keyref] = [[mapdict[locstr][0]],
+                                  [mapdict[locstr][1]]]
+            p = indexref.getparent()
+            p.remove(indexref)
+
         # EVH: Find and replace references everywhere with ref number and link
         for aref in tree.findall('.//ref'):
             reflabel = aref.text
@@ -985,6 +1004,16 @@ class latex2edx(object):
                 except MissingLabel as referr:
                     print ('WARNING: There is a reference to non-existent '
                            'label: {}'.format(str(referr)))
+
+        if len(keymap) != 0:
+            if not os.path.exists(self.output_dir):
+                os.mkdir(self.output_dir)
+            if not os.path.exists(self.output_dir / 'static'):
+                os.mkdir(self.output_dir / 'static')
+            print "Writing key_map.json to static/ ..."
+            kwjson = open(self.output_dir / 'static' / 'key_map.json', 'w')
+            kwjson.write(json.dumps(keymap, default=lambda o: o.__dict__))
+            kwjson.close()
 
     def process_askta(self, tree):
         '''
