@@ -223,6 +223,10 @@ class tocref(Base.Command):
     args = 'self'
 
 
+class index(Base.Command):
+    args = 'self'
+
+
 class href(Base.Command):
     args = '{ url } self'
 

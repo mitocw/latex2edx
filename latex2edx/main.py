@@ -526,20 +526,23 @@ class latex2edx(object):
                     for elem in vert.xpath('.//tocref|.//toclabel|.//label|'
                                            './/table[@class="equation"]|'
                                            './/table[@class="eqnarray"]|'
-                                           './/div[@class="figure"]|.//ref'):
+                                           './/div[@class="figure"]|'
+                                           './/ref|.//index'):
                         elem.set('tmploc', locstr)
                 locstr = '.'.join(locstr.split('.')[:-1])
                 for elem in seq.xpath('.//tocref|.//toclabel|.//label|'
                                       './/table[@class="equation"]|'
                                       './/table[@class="eqnarray"]|'
-                                      './/div[@class="figure"]|.//ref'):
+                                      './/div[@class="figure"]|'
+                                      './/ref|.//index'):
                     if elem.get('tmploc') is None:
                         elem.set('tmploc', locstr)
             locstr = '.'.join(locstr.split('.')[:-1])
             for elem in chapter.xpath('.//tocref|.//toclabel|.//label|'
                                       './/table[@class="equation"]|'
                                       './/table[@class="eqnarray"]|'
-                                      './/div[@class="figure"]|.//ref'):
+                                      './/div[@class="figure"]|'
+                                      './/ref|.//index'):
                 if elem.get('tmploc') is None:
                     elem.set('tmploc', locstr)
         # EVH: Handle figure references. Search for labels and build dictionary
@@ -640,6 +643,11 @@ class latex2edx(object):
             if label.tag == 'toclabel':
                 toclist.append(labelref)
                 tocdict[labelref] = [locstr, ptext]
+                # Change URL to point to the ToC location
+                labeldict[labelref][0] = ('../tocindex/#anchor{}'.
+                                          format(labeldict[labelref][1].
+                                                 upper().replace(r'.', 'p').
+                                                 replace(':', '')))
             if plabel.tag == 'p':
                 label = plabel
                 plabel = plabel.getparent()
@@ -696,19 +704,11 @@ class latex2edx(object):
                                                replace(':', ''),
                                                tocdict[tocref][1]),
                      'style': "cursor:pointer", 'class': "mo_button",
-                     'onClick': ("window.location.href='{}"
-                                 "tocindex/#anchor{}';".
-                                 format(('../' * len(locstr.split('.'))),
-                                        labeldict[tocref][1].
-                                        upper().replace(r'.', 'p').
-                                        replace(':', '')))})
+                     'onClick': ("window.location.href='{}{}".
+                                 format('../' * (len(locstr.split('.')) - 1),
+                                        labeldict[tocref][0]))})
                 link.text = labeldict[tocref][1].upper().replace(':', '')
                 link.set('id', tocrefid)
-                # Create new URL location pointing to ToC
-                labeldict[tocref][0] = ('../tocindex/#anchor{}'.
-                                        format(labeldict[tocref][1].
-                                               upper().replace(r'.', 'p').
-                                               replace(':', '')))
         tochead = ['h2', 'h3', 'h4']
         if len(toclist) != 0:
             # EVH: Start building tocindex.html
@@ -954,6 +954,22 @@ class latex2edx(object):
                     eqnnumsty = re.sub('text-align:[a-zA-Z]+;', '', eqnnumsty)
                     eqnnumsty += ';text-align:right'
                     eqnnumcell.set('style', eqnnumsty)
+
+        # EVH: Build keymap dictionary for keywords specified by the \index
+        # command
+        keymap = {}  # {keyword: [[URL], [display_name]]}
+        for indexref in tree.findall('.//index'):
+            locstr = indexref.get('tmploc')
+            keyref = indexref.text
+            if keyref in keymap:
+                keymap[keyref][0].append(mapdict[locstr][0])
+                keymap[keyref][1].append(mapdict[locstr][1])
+            else:
+                keymap[keyref] = [[mapdict[locstr][0]],
+                                  [mapdict[locstr][1]]]
+            p = indexref.getparent()
+            p.remove(indexref)
+
         # EVH: Find and replace references everywhere with ref number and link
         for aref in tree.findall('.//ref'):
             reflabel = aref.text
@@ -969,14 +985,6 @@ class latex2edx(object):
                     aref.set(attrib, figattrib[reflabel][attrib])
                 rawref = aref.get('href')
                 aref.set('href', (relurl + rawref))
-            elif reflabel in tocdict:
-                aref.tag = 'a'
-                aref.text = labeldict[reflabel][1].replace(':', ' ')
-                aref.set('href', ('../' * (len(locstr.split('.')) - 1) +
-                                  '../tocindex/#anchor{}'.
-                                  format(labeldict[reflabel][1].
-                                         upper().replace(r'.', 'p').
-                                         replace(':', ''))))
             elif reflabel in labeldict:
                 aref.tag = 'a'
                 aref.text = labeldict[reflabel][1].replace(':', ' ')
@@ -996,6 +1004,16 @@ class latex2edx(object):
                 except MissingLabel as referr:
                     print ('WARNING: There is a reference to non-existent '
                            'label: {}'.format(str(referr)))
+
+        if len(keymap) != 0:
+            if not os.path.exists(self.output_dir):
+                os.mkdir(self.output_dir)
+            if not os.path.exists(self.output_dir / 'static'):
+                os.mkdir(self.output_dir / 'static')
+            print "Writing key_map.json to static/ ..."
+            kwjson = open(self.output_dir / 'static' / 'key_map.json', 'w')
+            kwjson.write(json.dumps(keymap, default=lambda o: o.__dict__))
+            kwjson.close()
 
     def process_askta(self, tree):
         '''
@@ -1163,10 +1181,23 @@ class latex2edx(object):
             where2add = p
             p = p.getparent()
 
-            # move from xml to parent
-            for child in xml:
-                where2add.addprevious(child)
-            p.remove(todrop)
+        # move from xml to parent
+        if xml.text:
+            if p.text:
+                p.text += xml.text
+            else:
+                p.text = xml.text
+        for child in xml:
+            where2add.addprevious(child)
+        if xml.tail:
+            if len(p.getchildren()) != 0:
+                if p.getchildren()[-1].tail:
+                    p.getchildren()[-1].tail += xml.tail
+                else:
+                    p.getchildren()[-1].tail = xml.tail
+            else:
+                p.text += xml.tail
+        p.remove(todrop)
 
     def process_edxxml(self, tree):
         '''

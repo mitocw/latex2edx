@@ -1,0 +1,149 @@
+%
+% File: example12_index.tex
+%
+% Description: Test \index calls
+%
+
+\documentclass[12pt]{article}
+\usepackage{edXpsl} % edX style file
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{edXcourse}{1.00x}{1.00x Fall 2014}[url_name=2014_Fall showanswer=always start=2014-10-06T12:00]
+
+%%====================================== CHAPTER 0
+\begin{edXchapter*}{Module 0}[start="2014-10-04"]
+
+%%-------------------------------------- SEQUENTIAL 0-1: Problem Set 0
+\begin{edXsequential}{A problem section}[due="2014-10-22" graded=true]
+
+\begin{edXtext}{Objective}
+
+Answer the following problem.
+
+\end{edXtext}
+
+\begin{edXproblem}{Example problem}{url_name="p0"}
+\index{numerical}
+
+Enter the value of $\pi$ to two decimal places.
+
+\edXabox{type="numerical" expect="3.14" tolerance="0.01"}
+
+\end{edXproblem}
+
+\end{edXsequential}
+
+%%--------------------------------------
+\end{edXchapter*}
+
+%%====================================== CHAPTER 1
+\begin{edXchapter}{Module 1}[start="2014-10-06"]
+
+%%-------------------------------------- SEQUENTIAL 1-1: Lecture 1
+\begin{edXsequential}{A lecture section}
+
+\begin{edXtext}{Example text}[url_name="text-L1"]
+
+Some discussion content on a 'topic.'
+\index{topic}
+
+\end{edXtext}
+
+\end{edXsequential}
+
+%%-------------------------------------- SEQUENTIAL 1-2: Lecture 2
+\begin{edXsequential}{Another lecture section}
+
+\begin{edXvertical}{A vertical grouping}
+
+\begin{edXtext}{More on the topic}
+
+More discussion regarding 'topic.'
+\index{topic}
+
+\end{edXtext}
+
+\begin{edXproblem}{Example Problem 1}{url_name="p1"}
+
+Followed by a problem component.
+
+\end{edXproblem}
+
+\end{edXvertical}
+
+\end{edXsequential}
+
+%%--------------------------------------
+\end{edXchapter}
+
+%%====================================== CHAPTER 2
+\begin{edXchapter}{Search Course}[start="2014-10-06"]
+
+%%-------------------------------------- SEQUENTIAL 2-1: Search
+\begin{edXsequential}{Search}
+
+\begin{edXtext}{Keyword Search}
+
+% EVH: the following code does not seem to execute properly in place, and
+% should be moved to a static page for the course, and added to the policy file
+% under 'tabs'.
+\edXxml{
+<input id="autocomplete" />
+<div id="noresults" style="display:none">No results were found.</div>
+<div id="links" style="margin-left:200px;">
+  <script>// <![CDATA[
+  \$(function(){
+    var key_map = \$.getJSON( "/static/key_map.json").done(function( data ){
+      var key_map = data;
+      \$.each(key_map, function(keyword,keycontent){
+        buffer="<div class='"+keyword+" list'><p><b>"+keyword+"</b></p><ul>";
+        references = keycontent[0]
+        \$.each(references, function(id,reference){
+          url = '../../' + reference;
+          description = keycontent[1][id];
+          buffer+=" <li class='"+id+"'><a href='"+url+"'>"+description+"</a></li>";
+        });
+        buffer+="</ul></div>";
+        \$( "#links" ).append( buffer );
+      });
+      var mapkeys = Object.keys(key_map);
+      \$("#autocomplete").autocomplete({
+        source: mapkeys,
+        delay: 500,
+        response: function( event, ui ){
+          console.log(ui.content);
+          if(ui.content.length){
+            \$('#noresults').hide();
+            \$('.list').hide();
+            \$.each(ui.contenit, function(index,keyword){
+              console.log(index);                console.log(keyword.label);
+              \$('.'+keyword.label).show();
+            });
+          }else{
+            \$('.list').hide();
+            \$('#noresults').show();
+          }
+        },
+        select: function( event, ui ){
+          \$('#noresults').hide();
+          \$('.list').hide();
+          \$('.'+ui.item.label).show();
+        }
+      });
+    });
+  });
+  // ]]></script>
+</div>
+}
+
+\end{edXtext}
+
+\end{edXsequential}
+
+\end{edXchapter}
+
+%%======================================
+\end{edXcourse}
+
+\end{document}
