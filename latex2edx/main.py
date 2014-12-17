@@ -704,7 +704,7 @@ class latex2edx(object):
                                                replace(':', ''),
                                                tocdict[tocref][1]),
                      'style': "cursor:pointer", 'class': "mo_button",
-                     'onClick': ("window.location.href='{}{}".
+                     'onClick': ("window.location.href='{}{}'".
                                  format('../' * (len(locstr.split('.')) - 1),
                                         labeldict[tocref][0]))})
                 link.text = labeldict[tocref][1].upper().replace(':', '')
