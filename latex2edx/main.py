@@ -439,6 +439,23 @@ class latex2edx(object):
         for div in tree.findall('.//div[@class="minipage"]'):
             div.tag = 'text'
 
+    def set_tmploc(self, tree, locstr):
+        '''
+        Create a tmploc attribute (if none exists) for the elements:
+          tocref, toclabel, ref, label, index,
+          table class="equation", table class="eqnarray",
+          div class="figure"
+        so as to later be able to reference these items by addressing their
+        location.
+        '''
+        for elem in tree.xpath('.//tocref|.//toclabel|.//label|'
+                               './/table[@class="equation"]|'
+                               './/table[@class="eqnarray"]|'
+                               './/div[@class="figure"]|'
+                               './/ref|.//index'):
+            if elem.get('tmploc') is None:
+                elem.set('tmploc', locstr)
+
     def handle_refs(self, tree):
         '''
         Process references to sections of content -- create section numbering and
@@ -523,28 +540,14 @@ class latex2edx(object):
                     for label in labels:
                         if label is not None:
                             label.set('tmploc', locstr + '.0')
-                    for elem in vert.xpath('.//tocref|.//toclabel|.//label|'
-                                           './/table[@class="equation"]|'
-                                           './/table[@class="eqnarray"]|'
-                                           './/div[@class="figure"]|'
-                                           './/ref|.//index'):
-                        elem.set('tmploc', locstr)
+                    self.set_tmploc(vert, locstr)
                 locstr = '.'.join(locstr.split('.')[:-1])
-                for elem in seq.xpath('.//tocref|.//toclabel|.//label|'
-                                      './/table[@class="equation"]|'
-                                      './/table[@class="eqnarray"]|'
-                                      './/div[@class="figure"]|'
-                                      './/ref|.//index'):
-                    if elem.get('tmploc') is None:
-                        elem.set('tmploc', locstr)
+                self.set_tmploc(seq, locstr)
             locstr = '.'.join(locstr.split('.')[:-1])
-            for elem in chapter.xpath('.//tocref|.//toclabel|.//label|'
-                                      './/table[@class="equation"]|'
-                                      './/table[@class="eqnarray"]|'
-                                      './/div[@class="figure"]|'
-                                      './/ref|.//index'):
-                if elem.get('tmploc') is None:
-                    elem.set('tmploc', locstr)
+            self.set_tmploc(chapter, locstr)
+        # EVH 01-13-15: tmploc assignment added at course level
+        self.set_tmploc(course, '0')
+        mapdict['0'] = ['#', cnumber, '0']
         # EVH: Handle figure references. Search for labels and build dictionary
         figdict = {}  # {'figlabel':'fignum'}
         figattrib = {}  # {'figlabel':{'attrib':'value'}}
