@@ -2,3 +2,4 @@ v1.0, 2013-09-22 -- Initial release.
 v1.1, 2014-01-21 -- Support for jsinput, custom mathjax filtering, formularesponse
 v1.2, 2014-06-05 -- General Hints System
 v1.3, 2014-06-22 -- Documentation, edXvideo, edXdiscussion
+v1.4, 2015-01-13 -- Cross-referencing, Table of Content, pop-ups option
