@@ -4,7 +4,8 @@
 % Style file for compiling MITx course to PDF using the 'article' document class.
 
 % Note:
-% Directives using the \def command included in the main course TEX file are interpreted by both the LaTeX => PDF converters and latex2edx executable.
+% Directives using the \def command included in the main course TEX file are
+% interpreted by both the LaTeX => PDF converters and the latex2edx executable.
 
 \RequirePackage{xparse}
 \ExplSyntaxOn
@@ -12,7 +13,7 @@
 \RequirePackage{verbatim}
 \RequirePackage{graphicx}
 \RequirePackage{color}
-\RequirePackage{url}
+\RequirePackage[obeyspaces]{url}
   \cs_set_eq:NN \vurl \url
 \RequirePackage{hyperref}
 \RequirePackage{amsmath}
@@ -32,6 +33,7 @@
 \RequirePackage[T1]{fontenc}
 \RequirePackage{titling}
 
+\makeindex
 %Set up table of contents entries
 \ProvideDocumentCommand \phantomsection { } { }
 \NewDocumentCommand \addchaptoc { m } { \phantomsection \addcontentsline {toc} {section} {#1} }
@@ -43,6 +45,10 @@
 \date { \today }
 \author { }
 
+\NewDocumentCommand \CourseDisplay { } {~}
+\NewDocumentCommand \CourseNumber { } {~}
+\NewDocumentCommand \CourseOptions { } {~}
+
 % edX commands understood by latex2edx.py
 \newcounter { edXchapter }
 \newcounter { edXsequential } [ edXchapter ]
@@ -50,13 +56,11 @@
 
 \NewDocumentEnvironment { edXcourse } { m m o }
  {
-  \NewDocumentCommand \CourseDisplay { } {#2}
-  \NewDocumentCommand \CourseNumber { } {#1}
+  \ReNewDocumentCommand \CourseDisplay { } {#2}
+  \ReNewDocumentCommand \CourseNumber { } { \urlstyle{rm} \vurl{#1} }
   \IfNoValueTF {#3}
-   {
-    \NewDocumentCommand \CourseOptions { } {~}
-   } {
-    \NewDocumentCommand \CourseOptions { } { \texttt{#3} }
+   { } {
+    \ReNewDocumentCommand \CourseOptions { } { \urlstyle{rm} \vurl{#3} }
    }
   \group_begin:
   \title
@@ -65,11 +69,13 @@
     \vspace {1em}
     {\Huge edX ~ Course: ~ #1}\\
     \vspace {1em}
-    \IfNoValueTF {#3} { } {\texttt {#3} }
+    \IfNoValueTF {#3} { } { \CourseOptions }
    }
   \group_end:
   \maketitle
   \tableofcontents
+  \newpage
+  \printindex
   \newpage
  } { }
 
@@ -224,9 +230,11 @@
     \fbox
      {
       \parbox {0.9 \hsize}
-      \group_begin:
-       \texttt {#1}
-      \group_end:
+      {
+       \group_begin:
+        \texttt {#1}
+       \group_end:
+      }
      }
    } {
     \group_begin:
