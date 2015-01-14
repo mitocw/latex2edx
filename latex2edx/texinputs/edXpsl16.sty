@@ -284,9 +284,11 @@
     \fbox
      {
       \parbox {0.9 \hsize}
-      \group_begin:
-       \texttt {#1}
-      \group_end:
+      {
+       \group_begin:
+        \texttt {#1}
+       \group_end:
+      }
      }
    } {
     \group_begin:
