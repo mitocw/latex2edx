@@ -13,7 +13,7 @@
 \RequirePackage{verbatim}
 \RequirePackage{graphicx}
 \RequirePackage{color}
-\RequirePackage{url}
+\RequirePackage[obeyspaces]{url}
   \cs_set_eq:NN \vurl \url
 \RequirePackage{hyperref}
 \RequirePackage{amsmath}
@@ -57,10 +57,10 @@
 \NewDocumentEnvironment { edXcourse } { m m o }
  {
   \ReNewDocumentCommand \CourseDisplay { } {#2}
-  \ReNewDocumentCommand \CourseNumber { } { \texttt{#1}}
+  \ReNewDocumentCommand \CourseNumber { } { \urlstyle{rm} \vurl{#1} }
   \IfNoValueTF {#3}
    { } {
-    \ReNewDocumentCommand \CourseOptions { } { \texttt{#3} }
+    \ReNewDocumentCommand \CourseOptions { } { \urlstyle{rm} \vurl{#3} }
    }
   \group_begin:
   \title
@@ -69,7 +69,7 @@
     \vspace {1em}
     {\Huge edX ~ Course: ~ #1}\\
     \vspace {1em}
-    \IfNoValueTF {#3} { } {\texttt {#3} }
+    \IfNoValueTF {#3} { } { \CourseOptions }
    }
   \group_end:
   \maketitle
