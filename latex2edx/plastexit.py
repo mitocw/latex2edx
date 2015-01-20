@@ -180,8 +180,8 @@ class MyRenderer(XHTML.Renderer):
     @staticmethod
     def fix_unicode(stxt):
         ucfixset = { u'\u201d': '"',
-                     u'\u2014': '-',
-                     u'\u2013': '-',
+                     u'\u2014': '&#8212;',
+                     u'\u2013': '&#8211;',
                      u'\u2019': "'",
                      }
 
