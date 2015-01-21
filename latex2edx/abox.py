@@ -216,7 +216,7 @@ class AnswerBox(object):
             expect = self.stripquotes(expectstr)
             # expectstr, expectset = self.get_options(abargs, arg='expect')
             # if len(expectset)>1:
-            if expect != expectsrt:
+            if expect != expectstr:
                 expectstr, expectset = self.get_options(abargs, arg='expect')
                 cg.tag = 'checkboxgroup'
                 abxml.tag = 'choiceresponse'
