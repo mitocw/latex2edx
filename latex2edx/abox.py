@@ -210,12 +210,18 @@ class AnswerBox(object):
 
             # if expect has multiple comma-delimited quoted strings, then use "checkboxgroup"
             # and "choiceresponse" instead, and allow for multiple possible valid answers
-            expectstr, expectset = self.get_options(abargs, arg='expect')
-            if len(expectset)>1:
+            # EVH 01-21-2015: Fixing multichoice to function with comma in
+            # expect string
+            expectstr = abargs['expect']
+            expect = self.stripquotes(expectstr)
+            # expectstr, expectset = self.get_options(abargs, arg='expect')
+            # if len(expectset)>1:
+            if expect != expectsrt:
+                expectstr, expectset = self.get_options(abargs, arg='expect')
                 cg.tag = 'checkboxgroup'
                 abxml.tag = 'choiceresponse'
             else:
-                expect = self.stripquotes(abargs['expect'])
+                # expect = self.stripquotes(abargs['expect'])
                 expectset = [expect]
             cnt = 1
             for op in options:
