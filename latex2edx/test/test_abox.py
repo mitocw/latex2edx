@@ -85,7 +85,7 @@ class Test_Abox(unittest.TestCase):
         '''
         abox = AnswerBox('''expect=""
         type="custom"
-        answers="1,9"
+        answers="1","9"
         prompts="x = ","y = "
         cfn="sumtest"
         inline="1" ''')

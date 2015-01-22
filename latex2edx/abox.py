@@ -464,6 +464,11 @@ class AnswerBox(object):
 
     def get_options(self,abargs,arg='options'):
         optstr = abargs[arg]			# should be double quoted strings, comma delimited
+        # EVH 01-22-2015: Inserting quotes around single option for proper
+        # parsing
+        if not optstr.startswith('"') and not optstr.startswith("'"):
+            optraw = repr(optstr)
+            optstr = optraw[0] + optstr + optraw[0]
         #options = [c for c in csv.reader([optstr])][0]	# turn into list of strings
         options = split_args_with_quoted_strings(optstr, lambda(x): x==',')		# turn into list of strings
         options = map(self.stripquotes, options)
