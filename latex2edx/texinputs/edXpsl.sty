@@ -42,13 +42,32 @@
 \NewDocumentCommand \addsubtoc { m } { \phantomsection \addcontentsline {toc} {subsubsection} {#1} }
 \NewDocumentCommand \addsubsubtoc { m } { \phantomsection \addcontentsline {toc} {paragraph} {#1} }
 
+%Set up document style functions
 \setcounter { tocdepth } {4}
 \date { \today }
 \author { }
 
+%Set up initial values and helper functions
 \NewDocumentCommand \CourseDisplay { } {~}
 \NewDocumentCommand \CourseNumber { } {~}
 \NewDocumentCommand \CourseOptions { } {~}
+
+\seq_new:N \l_cleanname_seq
+\NewDocumentCommand { \cleanname } { m }
+ {
+  \tl_set:Nn \l_cleanname_seq {#1}
+  % Replace underscores with textunderscore
+  \regex_replace_all:nnN
+   { _ }
+   { \c{textunderscore} }
+   \l_cleanname_seq
+  % Replace carets with textasciicircum
+  \regex_replace_all:nnN
+   { \^ }
+   { \c{textasciicircum} }
+   \l_cleanname_seq
+  \tl_use:N \l_cleanname_seq
+ }
 
 % edX commands understood by latex2edx.py
 \newcounter { edXchapter }
@@ -58,10 +77,10 @@
 \NewDocumentEnvironment { edXcourse } { m m o }
  {
   \RenewDocumentCommand \CourseDisplay { } {#2}
-  \RenewDocumentCommand \CourseNumber { } { \urlstyle{rm} \vurl{#1} }
+  \RenewDocumentCommand \CourseNumber { } { \cleanname{#1} }
   \IfNoValueTF {#3}
    { } {
-    \RenewDocumentCommand \CourseOptions { } { \urlstyle{rm} \vurl{#3} }
+    \RenewDocumentCommand \CourseOptions { } { \cleanname{#3} }
    }
   \group_begin:
   \title
@@ -78,19 +97,21 @@
   \newpage
   \printindex
   \newpage
- } { }
+ } {
+  \clearpage
+ }
 
 \NewDocumentEnvironment { edXchapter } { m o }
  {
   \refstepcounter {edXchapter}
-  \section* {#1}
-  \addchaptoc {\protect \makebox [1ex] [l] {\arabic {edXchapter} } \quad #1}
+  \section* { \cleanname{#1} }
+  \addchaptoc {\protect \makebox [1ex] [l] {\arabic {edXchapter} } \quad \cleanname{#1}}
  } { }
 
 \NewDocumentEnvironment { edXchapter* } { m o }
  {
-  \section* {#1}
-  \addchaptoc {#1}
+  \section* { \cleanname{#1} }
+  \addchaptoc { \cleanname{#1} }
  } { }
 
 %---
@@ -98,16 +119,16 @@
 \NewDocumentEnvironment { edXsection } { m o }
  {
   \refstepcounter {edXsequential}
-  \subsection* {#1}
-  \addsectoc {\protect \makebox [1ex] [l] {\arabic {edXsequential} } \quad #1}
+  \subsection* { \cleanname{#1} }
+  \addsectoc {\protect \makebox [1ex] [l] {\arabic {edXsequential} } \quad \cleanname{#1}}
  } {
   \clearpage
  }
 
 \NewDocumentEnvironment { edXsection* } { m o }
  {
-  \subsection* {#1}
-  \addsectoc {#1}
+  \subsection* { \cleanname{#1} }
+  \addsectoc { \cleanname{#1} }
  } {
   \clearpage
  }
@@ -116,16 +137,16 @@
 \NewDocumentEnvironment { edXsequential } { m o }
  {
   \refstepcounter {edXsequential}
-  \subsection* {#1}
-  \addsectoc {\protect \makebox [1ex] [l] {\arabic {edXsequential} } \quad #1}
+  \subsection* { \cleanname{#1} }
+  \addsectoc {\protect \makebox [1ex] [l] {\arabic {edXsequential} } \quad \cleanname{#1}}
  } {
   \clearpage
  }
 
 \NewDocumentEnvironment { edXsequential* } { m o }
  {
-  \subsection* {#1}
-  \addsectoc {#1}
+  \subsection* { \cleanname{#1} }
+  \addsectoc { \cleanname{#1} }
  } {
   \clearpage
  }
@@ -133,15 +154,15 @@
 \NewDocumentEnvironment { edXvertical } { g o }
  {
   \refstepcounter {edXvertical}
-  \subsection* {#1}
-  \addsubtoc {\protect \makebox [1ex] [l] {\arabic {edXvertical} } \quad #1}
+  \subsection* { \cleanname{#1} }
+  \addsubtoc {\protect \makebox [1ex] [l] {\arabic {edXvertical} } \quad \cleanname{#1}}
   \vspace {-2mm}
  } { }
 
 \NewDocumentEnvironment { edXvertical* } { g o }
  {
-  \subsection* {#1}
-  \addsubtoc {#1}
+  \subsection* { \cleanname{#1} }
+  \addsubtoc { \cleanname{#1} }
   \vspace {-2mm}
  } { }
 
@@ -157,14 +178,14 @@
 
 \NewDocumentEnvironment { edXproblem } { m g }
  {
-  \subsubsection* { \textbf {#1} }
-  \addsubsubtoc {#1}
+  \subsubsection* { \textbf { \cleanname{#1} } }
+  \addsubsubtoc { \cleanname{#1} }
  } { }
 
 \NewDocumentEnvironment { edXtext } { m o }
  {
-  \subsubsection* { \textbf {#1} }
-  \addsubsubtoc {#1}
+  \subsubsection* { \textbf { \cleanname{#1} } }
+  \addsubsubtoc { \cleanname{#1} }
  } { }
 
 \NewDocumentEnvironment { edXscript } { }
@@ -211,7 +232,7 @@
   \end{displaymath}
  }
 
-\NewDocumentCommand \edXgitlink   { m m } { \href {#1} {#2} }
+\NewDocumentCommand \edXgitlink   { m m } { \href {#1} { \cleanname{#2} } }
 \NewDocumentCommand \edXinline    { m } {#1}
 \NewDocumentCommand \edXinclude   { m } { \texttt {#1} }
 \NewDocumentCommand \edXincludepy { m } { }
