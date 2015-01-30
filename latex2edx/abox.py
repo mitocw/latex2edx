@@ -207,22 +207,7 @@ class AnswerBox(object):
             cg = etree.SubElement(abxml,'choicegroup')
             cg.set('direction','vertical')
             optionstr, options = self.get_options(abargs)
-
-            # if expect has multiple comma-delimited quoted strings, then use "checkboxgroup"
-            # and "choiceresponse" instead, and allow for multiple possible valid answers
-            # EVH 01-21-2015: Fixing multichoice to function with comma in
-            # expect string
-            expectstr = abargs['expect']
-            expect = self.stripquotes(expectstr)
-            # expectstr, expectset = self.get_options(abargs, arg='expect')
-            # if len(expectset)>1:
-            if expect != expectstr:
-                expectstr, expectset = self.get_options(abargs, arg='expect')
-                cg.tag = 'checkboxgroup'
-                abxml.tag = 'choiceresponse'
-            else:
-                # expect = self.stripquotes(abargs['expect'])
-                expectset = [expect]
+            expectstr, expectset = self.get_options(abargs, arg='expect')
             cnt = 1
             for op in options:
                 choice = etree.SubElement(cg,'choice')
@@ -235,7 +220,7 @@ class AnswerBox(object):
             self.require_args(['expect','options'])
             cg = etree.SubElement(abxml,'checkboxgroup')
             optionstr, options = self.get_options(abargs)
-            expectstr, expects = self.get_options(abargs,'expect')
+            expectstr, expects = self.get_options(abargs, 'expect')
             cnt = 1
             if self.verbose:
                 print "[abox.py] oldmultichoice: options=/%s/, expects=/%s/" % (options,expects)
@@ -465,7 +450,7 @@ class AnswerBox(object):
     def get_options(self,abargs,arg='options'):
         optstr = abargs[arg]			# should be double quoted strings, comma delimited
         # EVH 01-22-2015: Inserting quotes around single option for proper
-        # parsing
+        # parsing of choices containing commas
         if not optstr.startswith('"') and not optstr.startswith("'"):
             optraw = repr(optstr)
             optstr = optraw[0] + optstr + optraw[0]
