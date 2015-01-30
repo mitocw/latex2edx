@@ -98,25 +98,33 @@ class MyRenderer(XHTML.Renderer):
     filter_fix_image_match = '<includegraphics style="(.*?)">(.*?)</includegraphics>'
 
     def filter_fix_image(self, m):
+        width = 400
+        attribs = []
         print "[do_image] m=%s" % repr(m.groups())
         style = m.group(1)
-        sm = re.search('width=([0-9\.]+)(.*)',style)
-        if sm:
-            widtype = sm.group(2)
-            width = float(sm.group(1))
-            if 'in' in widtype:
-                width = width * 110
-            elif 'cm' in widtype:
-                width = width * 110 / 2.54
-            if 'extwidth' in widtype:
-                width = width * 110 * 6
-            width = int(width)
-            if width==0:
-                width = 400
-        else:
-            width = 400
+        sms = style.split(',')
+        for sm in sms:
+            w = re.search('width=([0-9\.]+)(.*)',sm)
+            if w:
+                widtype = w.group(2)
+                width = float(w.group(1))
+                if 'in' in widtype:
+                    width = width * 110
+                elif 'cm' in widtype:
+                    width = width * 110 / 2.54
+                if '\\textwidth' in widtype:
+                    width = width * 770
+                width = int(width)
+                if width==0:
+                    width = 400
+            else:
+                sm = sm.strip().replace('=', ':')
+                attribs.append(sm)
+        attribs = ';'.join(attribs)
+        if attribs:
+            attribs = 'style="' + attribs + '"'
 
-        def make_image_html(fn,k):
+        def make_image_html(fn,k,attribs):
             self.imfnset.append(fn+k)
             # if file doesn't exist in edX web directory, copy it there
             fnbase = os.path.basename(fn)+k
@@ -127,7 +135,8 @@ class MyRenderer(XHTML.Renderer):
                 os.system(cmd)
                 print cmd
                 os.system('chmod og+r %s' % wwwfn)
-            return '<img src="/static/%s/%s" width="%d" />' % (self.imurl,fnbase,width)
+            return '<img src="/static/%s/%s" width="%d" %s/>' % (self.imurl,
+                    fnbase, width, attribs)
 
         fnset = [m.group(2)]
         fnsuftab = ['','.png','.pdf','.png','.jpg']
@@ -156,10 +165,10 @@ class MyRenderer(XHTML.Renderer):
                             fnset = [fn]
                         imghtml = ''
                         for fn2 in fnset:
-                            imghtml += make_image_html(fn2,'.png')
+                            imghtml += make_image_html(fn2, '.png', attribs)
                         return imghtml
                     else:
-                        return make_image_html(fn,k)
+                        return make_image_html(fn, k, attribs)
                 
         fn = fnset[0]
         print 'Cannot find image file %s' % fn
