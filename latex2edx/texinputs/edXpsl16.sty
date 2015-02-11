@@ -254,10 +254,12 @@
 \NewDocumentCommand \edXxml       { m } { \texttt {#1} }
 \NewDocumentCommand \edXbr        { } { \par }
 
+\ExplSyntaxOff
 \NewDocumentCommand \edXvideo     { m m o }
  {
-  \href { http://www.youtube.com/watch?v=#2 } { \color{blue} \underline {#1} }
+  \href {http://www.youtube.com/watch?v=#2} {\color{blue} \underline {#1}}
  }
+\ExplSyntaxOn
 %\edXvideo{Description}{youtube_id}[source=""]
 
 \NewDocumentCommand \edXdiscussion { m m } { \textbf { Discussion: } ~ #1 } { }
@@ -284,9 +286,11 @@
     \fbox
      {
       \parbox {0.9 \hsize}
-      \group_begin:
-       \texttt {#1}
-      \group_end:
+      {
+       \group_begin:
+        \texttt {#1}
+       \group_end:
+      }
      }
    } {
     \group_begin:

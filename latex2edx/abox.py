@@ -207,16 +207,7 @@ class AnswerBox(object):
             cg = etree.SubElement(abxml,'choicegroup')
             cg.set('direction','vertical')
             optionstr, options = self.get_options(abargs)
-
-            # if expect has multiple comma-delimited quoted strings, then use "checkboxgroup"
-            # and "choiceresponse" instead, and allow for multiple possible valid answers
             expectstr, expectset = self.get_options(abargs, arg='expect')
-            if len(expectset)>1:
-                cg.tag = 'checkboxgroup'
-                abxml.tag = 'choiceresponse'
-            else:
-                expect = self.stripquotes(abargs['expect'])
-                expectset = [expect]
             cnt = 1
             for op in options:
                 choice = etree.SubElement(cg,'choice')
@@ -229,7 +220,7 @@ class AnswerBox(object):
             self.require_args(['expect','options'])
             cg = etree.SubElement(abxml,'checkboxgroup')
             optionstr, options = self.get_options(abargs)
-            expectstr, expects = self.get_options(abargs,'expect')
+            expectstr, expects = self.get_options(abargs, 'expect')
             cnt = 1
             if self.verbose:
                 print "[abox.py] oldmultichoice: options=/%s/, expects=/%s/" % (options,expects)
@@ -458,6 +449,11 @@ class AnswerBox(object):
 
     def get_options(self,abargs,arg='options'):
         optstr = abargs[arg]			# should be double quoted strings, comma delimited
+        # EVH 01-22-2015: Inserting quotes around single option for proper
+        # parsing of choices containing commas
+        if not optstr.startswith('"') and not optstr.startswith("'"):
+            optraw = repr(optstr)
+            optstr = optraw[0] + optstr + optraw[0]
         #options = [c for c in csv.reader([optstr])][0]	# turn into list of strings
         options = split_args_with_quoted_strings(optstr, lambda(x): x==',')		# turn into list of strings
         options = map(self.stripquotes, options)

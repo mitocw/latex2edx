@@ -66,11 +66,11 @@ class Test_Abox(unittest.TestCase):
         self.assertIn('<formulaequationinput size="60" inline="1" math="1">', xmlstr)
         self.assertIn('<responseparam type="tolerance" default="0.01"/>', xmlstr)
         
-    def test_multichoice1(self):
+    def test_oldmultichoice1(self):
         '''
         Test a multiple choice response requiring multiple selections
         '''
-        abox = AnswerBox('type="multichoice"  expect="Python","C++" options="Cobol","Pascal","Python","C++","Clu","Forth"')
+        abox = AnswerBox('type="oldmultichoice"  expect="Python","C++" options="Cobol","Pascal","Python","C++","Clu","Forth"')
         xmlstr = abox.xmlstr
         print xmlstr
         self.assertIn('<choiceresponse>', xmlstr)
@@ -85,7 +85,7 @@ class Test_Abox(unittest.TestCase):
         '''
         abox = AnswerBox('''expect=""
         type="custom"
-        answers="1,9"
+        answers="1","9"
         prompts="x = ","y = "
         cfn="sumtest"
         inline="1" ''')

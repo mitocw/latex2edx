@@ -231,6 +231,10 @@ class href(Base.Command):
     args = '{ url } self'
 
 
+class textwidth(Base.Command):
+    args = ''
+
+
 class edXaskta(Base.Command):
     # ask TA link
     args = 'self'
