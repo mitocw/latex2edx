@@ -1370,7 +1370,7 @@ class latex2edx(object):
                     run_latex2dnd = True
             if run_latex2dnd:
                 options = ''
-                if dndxml.get('can_reuse', False):
+                if dndxml.get('can_reuse', 'False').lower().strip() != 'false':
                     options += '-C'
                 cmd = 'cd "%s"; latex2dnd -r %s -v %s %s.tex' % (fndir, dndxml.get('resolution', 210), options, fnpre)
                 print "--> Running %s" % cmd
