@@ -1,5 +1,10 @@
 latex2edx
 =========
+[![Build Status](http://img.shields.io/travis/mitocw/latex2edx.svg?style=flat)](https://travis-ci.org/mitocw/latex2edx)
+[![Coverage Status](http://img.shields.io/coveralls/mitocw/latex2edx.svg?style=flat)](https://coveralls.io/r/mitocw/latex2edx)
+[![PyPi Downloads](http://img.shields.io/pypi/dm/latex2edx.svg?style=flat)](https://pypi.python.org/pypi/latex2edx)
+[![PyPi Version](http://img.shields.io/pypi/v/latex2edx.svg?style=flat)](https://pypi.python.org/pypi/latex2edx)
+[![License AGPLv3](http://img.shields.io/badge/license-AGPv3-blue.svg?style=flat)](http://www.gnu.org/licenses/agpl-3.0.html)
 
 This is version 1.3 of the open-source latex2edx compiler for
 generating interactive MITx / edX courses from LaTeX
