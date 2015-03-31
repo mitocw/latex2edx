@@ -882,7 +882,7 @@ class latex2edx(object):
                                      eqncontent, re.S) is not None:
                             eqnlabel = re.findall(r'\\label\{(.*?)\}',
                                                   eqncontent, re.S)
-                            eqncontent = re.sub(r'\\label{.*}', r'',
+                            eqncontent = re.sub(r'\\label\{.*?\}', r'',
                                                 eqncontent)
                             td.text = eqncontent
                 if len(eqnlabel) != 0:
@@ -1109,7 +1109,7 @@ class latex2edx(object):
             atin.set('value', data['label'])
             atin.set('type', 'button')
             atin.set('onclick', '%s();' % smfn)
-            
+
             for attrib in special_attribs:
                 data.pop(attrib)
 
