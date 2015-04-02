@@ -220,23 +220,34 @@
 
 \NewDocumentEnvironment { edXjavascript } { }
  {
-  \verbatim
+  \ifthenelse
+   {
+    \boolean { showJava }
+   } {
+    \noindent
+    \underline { \texttt { JavaScript ~ code: } }
+    \verbatim
+   } {
+    \comment
+   }
  } {
-  \endverbatim
+  \ifthenelse
+   {
+    \boolean { showJava }
+   } {
+    \endverbatim
+   } {
+    \endcomment
+   }
  }
 
-\NewDocumentEnvironment { edXmath } { }
- {
-  \begin{displaymath}
- } {
-  \end{displaymath}
- }
+\NewDocumentEnvironment { edXmath } { } { } { }
 
-\NewDocumentCommand \edXgitlink   { m m } { \href {#1} { \cleanname{#2} } }
+\NewDocumentCommand \edXgitlink   { m m } { \href {#1} { \color{blue} \underline{ \cleanname{#2} } } }
 \NewDocumentCommand \edXinline    { m } {#1}
 \NewDocumentCommand \edXinclude   { m } { \texttt {#1} }
-\NewDocumentCommand \edXincludepy { m } { }
-\NewDocumentCommand \edXdndtex    { m } { }
+\NewDocumentCommand \edXincludepy { m } { \texttt {#1} }
+\NewDocumentCommand \edXdndtex    { m } { \texttt {#1} }
 \NewDocumentCommand \edXxml       { m } { \texttt {#1} }
 \NewDocumentCommand \edXbr        { } { \par }
 
@@ -347,6 +358,8 @@
 \setboolean { showSolution } {false}
 \newboolean { showPython }
 \setboolean { showPython } {false}
+\newboolean { showJava }
+\setboolean { showJava } {false}
 
 \cs_new:Npn \edx_header_line_format:nn #1#2
  {

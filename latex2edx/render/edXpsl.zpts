@@ -79,7 +79,7 @@ name: section
 name: subsection
 <h3 tal:content='self'></h3>
 
-name: subsection
+name: subsubsection
 <h4 tal:content='self'></h4>
 
 name: label
