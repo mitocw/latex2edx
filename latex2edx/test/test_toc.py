@@ -74,8 +74,12 @@ class TestToC(unittest.TestCase):
             cfn = path(tmdir) / 'html/text-L1.xml'
             data = open(cfn).read()
             xml = etree.fromstring(data)
-            href = xml.findall('.//a[@href]')
+            # Check the first equation
+            eqn = xml.find('.//table[@class="equation"]')
+            self.assertEqual(eqn[0][0].text,
+                             '[mathjax] \\frac{d}{dx} e^ x = e^ x[/mathjax]')
             # Check the reference link text
+            href = xml.findall('.//a[@href]')
             self.assertEqual(href[0].text, '0')  # Non-numbered chapter
             self.assertEqual(href[1].text, '(1.2)')  # Numbered equation 2
             self.assertEqual(href[2].text, '(1.3)')  # Numbered equation 3

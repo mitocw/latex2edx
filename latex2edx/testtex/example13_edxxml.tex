@@ -1,0 +1,33 @@
+%
+% File: example13_edxxml.tex
+%
+% Description: Test \edXxml command
+%
+
+\documentclass[12pt]{article}
+\usepackage{edXpsl} % edX style file
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{edXcourse}{1.00x}{1.00x Fall 2014}[url_name=2014_Fall showanswer=always start=2014-10-06T12:00]
+
+%%====================================== CHAPTER 1
+\begin{edXchapter}{Chapter 1}[start="2014-10-04"]
+
+%%-------------------------------------- SEQUENTIAL 1-1
+\begin{edXsequential}{A text section}
+
+\begin{edXtext}{Code Text}
+
+A matrix \edXxml{<code>A</code>} and column vector \edXxml{named <code>b</code> can be multiplied} in the form \edXxml{<code>A b</code>} only if the number of columns of \edXxml{<code>b</code>} match the number of rows in \edXxml{<code>A</code>}.
+
+\end{edXtext}
+
+\end{edXsequential}
+
+\end{edXchapter}
+
+%%======================================
+\end{edXcourse}
+
+\end{document}
