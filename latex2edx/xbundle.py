@@ -194,7 +194,9 @@ class XBundle(object):
         abfile = etree.SubElement(about, 'file')
         abfile.set('filename',filename)
         abfile.text = filedata
-
+        # Unicode characters in the "about" HTML file were causing
+        # the lxml package to break.
+        abfile.text = filedata.decode('utf-8')
 
     #----------------------------------------
     # load/save 
