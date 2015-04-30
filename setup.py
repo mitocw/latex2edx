@@ -37,8 +37,9 @@ setup(
                       'latex2dnd',
                       ],
     package_dir={'latex2edx': 'latex2edx'},
-    package_data={ 'latex2edx': ['render/*', 'testtex/*', 'plastexpy/*.py', 'python_lib/*.py'] },
+    package_data={'latex2edx': ['render/*', 'testtex/*', 'plastexpy/*.py',
+                                'python_lib/*.py', 'latex2edx.js',
+                                'latex2edx.css']},
     # data_files = data_files,
-    test_suite = "latex2edx.test",
+    test_suite="latex2edx.test",
 )
-
