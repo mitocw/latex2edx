@@ -177,14 +177,6 @@ class XBundle(object):
         '''add a policies XML subtree to the metadata'''
         self.metadata.append(policies)
 
-    
-    def set_about(self, about):
-        '''set about XML tree'''
-        xabout = self.metadata.find('about')
-        if xbout is not None:
-            self.metadata.remove(xabout)
-        self.metadata.append(xabout)
-
 
     def add_about_file(self, filename, filedata):
         '''add a file to the about element'''
