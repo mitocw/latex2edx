@@ -147,7 +147,7 @@ class edXdndtex(MyBaseCommand):  # insert external drag-and-drop problem (should
 
 
 class edXshowhide(Base.Environment):  # block of text to be hidden by default, but with clickable "show"
-    args = ' { id } { description } self'
+    args = ' { description } self'
 
 
 class edXscript(MyBaseVerbatim):

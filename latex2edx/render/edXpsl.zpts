@@ -26,7 +26,7 @@ name: edXbr
 <br />
 
 name: edXshowhide
-<edxshowhide tal:attributes='id self/attributes/id; description self/attributes/description' tal:content='self'></edxshowhide>
+<edxshowhide tal:attributes='description self/attributes/description' tal:content='self'></edxshowhide>
 
 name: edXabox
 <abox tal:attributes="linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}" tal:content='self'></abox>
