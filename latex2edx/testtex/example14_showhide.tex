@@ -1,0 +1,37 @@
+%
+% File: example14_showhide.tex
+%
+% Description: Test the edXshowhide environment
+%
+
+\documentclass[12pt]{article}
+\usepackage{edXpsl} % edX style file
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{edXcourse}{1.00x}{1.00x Fall 2014}[url_name=2014_Fall showanswer=always start=2014-10-06T12:00]
+
+%%====================================== CHAPTER 1
+\begin{edXchapter}{Chapter 1}[start="2014-10-04"]
+
+%%-------------------------------------- SEQUENTIAL 1-1
+\begin{edXsequential}{A test section}
+
+\begin{edXtext}{Text}
+
+This text section contains a showhide element.  Click below to reveal the hidden text.
+
+\begin{edXshowhide}{Secret text}
+Hidden text
+\end{edXshowhide}
+
+\end{edXtext}
+
+\end{edXsequential}
+
+\end{edXchapter}
+
+%%======================================
+\end{edXcourse}
+
+\end{document}
