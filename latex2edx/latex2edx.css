@@ -1,0 +1,48 @@
+.hideshowbox h4 {
+ background-color: #F0F0F0;
+ color: black;
+ padding: 2px 4px 3px 6px;
+ margin: 0px;
+ border-top-right-radius: 5px;
+ border-top-left-radius: 5px;
+ font-size: 1.05em;
+ font-weight: 600;
+ line-height: 1.4em;
+ cursor: pointer;
+}
+
+.hideshowbox .hideshowbottom {
+ background-color: #F8F8F8;
+ color: black;
+ padding: 0px 5px 1px 3px;
+ margin: 0px;
+ font-size: 1.05em;
+ text-align: right;
+ border: solid #C4C5C7;
+ border-width: 1px 0px 0px 0px;
+ border-bottom-right-radius: 5px;
+ border-bottom-left-radius: 5px;
+ cursor: pointer;
+}
+
+.hideshowbox .toggleimage {
+ padding: 0px 4px 0px 4px;
+ float: right;
+}
+
+.hideshowcontent p {
+ margin: 0px 0px 7px 0px;
+}
+
+.hideshowcontent {
+ display: none;
+ padding: 10px 10px 4px 10px;
+ background-color: #FFF;
+}
+
+.hideshowbox {
+ border: 1px solid #C4C5c7;
+ background-color: #C4C5c7;
+ margin: 22px 5px;
+ border-radius: 6px;
+}
