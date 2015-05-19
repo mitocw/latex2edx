@@ -25,25 +25,25 @@ class AnswerBox(object):
         Examples:
         -----------------------------------------------------------------------------
         <abox type="option" expect="float" options=" ","noneType","int","float" />
-        
+
         <optionresponse>
         <optioninput options="('noneType','int','float')"  correct="int">
         </optionresponse>
-        
+
         -----------------------------------------------------------------------------
         <abox type="string" expect="Michigan" options="ci" />
-        
+
         <stringresponse answer="Michigan" type="ci">
         <textline size="20" />
         </stringresponse>
-        
+
         -----------------------------------------------------------------------------
         <abox type="custom" expect="(3 * 5) / (2 + 3)" cfn="eq" />
-        
+
         <customresponse cfn="eq">
         <textline size="40" correct_answer="(3 * 5) / (2 + 3)"/><br/>
         </customresponse>
-        
+
         -----------------------------------------------------------------------------
         <abox type="custom" expect="20" answers="11","9" prompts="Integer 1:","Integer 2:" inline="1" cfn="test_add" />
 
@@ -54,25 +54,25 @@ class AnswerBox(object):
         </customresponse>
 
         -----------------------------------------------------------------------------
-        <abox type="jsinput" expect="(3 * 5) / (2 + 3)" cfn="eq" gradefn="gradefn" height="500" 
-               get_statefn="getstate" set_statefn="setstate" html_file="/static/jsinput.html"/> 
-        
+        <abox type="jsinput" expect="(3 * 5) / (2 + 3)" cfn="eq" gradefn="gradefn" height="500"
+               get_statefn="getstate" set_statefn="setstate" html_file="/static/jsinput.html"/>
+
         <customresponse cfn="eq" expect="(3 * 5) / (2 + 3)">
-            <jsinput gradefn="gradefn" 
+            <jsinput gradefn="gradefn"
                 height="500"
                 get_statefn="getstate"
                 set_statefn="setstate"
                 html_file="/static/jsinput.html"/>
         </customresponse>
-        
+
         -----------------------------------------------------------------------------
         <abox type="numerical" expect="3.141" tolerance="5%" />
-        
+
         <numericalresponse answer="5.0">
         <responseparam type="tolerance" default="5%" name="tol" description="Numerical Tolerance" />
         <textline />
         </numericalresponse>
-        
+
         -----------------------------------------------------------------------------
 	<abox type="multichoice" expect="Yellow" options="Red","Green","Yellow","Blue" />
 
@@ -108,27 +108,27 @@ class AnswerBox(object):
                          bound on the numerical tests to use for that variable
 
         if feqin is given as an attribute, then a formulaequationinput is used instead
-        of textline, for the input element.  
+        of textline, for the input element.
 
         <formularesponse type="cs" samples="m,c@1,2:3,4#10" answer="m*c^2">
-            <responseparam type="tolerance" default="0.01"/> 
-            <textline size="40" math="1" />    
+            <responseparam type="tolerance" default="0.01"/>
+            <textline size="40" math="1" />
         </formularesponse>
 
         -----------------------------------------------------------------------------
         Adaptive hints:
-        
+
         define the hints as a dict in an included python script, and give the name
         of that dict as the parameter "hints".  Works inside customresponse,
         optionresponse, and multiple choice problems, within latex2edx.
-        
+
         latex2edx automatically translates <ed_general_hint_system/> into an import
         of the general_hint_system.py python code.
 
         Thus, this input:
 
         <abox type="custom" expect="(3 * 5) / (2 + 3)" cfn="eq" hints="hint1"/>
-        
+
         produces:
 
         <edx_general_hint_system />
@@ -153,7 +153,7 @@ class AnswerBox(object):
         self.verbose = verbose
         self.xml = self.abox2xml(aboxstr)
         self.xmlstr = self.hint_extras + etree.tostring(self.xml)
-        
+
     def abox2xml(self,aboxstr):
         if aboxstr.startswith('abox '): aboxstr = aboxstr[5:]
         s = aboxstr
@@ -170,7 +170,7 @@ class AnswerBox(object):
                           'multichoice': 'multiplechoiceresponse',
                           'numerical': 'numericalresponse',
                           'option': 'optionresponse',
-                          'formula': 'formularesponse', 
+                          'formula': 'formularesponse',
                           'shortans' : 'shortanswerresponse',
                           'shortanswer' : 'shortanswerresponse',
                           'string': 'stringresponse',
@@ -189,7 +189,7 @@ class AnswerBox(object):
             abtype = 'customresponse'
         else:
             abtype = 'symbolicresponse'	# default
-        
+
         abxml = etree.Element(abtype)
 
         if abtype=='optionresponse':
@@ -201,7 +201,7 @@ class AnswerBox(object):
             abxml.append(oi)
             self.copy_attrib(abargs,'inline', abxml)
             self.copy_attrib(abargs,'inline', oi)
-            
+
         if abtype=='multiplechoiceresponse':
             self.require_args(['expect','options'])
             cg = etree.SubElement(abxml,'choicegroup')
@@ -215,7 +215,7 @@ class AnswerBox(object):
                 choice.set('name',str(cnt))
                 choice.append(etree.XML("<text> %s</text>" %op))
                 cnt += 1
-            
+
         if abtype=='choiceresponse':
             self.require_args(['expect','options'])
             cg = etree.SubElement(abxml,'checkboxgroup')
@@ -242,11 +242,11 @@ class AnswerBox(object):
                 self.require_args(['expect','cfn'])
                 abxml.set('cfn',self.stripquotes(abargs['cfn']))
                 self.copy_attrib(abargs,'expect',abxml)
-                
+
             else:
                 abxml.tag = 'stringresponse'	# change to stringresponse for now (FIXME)
                 tl = etree.Element('textline')
-                if 'size' in abargs: 
+                if 'size' in abargs:
                     tl.set('size',self.stripquotes(abargs['size']))
                 else:
                     tl.set('size','80')
@@ -254,14 +254,14 @@ class AnswerBox(object):
                 abxml.set('answer','unknown')
                 self.copy_attrib(abargs,'inline',tl)
                 self.copy_attrib(abargs,'inline',abxml)
-            
+
         elif abtype=='stringresponse':
             self.require_args(['expect'])
             tl = etree.Element('textline')
             if 'size' in abargs: tl.set('size',self.stripquotes(abargs['size']))
             abxml.append(tl)
             abxml.set('answer',self.stripquotes(abargs['expect']))
-            if 'options' in abargs: 
+            if 'options' in abargs:
                 abxml.set('type', self.stripquotes(abargs['options']))
             else:
                 abxml.set('type','')
@@ -317,7 +317,7 @@ class AnswerBox(object):
                     abxml.append(etree.Element('br'))	# linebreak between boxes if multiple
                 abxml.append(elem)
                 cnt += 1
-                    
+
         elif abtype=='customresponse_jsinput':
             abxml.tag = 'customresponse'
             self.require_args(['expect','cfn'])
@@ -332,7 +332,7 @@ class AnswerBox(object):
             for jsa in jsattribs:
                 self.copy_attrib(abargs, jsa, js)
             abxml.append(js)
-                    
+
         elif abtype=='externalresponse' or abtype== 'coderesponse':
             if 'url' in abargs:
                 self.copy_attrib(abargs,'url',abxml)
@@ -365,7 +365,7 @@ class AnswerBox(object):
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
             #rp.attrib['name'] = "tol" #not needed
-        
+
         elif abtype=='formularesponse':
             self.require_args(['expect','samples'])
             self.copy_attrib(abargs,'inline',abxml)
@@ -374,7 +374,7 @@ class AnswerBox(object):
             abxml.set('type',intype)
 
             self.copy_attrib(abargs,'samples',abxml)
-            
+
             if abargs.get('feqin'):
                 tl = etree.Element('formulaequationinput')
             else:
@@ -408,7 +408,7 @@ class AnswerBox(object):
             else:
                 tl.set('correct_answer',self.stripquotes(abargs['expect']))
             tl.set('math','1')	# use dynamath
-            
+
         elif abtype=='imageresponse':
             self.require_args(['src','width','height','rectangle'])
             rect = abargs.get('rectangle')
@@ -424,14 +424,14 @@ class AnswerBox(object):
             self.copy_attrib(abargs,'height',ii)
             self.copy_attrib(abargs,'rectangle',ii)
             abxml.append(ii)
- 
+
         # has hint function?
         if 'hintfn' in abargs:
             hintfn = self.stripquotes(abargs['hintfn'])
             hintgroup = etree.SubElement(abxml,'hintgroup')
             hintgroup.set('hintfn',hintfn)
 
-        # has hint? 
+        # has hint?
         hint_extras = ''
         if 'hints' in abargs:
             hints = self.stripquotes(abargs['hints'])
@@ -462,7 +462,7 @@ class AnswerBox(object):
         optionstr = ','.join(["'%s'" % x for x in options])	# string of single quoted strings
         optionstr = "(%s)" % optionstr				# enclose in parens
         return optionstr, options
-    
+
     def require_args(self,argnames):
         for argname in argnames:
             if argname not in self.abargs:
@@ -473,7 +473,7 @@ class AnswerBox(object):
                 # raise Exception, "Bad abox"
                 raise Exception(msg)
                 # sys.exit(-1)
-            
+
     def abox_args(self,s):
         '''
         Parse arguments of abox.  Splits by space delimitation.
@@ -493,7 +493,7 @@ class AnswerBox(object):
 
         if '' in abargstxt:
             abargstxt.remove('')
-            
+
         try:
             abargs = dict([x.split('=',1) for x in abargstxt])
         except Exception, err:
@@ -520,7 +520,7 @@ class AnswerBox(object):
         if aname in abargs:
             xml.set(aname,self.stripquotes(abargs[aname]))
 
-        
+
 def split_args_with_quoted_strings(command_line, checkfn=None):
 
     """from pexpect.py

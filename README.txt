@@ -111,3 +111,4 @@ History
 *     .3: Ensure edXinclude doesn't leave contents within a <p>; nicer error messages for include, with linenum
 *     .4: Include linenum, filename in more error msgs; add --section-only, --xml-only, --units-only output fmts
 * v1.4.0: Enable cross-referencing with \ref and \label; add --popups output fmt for eqns and figs; add ToC generation with \tocref and \toclabel
+* v1.4.1: Show/Hide function improveed, testing expanded.

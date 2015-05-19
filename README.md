@@ -6,7 +6,7 @@ latex2edx
 [![PyPi Version](http://img.shields.io/pypi/v/latex2edx.svg?style=flat)](https://pypi.python.org/pypi/latex2edx)
 [![License AGPLv3](http://img.shields.io/badge/license-AGPv3-blue.svg?style=flat)](http://www.gnu.org/licenses/agpl-3.0.html)
 
-This is version 1.3 of the open-source latex2edx compiler for
+This is version 1.4 of the open-source latex2edx compiler for
 generating interactive MITx / edX courses from LaTeX
 
 ![latex2edx logo](https://raw.github.com/mitocw/latex2edx/master/docs/images/latex2edx-logo.png)
@@ -162,3 +162,4 @@ History
 *     .3: Ensure edXinclude doesn't leave contents within a p; nicer error messages for include, with linenum
 *     .4: Include linenum, filename in more error msgs; add --section-only, --xml-only, --units-only output fmts
 * v1.4.0: Enable cross-referencing with \ref and \label; add --popups output fmt for eqns and figs; add ToC generation with \tocref and \toclabel
+* v1.4.1: Show/Hide function improveed, testing expanded.

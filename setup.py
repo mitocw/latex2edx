@@ -15,7 +15,7 @@ data_files = [
 
 setup(
     name='latex2edx',
-    version='1.4.0',
+    version='1.4.1',
     author='I. Chuang',
     author_email='ichuang@mit.edu',
     packages=['latex2edx', 'latex2edx.test'],
@@ -37,7 +37,10 @@ setup(
                       'latex2dnd',
                       ],
     package_dir={'latex2edx': 'latex2edx'},
-    package_data={ 'latex2edx': ['render/*', 'testtex/*', 'plastexpy/*.py', 'python_lib/*.py'] },
+    package_data={ 'latex2edx': ['render/*',
+                                 'testtex/*',
+                                 'plastexpy/*.py',
+                                 'python_lib/*.py'] },
     # data_files = data_files,
     test_suite = "latex2edx.test",
 )

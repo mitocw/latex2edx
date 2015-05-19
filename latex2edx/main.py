@@ -43,19 +43,19 @@ def date_parse(datestr, retbad=False, verbose=True):
     if not datestr:
         return None
 
-    formats = ['%Y-%m-%dT%H:%M:%SZ',    	# 2013-11-13T21:00:00Z
-               '%Y-%m-%dT%H:%M:%S.%f',    	# 2012-12-04T13:48:28.427430
-               '%Y-%m-%dT%H:%M:%S.%f+00:00',    	# 2013-12-15T18:33:32.378926+00:00
+    formats = ['%Y-%m-%dT%H:%M:%SZ',  # 2013-11-13T21:00:00Z
+               '%Y-%m-%dT%H:%M:%S.%f',  # 2012-12-04T13:48:28.427430
+               '%Y-%m-%dT%H:%M:%S.%f+00:00',  # 2013-12-15T18:33:32.378926+00:00
                '%Y-%m-%dT%H:%M:%S',
-               '%Y-%m-%dT%H:%M',		# 2013-02-12T19:00
-               '%Y-%m-%d %H:%M:%S',		# 2013-05-29 12:51:48
-               '%Y-%m-%d',			# 2013-05-29
-               '%B %d, %Y',			# February 25, 2013
-               '%B %d, %H:%M, %Y', 		# December 12, 22:00, 2012
-               '%B %d, %Y, %H:%M', 		# March 25, 2013, 22:00
-               '%B %d %Y, %H:%M',		# January 2 2013, 22:00
-               '%B %d %Y', 			# March 13 2014
-               '%B %d %H:%M, %Y',		# December 24 05:00, 2012
+               '%Y-%m-%dT%H:%M',  # 2013-02-12T19:00
+               '%Y-%m-%d %H:%M:%S',  # 2013-05-29 12:51:48
+               '%Y-%m-%d',  # 2013-05-29
+               '%B %d, %Y',  # February 25, 2013
+               '%B %d, %H:%M, %Y',  # December 12, 22:00, 2012
+               '%B %d, %Y, %H:%M',  # March 25, 2013, 22:00
+               '%B %d %Y, %H:%M',  # January 2 2013, 22:00
+               '%B %d %Y',  # March 13 2014
+               '%B %d %H:%M, %Y',  # December 24 05:00, 2012
                ]
 
     for fmt in formats:
@@ -85,8 +85,9 @@ class latex2edx(object):
     This script can be run from any directory.
     '''
 
-    DescriptorTags = ['course', 'chapter', 'sequential', 'vertical', 'html', 'problem', 'video',
-                      'conditional', 'combinedopenended', 'randomize', 'discussion']
+    DescriptorTags = ['course', 'chapter', 'sequential', 'vertical', 'html',
+                      'problem', 'video', 'conditional', 'combinedopenended',
+                      'randomize', 'discussion']
 
     def __init__(self,
                  fn,
@@ -1109,7 +1110,7 @@ class latex2edx(object):
             atin.set('value', data['label'])
             atin.set('type', 'button')
             atin.set('onclick', '%s();' % smfn)
-            
+
             for attrib in special_attribs:
                 data.pop(attrib)
 
@@ -1320,10 +1321,10 @@ class latex2edx(object):
     def get_filename_and_linenum(elem):
         linenum = elem.get('linenum', '<unavailable>')
         texfn = elem.get('tex_filename', elem.get('filename', '<unavailable>'))
-        return "file %s line %s" % (texfn, linenum)
+        return "file {} line {}".format(texfn, linenum)
 
     def standard_error_msg(self, elem):
-        msg = "Error processing element %s in %s" % (elem.tag, self.get_filename_and_linenum(elem))
+        msg = "Error processing element {} in {}".format(elem.tag, self.get_filename_and_linenum(elem))
         return msg
 
     def process_dndtex(self, tree):
@@ -1336,23 +1337,23 @@ class latex2edx(object):
             linenum = dndxml.get('linenum', '<unavailable>')
             texfn = dndxml.get('filename', '<unavailable>')
             if dndfn is None:
-                print "Error: %s must specify dnd tex filename!" % tag  # EVH changed 'cmd' to 'tag'
-                print "See tex file %s line %s" % (texfn, linenum)
+                print "Error: {} must specify dnd tex filename!".format(tag)
+                print "See tex file {} line {}".format(texfn, linenum)
                 raise
             dndfn = dndfn.strip()
             if not dndfn.endswith('.tex'):
-                print "Error: dnd file %s should be a .tex file!" % dndfn
-                print "See tex file %s line %s" % (texfn, linenum)
+                print "Error: dnd file {} should be a .tex file!".format(dndfn)
+                print "See tex file {} line {}".format(texfn, linenum)
                 raise
             if not os.path.exists(dndfn):
-                print "Error: dnd tex file %s does not exist!" % dndfn
-                print "See tex file %s line %s" % (texfn, linenum)
+                print "Error: dnd tex file {} does not exist!".format(dndfn)
+                print "See tex file {} line {}".format(texfn, linenum)
                 raise
             try:
-                dndsrc = open(dndfn).read()
+                open(dndfn).read()
             except Exception, err:
-                print "Error %s: cannot open dnd tex file %s to read" % (err, dndfn)
-                print "See tex file %s line %s" % (texfn, linenum)
+                print "Error {}: cannot open dnd tex file {} to read".format(err, dndfn)
+                print "See tex file {} line {}".format(texfn, linenum)
                 raise
 
             # Use latex2dnd to compile dnd tex into edX XML.

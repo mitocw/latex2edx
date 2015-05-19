@@ -1,5 +1,8 @@
 *~
 *.py[co]
+*.swp
+.ropeproject
+tmp.xml
 
 # Packages
 *.egg
