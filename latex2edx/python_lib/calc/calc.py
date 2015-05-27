@@ -12,8 +12,21 @@ import scipy.constants
 import functions
 
 from pyparsing import (
-    Word, Literal, CaselessLiteral, ZeroOrMore, MatchFirst, Optional, Forward,
-    Group, ParseResults, stringEnd, Suppress, Combine, alphas, nums, alphanums
+    Word,
+    Literal,
+    CaselessLiteral,
+    ZeroOrMore,
+    MatchFirst,
+    Optional,
+    Forward,
+    Group,
+    ParseResults,
+    stringEnd,
+    Suppress,
+    Combine,
+    alphas,
+    nums,
+    alphanums
 )
 
 DEFAULT_FUNCTIONS = {

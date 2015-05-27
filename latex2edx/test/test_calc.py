@@ -2,11 +2,9 @@
 Unit tests for calc.py
 """
 
-import unittest
-from pyparsing import ParseException
-
-import calc
+import latex2edx.python_lib.calc.calc as calc
 import numpy
+import unittest
 
 # numpy's default behavior when it evaluates a function outside its domain
 # is to raise a warning (not an exception) which is then printed to STDOUT.
@@ -14,6 +12,7 @@ import numpy
 # ignore it instead.
 # See http://docs.scipy.org/doc/numpy/reference/generated/numpy.seterr.html
 numpy.seterr(all='ignore')  # Also: 'ignore', 'warn' (default), 'raise'
+
 
 class TestEvaluator(unittest.TestCase):
     """
@@ -24,153 +23,6 @@ class TestEvaluator(unittest.TestCase):
       `evaluator({'x':3.0}, {}, '3*x')`
     gives 9.0) and more.
     """
-
-    def test_number_input(self):
-        """
-        Test different kinds of float inputs
-
-        See also
-          test_trailing_period (slightly different)
-          test_exponential_answer
-          test_si_suffix
-        """
-        easy_eval = lambda x: calc.evaluator({}, {}, x)
-
-        self.assertEqual(easy_eval("13"), 13)
-        self.assertEqual(easy_eval("3.14"), 3.14)
-        self.assertEqual(easy_eval(".618033989"), 0.618033989)
-
-        self.assertEqual(easy_eval("-13"), -13)
-        self.assertEqual(easy_eval("-3.14"), -3.14)
-        self.assertEqual(easy_eval("-.618033989"), -0.618033989)
-
-    def test_period(self):
-        """
-        The string '.' should not evaluate to anything.
-        """
-        with self.assertRaises(ParseException):
-            calc.evaluator({}, {}, '.')
-        with self.assertRaises(ParseException):
-            calc.evaluator({}, {}, '1+.')
-
-    def test_trailing_period(self):
-        """
-        Test that things like '4.' will be 4 and not throw an error
-        """
-        self.assertEqual(4.0, calc.evaluator({}, {}, '4.'))
-
-    def test_exponential_answer(self):
-        """
-        Test for correct interpretation of scientific notation
-        """
-        answer = 50
-        correct_responses = [
-            "50", "50.0", "5e1", "5e+1",
-            "50e0", "50.0e0", "500e-1"
-        ]
-        incorrect_responses = ["", "3.9", "4.1", "0", "5.01e1"]
-
-        for input_str in correct_responses:
-            result = calc.evaluator({}, {}, input_str)
-            fail_msg = "Expected '{0}' to equal {1}".format(
-                input_str, answer
-            )
-            self.assertEqual(answer, result, msg=fail_msg)
-
-        for input_str in incorrect_responses:
-            result = calc.evaluator({}, {}, input_str)
-            fail_msg = "Expected '{0}' to not equal {1}".format(
-                input_str, answer
-            )
-            self.assertNotEqual(answer, result, msg=fail_msg)
-
-    def test_si_suffix(self):
-        """
-        Test calc.py's unique functionality of interpreting si 'suffixes'.
-
-        For instance 'k' stand for 'kilo-' so '1k' should be 1,000
-        """
-        test_mapping = [
-            ('4.2%', 0.042), ('2.25k', 2250), ('8.3M', 8300000),
-            ('9.9G', 9.9e9), ('1.2T', 1.2e12), ('7.4c', 0.074),
-            ('5.4m', 0.0054), ('8.7u', 0.0000087),
-            ('5.6n', 5.6e-9), ('4.2p', 4.2e-12)
-        ]
-
-        for (expr, answer) in test_mapping:
-            tolerance = answer * 1e-6  # Make rel. tolerance, because of floats
-            fail_msg = "Failure in testing suffix '{0}': '{1}' was not {2}"
-            fail_msg = fail_msg.format(expr[-1], expr, answer)
-            self.assertAlmostEqual(
-                calc.evaluator({}, {}, expr), answer,
-                delta=tolerance, msg=fail_msg
-            )
-
-    def test_operator_sanity(self):
-        """
-        Test for simple things like '5+2' and '5/2'
-        """
-        var1 = 5.0
-        var2 = 2.0
-        operators = [('+', 7), ('-', 3), ('*', 10), ('/', 2.5), ('^', 25)]
-
-        for (operator, answer) in operators:
-            input_str = "{0} {1} {2}".format(var1, operator, var2)
-            result = calc.evaluator({}, {}, input_str)
-            fail_msg = "Failed on operator '{0}': '{1}' was not {2}".format(
-                operator, input_str, answer
-            )
-            self.assertEqual(answer, result, msg=fail_msg)
-
-    def test_raises_zero_division_err(self):
-        """
-        Ensure division by zero gives an error
-        """
-        with self.assertRaises(ZeroDivisionError):
-            calc.evaluator({}, {}, '1/0')
-        with self.assertRaises(ZeroDivisionError):
-            calc.evaluator({}, {}, '1/0.0')
-        with self.assertRaises(ZeroDivisionError):
-            calc.evaluator({'x': 0.0}, {}, '1/x')
-
-    def test_parallel_resistors(self):
-        """
-        Test the parallel resistor operator ||
-
-        The formula is given by
-            a || b || c ...
-            = 1 / (1/a + 1/b + 1/c + ...)
-        It is the resistance of a parallel circuit of resistors with resistance
-        a, b, c, etc&. See if this evaulates correctly.
-        """
-        self.assertEqual(calc.evaluator({}, {}, '1||1'), 0.5)
-        self.assertEqual(calc.evaluator({}, {}, '1||1||2'), 0.4)
-        self.assertEqual(calc.evaluator({}, {}, "j||1"), 0.5 + 0.5j)
-
-    def test_parallel_resistors_with_zero(self):
-        """
-        Check the behavior of the || operator with 0
-        """
-        self.assertTrue(numpy.isnan(calc.evaluator({}, {}, '0||1')))
-        self.assertTrue(numpy.isnan(calc.evaluator({}, {}, '0.0||1')))
-        self.assertTrue(numpy.isnan(calc.evaluator({'x': 0.0}, {}, 'x||1')))
-
-    def assert_function_values(self, fname, ins, outs, tolerance=1e-3):
-        """
-        Helper function to test many values at once
-
-        Test the accuracy of evaluator's use of the function given by fname
-        Specifically, the equality of `fname(ins[i])` against outs[i].
-        This is used later to test a whole bunch of f(x) = y at a time
-        """
-
-        for (arg, val) in zip(ins, outs):
-            input_str = "{0}({1})".format(fname, arg)
-            result = calc.evaluator({}, {}, input_str)
-            fail_msg = "Failed on function {0}: '{1}' was not {2}".format(
-                fname, input_str, val
-            )
-            self.assertAlmostEqual(val, result, delta=tolerance, msg=fail_msg)
 
     def test_trig_functions(self):
         """
