@@ -8,6 +8,7 @@
 % The \def directives in the last block of this file should be included in the preamble of the main course .tex
 
 \RequirePackage{xparse}
+\RequirePackage{l3regex}
 \ExplSyntaxOn
 
 \RequirePackage{verbatim}
@@ -26,10 +27,11 @@
 \RequirePackage[left=1in,right=1in,top=0.8in,bottom=1.4in]{geometry}
 \RequirePackage{fancyhdr}
 \RequirePackage[T1]{fontenc}
+\RequirePackage{titling}
 
 \hypersetup{colorlinks=true,urlcolor=blue}
 
-%Set table of contents
+%Set up table of contents entries
 \ProvideDocumentCommand \phantomsection { } { }
 
 \NewDocumentCommand \addchaptoc { m } { \phantomsection \addcontentsline {toc} {chapter} {#1} }
@@ -38,6 +40,24 @@
 \NewDocumentCommand \addsubsubtoc { m } { \phantomsection \addcontentsline {toc} {subsubsection} {#1} }
 
 \setcounter { tocdepth } {3}
+
+%PDFlatex helper function
+\seq_new:N \l_cleanname_seq
+\NewDocumentCommand { \cleanname } { m }
+ {
+  \tl_set:Nn \l_cleanname_seq {#1}
+  % Replace underscores with textunderscore
+  \regex_replace_all:nnN
+   { _ }
+   { \c{textunderscore} }
+   \l_cleanname_seq
+  % Replace carets with textasciicircum
+  \regex_replace_all:nnN
+   { \^ }
+   { \c{textasciicircum} }
+   \l_cleanname_seq
+  \tl_use:N \l_cleanname_seq
+ }
 
 % =================================================
 % edX commands understood by latex2edx
@@ -52,9 +72,9 @@
    {
     {\Huge \bf #2}\\
   \vspace{1em}
-  {\Huge edX ~ Course: ~ #1}\\
+  {\Huge edX ~ Course: ~ \cleanname{#1} }\\
   \vspace {1em}
-  \IfNoValueTF {#3} { } { \texttt{#3} } }
+  \IfNoValueTF {#3} { } { \cleanname{#3} } }
   \group_end:
   \maketitle
   \tableofcontents
@@ -68,16 +88,16 @@
    \group_begin:
    \chaptername\ \arabic { edXchapter } \\
    \vspace {1em}
-   #1
+   \cleanname{#1}
    \group_end:
   }
-  \addchaptoc { \protect \makebox [1ex] [l] { \arabic { edXchapter } } \quad #1}
+  \addchaptoc { \protect \makebox [1ex] [l] { \arabic { edXchapter } } \quad \cleanname{#1} }
  } { }
 
 \NewDocumentEnvironment { edXchapter* } { m o }
  {
-  \chapter* {#1}
-  \addchaptoc {#1}
+  \chapter* { \cleanname{#1} }
+  \addchaptoc { \cleanname{#1} }
  } { }
 %===
 % Course 16 custom format
@@ -90,17 +110,17 @@
 \NewDocumentEnvironment { edXsection } { m o }
  {
   \refstepcounter { edXsequential }
-  \section* { \arabic { edXsequential } ~ \color{red} #1}
-  \RenewDocumentCommand \sectionname { } {#1}
-  \addsectoc{ \protect \makebox [1ex] [l] { \arabic { edXsequential } } \quad #1}
+  \section* { \arabic { edXsequential } ~ \color{red} \cleanname{#1} }
+  \RenewDocumentCommand \sectionname { } { \cleanname{#1} }
+  \addsectoc{ \protect \makebox [1ex] [l] { \arabic { edXsequential } } \quad \cleanname{#1} }
  } {
   \clearpage
  }
 
 \NewDocumentEnvironment { edXsection* } { m o }
  {
-  \section* {\color{red} #1}
-  \RenewDocumentCommand \sectionname { } {#1}
+  \section* {\color{red} \cleanname{#1} }
+  \RenewDocumentCommand \sectionname { } { \cleanname{#1} }
   \addsectoc {#1}
  } {
   \clearpage
@@ -110,18 +130,18 @@
 \NewDocumentEnvironment { edXsequential } { m o }
  {
   \refstepcounter { edXsequential }
-  \section* { \arabic { edXsequential } ~ \color{red} #1}
-  \RenewDocumentCommand \sectionname { } {#1}
-  \addsectoc{ \protect \makebox [1ex] [l] { \arabic { edXsequential } } \quad #1}
+  \section* { \arabic { edXsequential } ~ \color{red} \cleanname{#1} }
+  \RenewDocumentCommand \sectionname { } { \cleanname{#1} }
+  \addsectoc{ \protect \makebox [1ex] [l] { \arabic { edXsequential } } \quad \cleanname{#1} }
  } {
   \clearpage
  }
 
 \NewDocumentEnvironment { edXsequential* } { m o }
  {
-  \section* {\color{red} #1}
-  \RenewDocumentCommand \sectionname { } {#1}
-  \addsectoc {#1}
+  \section* {\color{red} \cleanname{#1} }
+  \RenewDocumentCommand \sectionname { } { \cleanname{#1} }
+  \addsectoc { \cleanname{#1} }
  } {
   \clearpage
  }
@@ -135,12 +155,12 @@
    \color{red}
    \textbf
    In ~ Section: ~ \arabic { edXchapter }.\arabic { edXsequential } ~ \sectionname \\
-   edXvertical: ~ #1
+   edXvertical: ~ \cleanname{#1}
    \group_end:
   }
-  \RenewDocumentCommand \subsectionname { } {#1}
+  \RenewDocumentCommand \subsectionname { } { \cleanname{#1} }
   \setboolean{inVertical}{true}
-  \addsubtoc {\protect \makebox [1ex] [l] { \arabic { edXvertical } } \quad edXvertical: ~ #1}
+  \addsubtoc {\protect \makebox [1ex] [l] { \arabic { edXvertical } } \quad edXvertical: ~ \cleanname{#1} }
  } {
   \setboolean{inVertical}{false}
  }
@@ -152,21 +172,21 @@
    \color{red}
    \textbf
    In ~ Section: ~ \arabic { edXchapter }.\arabic { edXsequential } ~ \sectionname \\
-   edXvertical: ~ #1
+   edXvertical: ~ \cleanname{#1}
    \group_end:
   }
-  \RenewDocumentCommand \subsectionname { } {#1}
+  \RenewDocumentCommand \subsectionname { } { \cleanname{#1} }
   \setboolean{inVertical}{true}
-  \addsubtoc {edXvertical: ~ #1}
+  \addsubtoc {edXvertical: ~ \cleanname{#1} }
  } {
   \setboolean{inVertical}{false}
  }
 
-\NewDocumentEnvironment { edXshowhide } { m m o }
+\NewDocumentEnvironment { edXshowhide } { m o }
  {
   \begin{quote}
    {
-    \textbf { Showhide: ~ #2 ~ (ID: ~ #1): }
+    \textbf { Showhide: ~ #1: }
    }
  } { 
   \end{quote}
@@ -185,12 +205,12 @@
      Vertical: ~ \arabic { edXvertical }
     } {
      Section: ~ \arabic { edXsequential } ~ \sectionname
-     \addsubtoc {edXproblem: ~ #1}
+     \addsubtoc {edXproblem: ~ \cleanname{#1} }
     }\\
-   edXproblem: ~ #1
+   edXproblem: ~ \cleanname{#1}
    \IfNoValueTF {#2} { } {\IfInteger {#2} {: ~ #2 Points} { }}
    \group_end:
-   \addsubsubtoc {edXproblem: ~ #1}
+   \addsubsubtoc {edXproblem: ~ \cleanname{#1} }
   }
  } { }
 
@@ -207,22 +227,36 @@
      Vertical: ~ \arabic { edXvertical }
     } {
      Section: ~ \arabic { edXsequential } ~ \sectionname
-     \addsubtoc {edXtext: ~ #1}
+     \addsubtoc {edXtext: ~ \cleanname{#1} }
     }\\
-   edXtext: ~ #1
+   edXtext: ~ \cleanname{#1}
    \group_end:
-   \addsubsubtoc {edXtext: ~ #1}
+   \addsubsubtoc {edXtext: ~ \cleanname{#1} }
   }
  }{ }
 %===
 
 \NewDocumentEnvironment { edXscript } { }
  {
-  \noindent
-  \underline { \texttt { Python ~ code: } }
-  \verbatim
+  \ifthenelse
+   {
+    \boolean { showPython }
+   } {
+    \noindent
+    \underline { \texttt { Python ~ code: } }
+    \verbatim
+   } {
+    \comment
+   }
  } {
-  \endverbatim
+  \ifthenelse
+   {
+    \boolean { showPython }
+   } {
+    \endverbatim
+   } {
+    \endcomment
+   }
  }
 
 \NewDocumentEnvironment { edXanswer } { }
@@ -234,23 +268,34 @@
 
 \NewDocumentEnvironment { edXjavascript } { }
  {
-  \verbatim
+  \ifthenelse
+   {
+    \boolean { showJava }
+   } {
+    \noindent
+    \underline { \texttt { JavaScript ~ code: } }
+    \verbatim
+   } {
+    \comment
+   }
  } {
-  \endverbatim
+  \ifthenelse
+   {
+    \boolean { showJava }
+   } {
+    \endverbatim
+   } {
+    \endcomment
+   }
  }
 
-\NewDocumentEnvironment { edXmath } { }
- {
-  \begin{displaymath}
- } {
-  \end{displaymath}
- }
+\NewDocumentEnvironment { edXmath } { } { } { }
 
-\NewDocumentCommand \edXgitlink   { m m } { \href {#1} {#2} }
+\NewDocumentCommand \edXgitlink   { m m } { \href {#1} { \cleanname{#2} } }
 \NewDocumentCommand \edXinline    { m } {#1}
 \NewDocumentCommand \edXinclude   { m } { \texttt {#1} }
-\NewDocumentCommand \edXincludepy { m } { }
-\NewDocumentCommand \edXdndtex    { m } { }
+\NewDocumentCommand \edXincludepy { m } { \texttt {#1} }
+\NewDocumentCommand \edXdndtex    { m } { \texttt {#1} }
 \NewDocumentCommand \edXxml       { m } { \texttt {#1} }
 \NewDocumentCommand \edXbr        { } { \par }
 
@@ -277,8 +322,63 @@
    } { }
  } { }
 
+\seq_new:N \l_aboxopt_seq
+\NewDocumentCommand { \AboxOptions } { m }
+ {
+  \tl_set:Nn \l_aboxopt_seq {#1}
+  % Prepend an empty option attribute for non multichoice problem types
+  \regex_replace_once:nnN
+   { (:?.*) }
+   { options="\cS\ "\cS\ \1 }
+   \l_aboxopt_seq
+  % Replace separating commas by \par
+  \regex_replace_all:nnN
+   { "," }
+   { \c{par} }
+   \l_aboxopt_seq
+  \regex_replace_all:nnN
+   { ',' }
+   { \c{par} }
+   \l_aboxopt_seq
+  % Change 'prompts' to 'options' so as to extract input directives for custom abox types
+  \regex_replace_all:nnN
+   { prompts= }
+   { options= }
+   \l_aboxopt_seq
+  % Extract options
+  \regex_replace_once:nnN
+   { (?:.*)options=['"]+(.*?)['"]+(?:.*) }
+   { \1 }
+   \l_aboxopt_seq
+  \tl_use:N \l_aboxopt_seq
+ }
+
+\seq_new:N \l_aboxsuf_seq
+\NewDocumentCommand { \AboxSuffix } { m }
+ {
+  \tl_set:Nn \l_aboxsuf_seq {#1}
+  % Prepend an empty trailing_text attribute in case not specified
+  \regex_replace_once:nnN
+   { (:?.*) }
+   { trailing_text="\cS\ "\cS\ \1 }
+   \l_aboxsuf_seq
+  % Extract trailing_text
+  \regex_replace_once:nnN
+   { (?:.*)trailing_text=['"]+(.*?)['"]+(?:.*) }
+   { \1 }
+   \l_aboxsuf_seq
+  \tl_use:N \l_aboxsuf_seq
+ }
+
 \NewDocumentCommand \edXabox { m }
  {
+  \ifthenelse
+   {
+    \boolean{showAboxOptions}
+   } {
+    \AboxOptions{#1}
+    \par
+   } { }
   \ifthenelse
    {
     \boolean{showAboxCode}
@@ -293,11 +393,9 @@
       }
      }
    } {
-    \group_begin:
-     \color {blue}
-     \textbf { Assessment ~ content ~ removed }
-    \group_end:
+    \begin{minipage}{0.4\hsize} \hfill \end{minipage}
    }
+  \AboxSuffix{#1}
  }
 
 % CrossRef addition (for Measurable Outcomes and the like)
@@ -324,8 +422,14 @@
 \setboolean { inVertical } { false }
 \newboolean { showAboxCode }
 \setboolean { showAboxCode } { false }
+\newboolean { showAboxOptions }
+\setboolean { showAboxOptions } {false}
 \newboolean { showSolution }
 \setboolean { showSolution } { false }
+\newboolean { showPython }
+\setboolean { showPython } {false}
+\newboolean { showJava }
+\setboolean { showJava } {false}
 
 % Constrain allowed graphics
 \DeclareGraphicsExtensions{.png,.pdf,.jpg}

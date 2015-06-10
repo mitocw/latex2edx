@@ -11,11 +11,12 @@
 # 20-Jan-13 ichuang: add formularesponse
 # 23-Jan-13 ichuang: add multiple-line customresponse, with proper inline and math handling
 
-import os, sys, string ,re
-#import shlex	# for split keeping quoted strings intact
-#import csv	# for splitting quoted options
+import os, sys, string, re
+# import shlex	# for split keeping quoted strings intact
+# import csv	# for splitting quoted options
 
 from lxml import etree
+
 
 class AnswerBox(object):
     def __init__(self, aboxstr, context=None, verbose=False):
@@ -54,11 +55,11 @@ class AnswerBox(object):
         </customresponse>
 
         -----------------------------------------------------------------------------
-        <abox type="jsinput" expect="(3 * 5) / (2 + 3)" cfn="eq" gradefn="gradefn" height="500" 
-               get_statefn="getstate" set_statefn="setstate" html_file="/static/jsinput.html"/> 
+        <abox type="jsinput" expect="(3 * 5) / (2 + 3)" cfn="eq" gradefn="gradefn" height="500"
+               get_statefn="getstate" set_statefn="setstate" html_file="/static/jsinput.html"/>
         
         <customresponse cfn="eq" expect="(3 * 5) / (2 + 3)">
-            <jsinput gradefn="gradefn" 
+            <jsinput gradefn="gradefn"
                 height="500"
                 get_statefn="getstate"
                 set_statefn="setstate"
@@ -74,7 +75,7 @@ class AnswerBox(object):
         </numericalresponse>
         
         -----------------------------------------------------------------------------
-	<abox type="multichoice" expect="Yellow" options="Red","Green","Yellow","Blue" />
+    <abox type="multichoice" expect="Yellow" options="Red","Green","Yellow","Blue" />
 
         <multiplechoiceresponse direction="vertical" randomize="yes">
          <choicegroup type="MultipleChoice">
@@ -85,7 +86,7 @@ class AnswerBox(object):
          </choicegroup>
         </multiplechoiceresponse>
         -----------------------------------------------------------------------------
-	<abox type="oldmultichoice" expect="1","3" options="0","1","2","3","4" />
+    <abox type="oldmultichoice" expect="1","3" options="0","1","2","3","4" />
 
         <choiceresponse>
           <checkboxgroup>
@@ -108,11 +109,11 @@ class AnswerBox(object):
                          bound on the numerical tests to use for that variable
 
         if feqin is given as an attribute, then a formulaequationinput is used instead
-        of textline, for the input element.  
+        of textline, for the input element.
 
         <formularesponse type="cs" samples="m,c@1,2:3,4#10" answer="m*c^2">
-            <responseparam type="tolerance" default="0.01"/> 
-            <textline size="40" math="1" />    
+            <responseparam type="tolerance" default="0.01"/>
+            <textline size="40" math="1" />
         </formularesponse>
 
         -----------------------------------------------------------------------------
@@ -154,30 +155,30 @@ class AnswerBox(object):
         self.xml = self.abox2xml(aboxstr)
         self.xmlstr = self.hint_extras + etree.tostring(self.xml)
         
-    def abox2xml(self,aboxstr):
+    def abox2xml(self, aboxstr):
         if aboxstr.startswith('abox '): aboxstr = aboxstr[5:]
         s = aboxstr
-        s = s.replace(' in_check= ',' ')
+        s = s.replace(' in_check= ', ' ')
 
         # parse answer box arguments into dict
         abargs = self.abox_args(s)
         self.abargs = abargs
 
-        type2response = { 'custom': 'customresponse',
-                          'external': 'externalresponse',
-                          'code': 'coderesponse',
-                          'oldmultichoice' : 'choiceresponse',
-                          'multichoice': 'multiplechoiceresponse',
-                          'numerical': 'numericalresponse',
-                          'option': 'optionresponse',
-                          'formula': 'formularesponse', 
-                          'shortans' : 'shortanswerresponse',
-                          'shortanswer' : 'shortanswerresponse',
-                          'string': 'stringresponse',
-                          'symbolic': 'symbolicresponse',
-                          'image': 'imageresponse',
-                          'jsinput': 'customresponse_jsinput',
-                          }
+        type2response = {'custom': 'customresponse',
+                         'external': 'externalresponse',
+                         'code': 'coderesponse',
+                         'oldmultichoice': 'choiceresponse',
+                         'multichoice': 'multiplechoiceresponse',
+                         'numerical': 'numericalresponse',
+                         'option': 'optionresponse',
+                         'formula': 'formularesponse',
+                         'shortans': 'shortanswerresponse',
+                         'shortanswer': 'shortanswerresponse',
+                         'string': 'stringresponse',
+                         'symbolic': 'symbolicresponse',
+                         'image': 'imageresponse',
+                         'jsinput': 'customresponse_jsinput',
+                         }
 
         if 'type' in abargs and abargs['type'] in type2response:
             abtype = type2response[abargs['type']]
@@ -188,144 +189,148 @@ class AnswerBox(object):
         elif 'cfn' in abargs:
             abtype = 'customresponse'
         else:
-            abtype = 'symbolicresponse'	# default
+            abtype = 'symbolicresponse'  # default
         
         abxml = etree.Element(abtype)
 
-        if abtype=='optionresponse':
+        if abtype == 'optionresponse':
             self.require_args(['expect'])
             oi = etree.Element('optioninput')
             optionstr, options = self.get_options(abargs)
-            oi.set('options',optionstr)
-            oi.set('correct',self.stripquotes(abargs['expect']))
+            oi.set('options', optionstr)
+            oi.set('correct', self.stripquotes(abargs['expect']))
             abxml.append(oi)
-            self.copy_attrib(abargs,'inline', abxml)
-            self.copy_attrib(abargs,'inline', oi)
+            self.copy_attrib(abargs, 'inline', abxml)
+            self.copy_attrib(abargs, 'inline', oi)
             
-        if abtype=='multiplechoiceresponse':
-            self.require_args(['expect','options'])
-            cg = etree.SubElement(abxml,'choicegroup')
-            cg.set('direction','vertical')
+        if abtype == 'multiplechoiceresponse':
+            self.require_args(['expect', 'options'])
+            cg = etree.SubElement(abxml, 'choicegroup')
+            cg.set('direction', 'vertical')
             optionstr, options = self.get_options(abargs)
             expectstr, expectset = self.get_options(abargs, arg='expect')
             cnt = 1
             for op in options:
-                choice = etree.SubElement(cg,'choice')
-                choice.set('correct','true' if op in expectset else 'false')
-                choice.set('name',str(cnt))
-                choice.append(etree.XML("<text> %s</text>" %op))
+                choice = etree.SubElement(cg, 'choice')
+                choice.set('correct', 'true' if op in expectset else 'false')
+                choice.set('name', str(cnt))
+                choice.append(etree.XML("<text> %s</text>" % op))
                 cnt += 1
             
-        if abtype=='choiceresponse':
-            self.require_args(['expect','options'])
-            cg = etree.SubElement(abxml,'checkboxgroup')
+        if abtype == 'choiceresponse':
+            self.require_args(['expect', 'options'])
+            cg = etree.SubElement(abxml, 'checkboxgroup')
             optionstr, options = self.get_options(abargs)
             expectstr, expects = self.get_options(abargs, 'expect')
             cnt = 1
             if self.verbose:
-                print "[abox.py] oldmultichoice: options=/%s/, expects=/%s/" % (options,expects)
+                print "[abox.py] oldmultichoice: options=/%s/, expects=/%s/" % (options, expects)
             for op in options:
-                choice = etree.SubElement(cg,'choice')
-                choice.set('correct','true' if (op in expects) else 'false')
-                choice.set('name',str(cnt))
-                choice.append(etree.XML("<text>%s</text>" %op))
+                choice = etree.SubElement(cg, 'choice')
+                choice.set('correct', 'true' if (op in expects) else 'false')
+                choice.set('name', str(cnt))
+                choice.append(etree.XML("<text>%s</text>" % op))
                 cnt += 1
 
-        elif abtype=='shortanswerresponse':
+        elif abtype == 'shortanswerresponse':
             print "[latex2html.abox] Warning - short answer response quite yet implemented in edX!"
             if 1:
                 tb = etree.Element('textbox')
-                self.copy_attrib(abargs,'rows',tb)
-                self.copy_attrib(abargs,'cols',tb)
+                self.copy_attrib(abargs, 'rows', tb)
+                self.copy_attrib(abargs, 'cols', tb)
                 abxml.append(tb)
                 abxml.tag = 'customresponse'
-                self.require_args(['expect','cfn'])
-                abxml.set('cfn',self.stripquotes(abargs['cfn']))
-                self.copy_attrib(abargs,'expect',abxml)
+                self.require_args(['expect', 'cfn'])
+                abxml.set('cfn', self.stripquotes(abargs['cfn']))
+                self.copy_attrib(abargs, 'expect', abxml)
                 
             else:
-                abxml.tag = 'stringresponse'	# change to stringresponse for now (FIXME)
+                abxml.tag = 'stringresponse'    # change to stringresponse for now (FIXME)
                 tl = etree.Element('textline')
-                if 'size' in abargs: 
-                    tl.set('size',self.stripquotes(abargs['size']))
+                if 'size' in abargs:
+                    tl.set('size', self.stripquotes(abargs['size']))
                 else:
-                    tl.set('size','80')
+                    tl.set('size', '80')
+                self.copy_attrib(abargs, 'trailing_text', tl)
                 abxml.append(tl)
-                abxml.set('answer','unknown')
-                self.copy_attrib(abargs,'inline',tl)
-                self.copy_attrib(abargs,'inline',abxml)
+                abxml.set('answer', 'unknown')
+                self.copy_attrib(abargs, 'inline', tl)
+                self.copy_attrib(abargs, 'inline', abxml)
             
-        elif abtype=='stringresponse':
+        elif abtype == 'stringresponse':
             self.require_args(['expect'])
             tl = etree.Element('textline')
-            if 'size' in abargs: tl.set('size',self.stripquotes(abargs['size']))
+            if 'size' in abargs:
+                tl.set('size', self.stripquotes(abargs['size']))
+            self.copy_attrib(abargs, 'trailing_text', tl)
             abxml.append(tl)
-            abxml.set('answer',self.stripquotes(abargs['expect']))
-            if 'options' in abargs: 
+            abxml.set('answer', self.stripquotes(abargs['expect']))
+            if 'options' in abargs:
                 abxml.set('type', self.stripquotes(abargs['options']))
             else:
-                abxml.set('type','')
-            self.copy_attrib(abargs,'inline',tl)
-            self.copy_attrib(abargs,'inline',abxml)
+                abxml.set('type', '')
+            self.copy_attrib(abargs, 'inline', tl)
+            self.copy_attrib(abargs, 'inline', abxml)
 
-        elif abtype=='customresponse':
-            self.require_args(['expect','cfn'])
-            abxml.set('cfn',self.stripquotes(abargs['cfn']))
-            self.copy_attrib(abargs,'inline',abxml)
-            self.copy_attrib(abargs,'expect',abxml)
-            self.copy_attrib(abargs,'options',abxml)
-            if abxml.get('options',''):
-                abxml.set('cfn_extra_args','options')	# tells sandbox to include 'options' in cfn call arguments
-            if not 'answers' in abargs:
+        elif abtype == 'customresponse':
+            self.require_args(['expect', 'cfn'])
+            abxml.set('cfn', self.stripquotes(abargs['cfn']))
+            self.copy_attrib(abargs, 'inline', abxml)
+            self.copy_attrib(abargs, 'expect', abxml)
+            self.copy_attrib(abargs, 'options', abxml)
+            if abxml.get('options', ''):
+                abxml.set('cfn_extra_args', 'options')  # tells sandbox to include 'options' in cfn call arguments
+            if 'answers' not in abargs:
                 answers = [self.stripquotes(abargs['expect'])]
-            else:	# multiple inputs for this customresponse
-                ansstr, answers = self.get_options(abargs,'answers')
+            else:   # multiple inputs for this customresponse
+                ansstr, answers = self.get_options(abargs, 'answers')
             if 'prompts' in abargs:
-                promptstr, prompts = self.get_options(abargs,'prompts')
+                promptstr, prompts = self.get_options(abargs, 'prompts')
             else:
                 prompts = ['']
-            if not len(prompts)==len(answers):
+            if not len(prompts) == len(answers):
                 msg = "Error: number of answers and prompts must match in:"
                 msg += aboxstr
-                msg += "\nabox located: %s\n" %  self.context
+                msg += "\nabox located: %s\n" % self.context
                 raise Exception(msg)
                 # sys.exit(-1)
 
             cnt = 0
-            for ans, prompt in zip(answers,prompts):
+            for ans, prompt in zip(answers, prompts):
                 if 'rows' in abargs:
                     tl = etree.Element('textbox')
-                    self.copy_attrib(abargs,'rows',tl)
-                    self.copy_attrib(abargs,'cols',tl)
+                    self.copy_attrib(abargs, 'rows', tl)
+                    self.copy_attrib(abargs, 'cols', tl)
                 else:
                     tl = etree.Element('textline')
-                    self.copy_attrib(abargs,'size',tl)
-                tl.set('correct_answer',ans)
-                self.copy_attrib(abargs,'inline',tl)
-                self.copy_attrib(abargs,'math',tl)
-                self.copy_attrib(abargs,'preprocessorClassName', tl)
-                self.copy_attrib(abargs,'preprocessorSrc', tl)
+                    self.copy_attrib(abargs, 'size', tl)
+                tl.set('correct_answer', ans)
+                self.copy_attrib(abargs, 'trailing_text', tl)
+                self.copy_attrib(abargs, 'inline', tl)
+                self.copy_attrib(abargs, 'math', tl)
+                self.copy_attrib(abargs, 'preprocessorClassName', tl)
+                self.copy_attrib(abargs, 'preprocessorSrc', tl)
                 if prompt:
                     elem = etree.Element('p')
                     if 'inline' in abargs:
-                        elem.set('style','display:inline')
+                        elem.set('style', 'display:inline')
                     elem.text = prompt + " "
                     elem.append(tl)
                 else:
                     elem = tl
-                if cnt>0:
-                    abxml.append(etree.Element('br'))	# linebreak between boxes if multiple
+                if cnt > 0:
+                    abxml.append(etree.Element('br'))   # linebreak between boxes if multiple
                 abxml.append(elem)
                 cnt += 1
                     
-        elif abtype=='customresponse_jsinput':
+        elif abtype == 'customresponse_jsinput':
             abxml.tag = 'customresponse'
-            self.require_args(['expect','cfn'])
-            abxml.set('cfn',self.stripquotes(abargs['cfn']))
-            self.copy_attrib(abargs,'expect',abxml)
-            self.copy_attrib(abargs,'options',abxml)
-            if abxml.get('options',''):
-                abxml.set('cfn_extra_args','options')	# tells sandbox to include 'options' in cfn call arguments
+            self.require_args(['expect', 'cfn'])
+            abxml.set('cfn', self.stripquotes(abargs['cfn']))
+            self.copy_attrib(abargs, 'expect', abxml)
+            self.copy_attrib(abargs, 'options', abxml)
+            if abxml.get('options', ''):
+                abxml.set('cfn_extra_args', 'options')  # tells sandbox to include 'options' in cfn call arguments
 
             js = etree.Element('jsinput')
             jsattribs = ['width', 'height', 'gradefn', 'get_statefn', 'set_statefn', 'html_file']
@@ -333,169 +338,174 @@ class AnswerBox(object):
                 self.copy_attrib(abargs, jsa, js)
             abxml.append(js)
                     
-        elif abtype=='externalresponse' or abtype== 'coderesponse':
+        elif abtype == 'externalresponse' or abtype == 'coderesponse':
             if 'url' in abargs:
-                self.copy_attrib(abargs,'url',abxml)
+                self.copy_attrib(abargs, 'url', abxml)
             tb = etree.Element('textbox')
-            self.copy_attrib(abargs,'rows',tb)
-            self.copy_attrib(abargs,'cols',tb)
-            self.copy_attrib(abargs,'tests',abxml)
+            self.copy_attrib(abargs, 'rows', tb)
+            self.copy_attrib(abargs, 'cols', tb)
+            self.copy_attrib(abargs, 'tests', abxml)
             abxml.append(tb)
             # turn script to <answer> later
 
-        elif abtype=='numericalresponse':
+        elif abtype == 'numericalresponse':
             self.require_args(['expect'])
-            self.copy_attrib(abargs,'inline',abxml)
+            self.copy_attrib(abargs, 'inline', abxml)
             tl = etree.Element('textline')
-            self.copy_attrib(abargs,'size',tl)
-            self.copy_attrib(abargs,'inline',tl)
-            self.copy_attrib(abargs,'math',tl)
+            self.copy_attrib(abargs, 'size', tl)
+            self.copy_attrib(abargs, 'inline', tl)
+            self.copy_attrib(abargs, 'math', tl)
+            self.copy_attrib(abargs, 'trailing_text', tl)
             abxml.append(tl)
-            self.copy_attrib(abargs,'options',abxml)
+            self.copy_attrib(abargs, 'options', abxml)
             answer = self.stripquotes(abargs['expect'])
-            try:
-                x = float(answer)
-            except Exception as err:
-                if not answer[0]=='$':	# may also be a string variable (starts with $)
-                    print "Error - numericalresponse expects numerical expect value, for %s" % s
-                    raise
-            abxml.set('answer',answer)
-            rp = etree.SubElement(tl,"responseparam")
-            #rp.attrib['description'] = "Numerical Tolerance" #not needed
+            # NOTE: The edX platform now allows mathematical expressions
+            #       and constants in the expect field.
+            # try:
+            #     x = float(answer)
+            # except Exception as err:
+            #     if not answer[0] == '$':    # may also be a string variable (starts with $)
+            #         print "Error - numericalresponse expects numerical expect value, for %s" % s
+            #         raise
+            abxml.set('answer', answer)
+            rp = etree.SubElement(tl, "responseparam")
+            # rp.attrib['description'] = "Numerical Tolerance" #not needed
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
-            #rp.attrib['name'] = "tol" #not needed
+            # rp.attrib['name'] = "tol" #not needed
         
-        elif abtype=='formularesponse':
-            self.require_args(['expect','samples'])
-            self.copy_attrib(abargs,'inline',abxml)
+        elif abtype == 'formularesponse':
+            self.require_args(['expect', 'samples'])
+            self.copy_attrib(abargs, 'inline', abxml)
 
-            intype = self.stripquotes(abargs.get('intype','cs'))
-            abxml.set('type',intype)
+            intype = self.stripquotes(abargs.get('intype', 'cs'))
+            abxml.set('type', intype)
 
-            self.copy_attrib(abargs,'samples',abxml)
+            self.copy_attrib(abargs, 'samples', abxml)
             
             if abargs.get('feqin'):
                 tl = etree.Element('formulaequationinput')
             else:
                 tl = etree.Element('textline')
-            self.copy_attrib(abargs,'size',tl)
-            self.copy_attrib(abargs,'inline',tl)
-            self.copy_attrib(abargs,'math',tl)
-            self.copy_attrib(abargs,'preprocessorClassName', tl)
-            self.copy_attrib(abargs,'preprocessorSrc', tl)
+                self.copy_attrib(abargs, 'trailing_text', tl)
+            self.copy_attrib(abargs, 'size', tl)
+            self.copy_attrib(abargs, 'inline', tl)
+            self.copy_attrib(abargs, 'math', tl)
+            self.copy_attrib(abargs, 'preprocessorClassName', tl)
+            self.copy_attrib(abargs, 'preprocessorSrc', tl)
             abxml.append(tl)
             answer = self.stripquotes(abargs['expect'])
-            abxml.set('answer',answer)
-            rp = etree.SubElement(tl,"responseparam")
+            abxml.set('answer', answer)
+            rp = etree.SubElement(tl, "responseparam")
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
 
-        elif abtype=='symbolicresponse':
+        elif abtype == 'symbolicresponse':
             self.require_args(['expect'])
-            self.copy_attrib(abargs,'expect',abxml)
-            self.copy_attrib(abargs,'debug',abxml)
-            self.copy_attrib(abargs,'options',abxml)
+            self.copy_attrib(abargs, 'expect', abxml)
+            self.copy_attrib(abargs, 'debug', abxml)
+            self.copy_attrib(abargs, 'options', abxml)
             tl = etree.Element('textline')
-            self.copy_attrib(abargs,'inline',tl)
-            self.copy_attrib(abargs,'size',tl)
-            self.copy_attrib(abargs,'preprocessorClassName', tl)
-            self.copy_attrib(abargs,'preprocessorSrc', tl)
+            self.copy_attrib(abargs, 'inline', tl)
+            self.copy_attrib(abargs, 'size', tl)
+            self.copy_attrib(abargs, 'preprocessorClassName', tl)
+            self.copy_attrib(abargs, 'preprocessorSrc', tl)
+            self.copy_attrib(abargs, 'trailing_text', tl)
             abxml.append(tl)
-            self.copy_attrib(abargs,'inline',abxml)
+            self.copy_attrib(abargs, 'inline', abxml)
             if 'correct_answer' in abargs:
-                tl.set('correct_answer',self.stripquotes(abargs['correct_answer']))
+                tl.set('correct_answer', self.stripquotes(abargs['correct_answer']))
             else:
-                tl.set('correct_answer',self.stripquotes(abargs['expect']))
-            tl.set('math','1')	# use dynamath
+                tl.set('correct_answer', self.stripquotes(abargs['expect']))
+            tl.set('math', '1')  # use dynamath
             
-        elif abtype=='imageresponse':
-            self.require_args(['src','width','height','rectangle'])
+        elif abtype == 'imageresponse':
+            self.require_args(['src', 'width', 'height', 'rectangle'])
             rect = abargs.get('rectangle')
-            if re.match('\(\d+\,\d+\)\-\(\d+,\d+\)',rect) is None: #check for rectangle syntax
+            if re.match('\(\d+\,\d+\)\-\(\d+,\d+\)', rect) is None:  # check for rectangle syntax
                 msg = "[abox.py] ERROR: imageresponse rectancle %s has wrong syntax\n" % rect
                 msg += "Answer box string is \"%s\"\n" % self.aboxstr
-                msg += "abox located: %s\n" %  self.context
+                msg += "abox located: %s\n" % self.context
                 raise Exception(msg)
                 # sys.exit(-1)
             ii = etree.Element('imageinput')
-            self.copy_attrib(abargs,'src',ii)
-            self.copy_attrib(abargs,'width',ii)
-            self.copy_attrib(abargs,'height',ii)
-            self.copy_attrib(abargs,'rectangle',ii)
+            self.copy_attrib(abargs, 'src', ii)
+            self.copy_attrib(abargs, 'width', ii)
+            self.copy_attrib(abargs, 'height', ii)
+            self.copy_attrib(abargs, 'rectangle', ii)
             abxml.append(ii)
  
         # has hint function?
         if 'hintfn' in abargs:
             hintfn = self.stripquotes(abargs['hintfn'])
-            hintgroup = etree.SubElement(abxml,'hintgroup')
-            hintgroup.set('hintfn',hintfn)
+            hintgroup = etree.SubElement(abxml, 'hintgroup')
+            hintgroup.set('hintfn', hintfn)
 
-        # has hint? 
+        # has hint?
         hint_extras = ''
         if 'hints' in abargs:
             hints = self.stripquotes(abargs['hints'])
             hintfn = "do_hints_for_%s" % hints
-            hintgroup = etree.SubElement(abxml,'hintgroup')
+            hintgroup = etree.SubElement(abxml, 'hintgroup')
             hintgroup.set('hintfn', hintfn)
             hint_extras = "<edx_general_hint_system />\n"
             hint_extras += '<script type="text/python">\n%s = HintSystem(hints=%s).check_hint\n</script>\n' % (hintfn, hints)
         self.hint_extras = hint_extras
 
-        s = etree.tostring(abxml,pretty_print=True)
-        s = re.sub('(?ms)<html>(.*)</html>','\\1',s)
+        s = etree.tostring(abxml, pretty_print=True)
+        s = re.sub('(?ms)<html>(.*)</html>', '\\1', s)
         # print s
         return etree.XML(s)
 
-    def get_options(self,abargs,arg='options'):
+    def get_options(self, abargs, arg='options'):
         optstr = abargs[arg]			# should be double quoted strings, comma delimited
         # EVH 01-22-2015: Inserting quotes around single option for proper
         # parsing of choices containing commas
         if not optstr.startswith('"') and not optstr.startswith("'"):
             optraw = repr(optstr)
             optstr = optraw[0] + optstr + optraw[0]
-        #options = [c for c in csv.reader([optstr])][0]	# turn into list of strings
-        options = split_args_with_quoted_strings(optstr, lambda(x): x==',')		# turn into list of strings
+        # options = [c for c in csv.reader([optstr])][0]	# turn into list of strings
+        options = split_args_with_quoted_strings(optstr, lambda(x): x == ',')		# turn into list of strings
         options = map(self.stripquotes, options)
         options = [x.strip() for x in options]		# strip strings
         if "" in options: options.remove("")
-        optionstr = ','.join(["'%s'" % x for x in options])	# string of single quoted strings
+        optionstr = ','.join(["'%s'" % x for x in options])  # string of single quoted strings
         optionstr = "(%s)" % optionstr				# enclose in parens
         return optionstr, options
     
-    def require_args(self,argnames):
+    def require_args(self, argnames):
         for argname in argnames:
             if argname not in self.abargs:
                 msg = "============================================================\n"
                 msg += "Error - abox requires %s argument\n" % argname
                 msg += "Answer box string is \"%s\"\n" % self.aboxstr
-                msg += "abox located: %s\n" %  self.context
+                msg += "abox located: %s\n" % self.context
                 # raise Exception, "Bad abox"
                 raise Exception(msg)
                 # sys.exit(-1)
             
-    def abox_args(self,s):
+    def abox_args(self, s):
         '''
         Parse arguments of abox.  Splits by space delimitation.
         '''
-        s = s.replace(u'\u2019',"'")
+        s = s.replace(u'\u2019', "'")
         try:
             s = str(s)
         except Exception, err:
-            print "Error %s in obtaining string form of abox argument %s" % (err,s)
+            print "Error %s in obtaining string form of abox argument %s" % (err, s)
             return {}
         try:
             # abargstxt = shlex.split(s)
             abargstxt = split_args_with_quoted_strings(s)
         except Exception, err:
-            print "Error %s in parsing abox argument %s" % (err,s)
+            print "Error %s in parsing abox argument %s" % (err, s)
             return {}
 
         if '' in abargstxt:
             abargstxt.remove('')
             
         try:
-            abargs = dict([x.split('=',1) for x in abargstxt])
+            abargs = dict([x.split('=', 1) for x in abargstxt])
         except Exception, err:
             print "Error %s" % err
             print "Failed in parsing args = %s" % s
@@ -503,11 +513,11 @@ class AnswerBox(object):
             raise
 
         for arg in abargs:
-            abargs[arg] = self.stripquotes(abargs[arg],checkinternal=True)
+            abargs[arg] = self.stripquotes(abargs[arg], checkinternal=True)
 
         return abargs
 
-    def stripquotes(self,x,checkinternal=False):
+    def stripquotes(self, x, checkinternal=False):
         if x.startswith('"') and x.endswith('"'):
             if checkinternal and '"' in x[1:-1]:
                 return x
@@ -516,9 +526,9 @@ class AnswerBox(object):
             return x[1:-1]
         return x
 
-    def copy_attrib(self,abargs,aname,xml):
+    def copy_attrib(self, abargs, aname, xml):
         if aname in abargs:
-            xml.set(aname,self.stripquotes(abargs[aname]))
+            xml.set(aname, self.stripquotes(abargs[aname]))
 
         
 def split_args_with_quoted_strings(command_line, checkfn=None):
@@ -589,4 +599,3 @@ def split_args_with_quoted_strings(command_line, checkfn=None):
     if arg != '':
         arg_list.append(arg)
     return arg_list
-
