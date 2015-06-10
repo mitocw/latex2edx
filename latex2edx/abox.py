@@ -359,12 +359,14 @@ class AnswerBox(object):
             abxml.append(tl)
             self.copy_attrib(abargs, 'options', abxml)
             answer = self.stripquotes(abargs['expect'])
-            try:
-                x = float(answer)
-            except Exception as err:
-                if not answer[0] == '$':    # may also be a string variable (starts with $)
-                    print "Error - numericalresponse expects numerical expect value, for %s" % s
-                    raise
+            # NOTE: The edX platform now allows mathematical expressions
+            #       and constants in the expect field.
+            # try:
+            #     x = float(answer)
+            # except Exception as err:
+            #     if not answer[0] == '$':    # may also be a string variable (starts with $)
+            #         print "Error - numericalresponse expects numerical expect value, for %s" % s
+            #         raise
             abxml.set('answer', answer)
             rp = etree.SubElement(tl, "responseparam")
             # rp.attrib['description'] = "Numerical Tolerance" #not needed
