@@ -167,6 +167,7 @@ class latex2edx(object):
                             self.process_dndtex,  # must come before process_include
                             self.process_include,
                             self.process_includepy,
+                            self.process_video,
                             self.process_general_hint_system,
                             self.check_all_python_scripts,
                             self.handle_policy_settings,
@@ -1221,6 +1222,19 @@ class latex2edx(object):
         '''
         for edxxml in tree.findall('.//edxxml'):
             self.remove_parent_p(edxxml)
+
+    def process_video(self, tree):
+        '''
+        If the "youtubeid" begins with "http" then make the video an html5 video.
+        '''
+        for video in tree.findall('.//video'):
+            ytid = video.get('youtube_id_1_0')
+            if ytid.startswith('http'):
+                video.set('html5_sources', '["%s"]' % ytid)
+                video.set('youtube_id_1_0', '')
+                vsource = etree.Element('source')
+                vsource.set('src', ytid)
+                video.append(vsource)
 
     def process_showhide(self, tree):
         for showhide in tree.findall('.//edxshowhide'):
