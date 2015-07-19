@@ -88,7 +88,7 @@ within it.  In addition, the course itself is defined with certain properties.</
 <p>These are the structural macros defined for use in latex2edx:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="15%" />
+<col width="16%" />
 <col width="13%" />
 <col width="71%" />
 </colgroup>
@@ -119,10 +119,15 @@ within it.  In addition, the course itself is defined with certain properties.</
 <td>Environment</td>
 <td>{ display_name } [ attributes ]</td>
 </tr>
+<tr class="row-odd"><td>edXconditional</td>
+<td>Environment</td>
+<td>{ display_name } [ attributes ]</td>
+</tr>
 </tbody>
 </table>
-<p>The last four macros also exist in starred versions (e.g. <tt class="docutils literal"><span class="pre">edXchapter*</span></tt>),
-which in agreement with standard LaTeX notation stand for unnumbered sections.</p>
+<p>The edXchapter, edXsection, edXsequential, and edXvertical macros also
+exist in starred versions (e.g. <tt class="docutils literal"><span class="pre">edXchapter*</span></tt>), which in agreement
+with standard LaTeX notation stand for unnumbered sections.</p>
 <p>Each of these macros may have optional &#8220;attributes&#8221; defined, which
 specify content metadata.  Each &#8220;attributes&#8221; string should be a
 sequence of <tt class="docutils literal"><span class="pre">key=value</span></tt> separated by spaces.  If <tt class="docutils literal"><span class="pre">value</span></tt> has
@@ -214,6 +219,19 @@ assignment (an aggregated set of problems) or not.</p>
 problem elements together, such that they are displayed as one
 vertical unit, when using the edX platform to render edX course
 content.</p>
+</div>
+<div class="section" id="edxconditional">
+<h3>edXconditional<a class="headerlink" href="#edxconditional" title="Permalink to this headline">¶</a></h3>
+<p>Eample:</p>
+<div class="highlight-python"><pre>\begin{edXconditional}{Concept Question 1 - Explanation}[sources=i4x://MITx/8.421.1x/problem/problem_Concept_Question_1 attempted=True message="Please do Concept Question 1 first, then refresh the page to show this explanation."]
+
+  \edXvideo{Concept Question 1: Video Explanation}{SomeYTID}
+
+\end{edXconditional}</pre>
+</div>
+<p>A conditional element displays its contents only when certain
+conditions are satisfied.  The &#8220;attempted&#8221;, &#8220;submitted&#8221;, and &#8220;correct&#8221; conditions apply to CAPA
+problems.  &#8220;poll_answer&#8221; and &#8220;voted&#8221; apply to poll_questions.</p>
 </div>
 </div>
 <div class="section" id="content-macros">
@@ -334,11 +352,11 @@ parallel with problem and video.</p>
 for the example above. With a &#8220;Download video&#8221; button linking to
 <tt class="docutils literal"><span class="pre">https://s3.amazonaws.com/edx-course/video/mit-xxx/MITxxxTxxx-Gxxxx.mp4</span></tt>
 specified by the optional <tt class="docutils literal"><span class="pre">source</span></tt> attribute.</p>
-<div class="line-block">
-<div class="line">TODO: add information about how to use non-YouTube video sources</div>
+<p>To use non-YouTube video sources, provide a URL in place of the YouTube ID, e.g.:</p>
+<div class="highlight-python"><pre>\edXvideo{A sample video}{https://my_video_server/a_video.mp4}</pre>
 </div>
 <p>A video element may be within a sequential or vertical, placed in
-parallel with problem and text.</p>
+parallel with problem and text.  A video element may also be placed inside a conditional.</p>
 </div>
 <div class="section" id="edxdiscussion">
 <h3>edXdiscussion<a class="headerlink" href="#edxdiscussion" title="Permalink to this headline">¶</a></h3>
@@ -1295,6 +1313,7 @@ tocindex.html page.</p>
 <li><a class="reference internal" href="#edxchapter">edXchapter</a></li>
 <li><a class="reference internal" href="#edxsection">edXsection</a></li>
 <li><a class="reference internal" href="#edxvertical">edXvertical</a></li>
+<li><a class="reference internal" href="#edxconditional">edXconditional</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#content-macros">Content Macros</a><ul>
