@@ -52,6 +52,7 @@ class MyRenderer(XHTML.Renderer):
         xmlstr = m.group(1)
         xmlstr = xmlstr.replace('\\$ ','$')	# dollar sign must be escaped in plasTeX, but shouldn't be in XML
         xmlstr = xmlstr.replace('& ', '&')  # remove ampersand space from plasTeX
+        xmlstr = xmlstr.replace('\\% ', '%')  # unescape percentage sign
         # return xmlstr
         return "<edxxml>%s</edxxml>" % xmlstr
 
