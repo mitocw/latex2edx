@@ -867,6 +867,8 @@ class latex2edx(object):
         for table in tree.xpath('.//table[@class="equation"]|'
                                 './/table[@class="eqnarray"]'):
             locstr = table.attrib.pop('tmploc')
+            if not locstr:
+                continue
             locref = mapdict[locstr][2]
             if chapref != locref.split('.')[0]:
                 chapref = locref.split('.')[0]
