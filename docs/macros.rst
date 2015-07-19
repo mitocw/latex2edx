@@ -46,16 +46,16 @@ within it.  In addition, the course itself is defined with certain properties.
 
 These are the structural macros defined for use in latex2edx:
 
-=============  =========== ============================================================
+============== =========== ============================================================
 Macro Name     Type        Arguments
-=============  =========== ============================================================
+============== =========== ============================================================
 edXcourse      Environment { course_number } { display_name } [ attributes ]
 edXchapter     Environment { display_name } [ attributes ]
 edXsection     Environment { display_name } [ attributes ]
 edXsequential  Environment { display_name } [ attributes ]
 edXvertical    Environment { display_name } [ attributes ]
 edXconditional Environment { display_name } [ attributes ]
-=============  =========== ============================================================
+============== =========== ============================================================
 
 The edXchapter, edXsection, edXsequential, and edXvertical macros also
 exist in starred versions (e.g. ``edXchapter*``), which in agreement
