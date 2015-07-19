@@ -101,6 +101,11 @@ class edXvertical(EdXverticalStar):
         return MyBaseEnvironment.invoke(self, tex)
 
 
+class edXconditional(MyBaseEnvironment):
+    macroName = 'edXconditional'
+    args = '{ display_name } [ attrib_string:str ] self'
+
+
 class edXabox(MyBaseCommand):
     args = 'self'
 
