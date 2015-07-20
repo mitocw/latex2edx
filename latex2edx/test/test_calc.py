@@ -1,4 +1,4 @@
-"""
+""""
 Unit tests for calc.py
 """
 
@@ -411,3 +411,20 @@ class TestEvaluator(unittest.TestCase):
             calc.evaluator({'r1': 5}, {}, "r1+r2")
         with self.assertRaisesRegexp(calc.UndefinedVariable, 'r1 r3'):
             calc.evaluator(variables, {}, "r1*r3", case_sensitive=True)
+
+    def assert_function_values(self, fname, ins, outs, tolerance=1e-3):
+        """
+        Helper function to test many values at once
+
+        Test the accuracy of evaluator's use of the function given by fname
+        Specifically, the equality of `fname(ins[i])` against outs[i].
+        This is used later to test a whole bunch of f(x) = y at a time
+        """
+
+        for (arg, val) in zip(ins, outs):
+            input_str = "{0}({1})".format(fname, arg)
+            result = calc.evaluator({}, {}, input_str)
+            fail_msg = "Failed on function {0}: '{1}' was not {2}".format(
+                fname, input_str, val
+            )
+            self.assertAlmostEqual(val, result, delta=tolerance, msg=fail_msg)
