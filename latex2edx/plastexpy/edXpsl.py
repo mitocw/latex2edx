@@ -123,6 +123,10 @@ class edXvideo(Base.Command):
     # args = 'self'
 
 
+class edXlti(Base.Command):
+    args = '{ display_name } { launch_url } { lti_id } [ attrib_string ] self'
+    # args = 'self'
+
 class edXdiscussion(Base.Command):
     args = '{ display_name } { attrib_string } self'
 
