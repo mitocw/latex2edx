@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import datetime
 import json
@@ -10,6 +10,7 @@ import sys
 import tempfile
 import urllib
 import xbundle
+import pkg_resources
 
 try:
     from collections import OrderedDict
@@ -167,6 +168,7 @@ class latex2edx(object):
                             self.process_dndtex,  # must come before process_include
                             self.process_include,
                             self.process_includepy,
+                            self.process_video,
                             self.process_general_hint_system,
                             self.check_all_python_scripts,
                             self.handle_policy_settings,
@@ -867,6 +869,8 @@ class latex2edx(object):
         for table in tree.xpath('.//table[@class="equation"]|'
                                 './/table[@class="eqnarray"]'):
             locstr = table.attrib.pop('tmploc')
+            if not locstr:
+                continue
             locref = mapdict[locstr][2]
             if chapref != locref.split('.')[0]:
                 chapref = locref.split('.')[0]
@@ -1220,32 +1224,77 @@ class latex2edx(object):
         for edxxml in tree.findall('.//edxxml'):
             self.remove_parent_p(edxxml)
 
-    @staticmethod
-    def process_showhide(tree):
+    def process_video(self, tree):
+        '''
+        If the "youtubeid" begins with "http" then make the video an html5 video.
+        '''
+        for video in tree.findall('.//video'):
+            ytid = video.get('youtube_id_1_0')
+            if ytid.startswith('http'):
+                video.set('html5_sources', '["%s"]' % ytid)
+                video.set('youtube_id_1_0', '')
+                vsource = etree.Element('source')
+                vsource.set('src', ytid)
+                video.append(vsource)
+
+    def process_showhide(self, tree):
         for showhide in tree.findall('.//edxshowhide'):
-            shid = showhide.get('id')
-            if shid is None:
-                print "Error: edXshowhide must be given an id argument.  Aborting."
-                raise Exception
-            print "---> showhide %s" % shid
-            # jscmd = "javascript:toggleDisplay('%s', 'hide', 'show')" % shid
-            jscmd = "javascript:$('#%s').toggle();" % shid
-
-            shtable = etree.Element('table')
-            showhide.addnext(shtable)
-
             desc = showhide.get('description', '')
-            shtable.set('class', "wikitable collapsible collapsed")
-            shdiv = etree.XML('<tbody><tr><th> %s [<a onclick="%s" href="javascript:void(0);" id="%sl">show</a>]</th></tr></tbody>' % (desc, jscmd, shid))
-            shtable.append(shdiv)
-
-            tr = etree.SubElement(shdiv, 'tr')
-            tr.set('id', shid)
-            tr.set('style', 'display:none')
-            tr.append(showhide)	 # move showhide to become td of table
-            showhide.tag = 'td'
-            showhide.attrib.pop('id')
-            showhide.attrib.pop('description')
+            oneup = showhide.getparent()
+            newsh = etree.SubElement(oneup, 'div', {'class': 'hideshowbox'})
+            sub1 = etree.SubElement(newsh, 'h4',
+                                    {'onclick': 'hideshow(this);',
+                                     'style': 'margin: 0px'})
+            sub1.text = desc
+            etree.SubElement(sub1, 'span',
+                             {'class': 'icon-caret-down toggleimage'})
+            newsh.append(showhide)
+            showhide.tag = 'div'  # change edxshowhide tag
+            showhide.attrib.pop('description')  # remove description
+            showhide.set('class', 'hideshowcontent')
+            sub2 = etree.SubElement(newsh, 'p',
+                                    {'class': 'hideshowbottom',
+                                     'onclick': 'hideshow(this);',
+                                     'style': 'margin: 0px'})
+            subsub2 = etree.SubElement(sub2, 'a',
+                                       {'href': 'javascript: {return false;}'})
+            subsub2.text = 'Show'
+            par = newsh.getparent()
+            while (par.tag != 'html') and (par.tag != 'problem'):
+                par = par.getparent()
+                if par.tag == 'vertical' or par.tag == 'sequential':
+                    raise Exception("Must use showhide inside html or "
+                                    "problem element")
+                    break
+            scriptforsh = etree.Element('SCRIPT',
+                                        {'type': 'text/javascript',
+                                         'src': '/static/latex2edx.js'})
+            styleforsh = etree.Element('LINK',
+                                       {'type': 'text/css',
+                                        'rel': 'stylesheet',
+                                        'href': '/static/latex2edx.css'})
+            if len(par.findall('.//SCRIPT[@src="/static/latex2edx.js"]')) == 0:
+                par.append(scriptforsh)
+                par.append(styleforsh)
+                staticdir = self.output_dir / 'static'
+                if not os.path.exists(staticdir):
+                    if not os.path.exists(self.output_dir):
+                        os.mkdir(self.output_dir)
+                    os.mkdir(staticdir)
+                if not os.path.exists(staticdir / 'latex2edx.js'):
+                    l2ejs = pkg_resources.resource_filename(__name__,
+                                                            'latex2edx.js')
+                    cmd = 'cp {} {}/'.format(l2ejs, staticdir)
+                    print '----> Copying showhide JavaScript: {}'.format(cmd)
+                    sys.stdout.flush()
+                    os.system(cmd)
+                if not os.path.exists(staticdir / 'latex2edx.css'):
+                    l2ecss = pkg_resources.resource_filename(__name__,
+                                                             'latex2edx.css')
+                    cmd = 'cp {} {}/'.format(l2ecss, staticdir)
+                    print '----> Copyting showhide CSS: {}'.format(cmd)
+                    sys.stdout.flush()
+                    os.system(cmd)
 
     def process_include(self, tree, do_python=False):
         '''
@@ -1530,7 +1579,8 @@ class latex2edx(object):
         '''
         Convert attrib_string in <problem>, <chapter>, etc. to attributes, intelligently.
         '''
-        TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course', 'html', 'video', 'discussion', 'edxdndtex']
+        TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course', 'html', 'video', 'discussion', 'edxdndtex',
+                'conditional']
         for tag in TAGS:
             for elem in xml.findall('.//%s' % tag):
                 self.do_attrib_string(elem)

@@ -13,6 +13,9 @@ name: edXvertical edXvertical*
 name: edXsequential edXsequential*
 <sequential tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}; refnum self/position' tal:content='self'></sequential>
 
+name: edXconditional
+<conditional tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}' tal:content='self'></conditional>
+
 name: edXproblem
 <problem tal:attributes='display_name self/attributes/display_name; attrib_string self/attributes/attrib_string; linenum string:${self/attributes/linenum}; tex_filename string:${self/attributes/filename}'><text tal:content='self'></text></problem>
 
@@ -26,7 +29,7 @@ name: edXbr
 <br />
 
 name: edXshowhide
-<edxshowhide tal:attributes='id self/attributes/id; description self/attributes/description' tal:content='self'></edxshowhide>
+<edxshowhide tal:attributes='description self/attributes/description' tal:content='self'></edxshowhide>
 
 name: edXabox
 <abox tal:attributes="linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}" tal:content='self'></abox>

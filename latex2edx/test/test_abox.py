@@ -51,6 +51,18 @@ class Test_Abox(unittest.TestCase):
         self.assertIn('<textline inline="1">', xmlstr)
         self.assertIn('<responseparam type="tolerance" default="0.01"/>', xmlstr)
 
+    def test_numerical2(self):
+        '''
+        Test numerical response type with units (the weight of 1 kilogram)
+        '''
+        abox = AnswerBox('''expect="9.81" type="numerical" tolerance="0.2"
+                         inline="1" trailing_text="N"''')
+        xmlstr = abox.xmlstr
+        print xmlstr
+        self.assertIn('<numericalresponse inline="1" answer="9.81">', xmlstr)
+        self.assertIn('<textline inline="1" trailing_text="N">', xmlstr)
+        self.assertIn('<responseparam type="tolerance" default="0.2"/>', xmlstr)
+
     def test_formula1(self):
         '''
         Test formula response

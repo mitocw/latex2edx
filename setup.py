@@ -1,8 +1,8 @@
 import glob
 from setuptools import setup
 
+
 def findfiles(pat):
-    #return [x[10:] for x in glob.glob('latex2edx/' + pat)]
     return [x for x in glob.glob('share/' + pat)]
 
 data_files = [
@@ -37,11 +37,12 @@ setup(
                       'latex2dnd',
                       ],
     package_dir={'latex2edx': 'latex2edx'},
-    package_data={ 'latex2edx': ['render/*',
-                                 'testtex/*',
-                                 'plastexpy/*.py',
-                                 'python_lib/*.py'] },
+    package_data={'latex2edx': ['render/*',
+                                'testtex/*',
+                                'plastexpy/*.py',
+                                'python_lib/*.py',
+                                'latex2edx.js',
+                                'latex2edx.css']},
     # data_files = data_files,
-    test_suite = "latex2edx.test",
+    test_suite="latex2edx.test",
 )
-

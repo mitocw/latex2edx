@@ -101,6 +101,11 @@ class edXvertical(EdXverticalStar):
         return MyBaseEnvironment.invoke(self, tex)
 
 
+class edXconditional(MyBaseEnvironment):
+    macroName = 'edXconditional'
+    args = '{ display_name } [ attrib_string:str ] self'
+
+
 class edXabox(MyBaseCommand):
     args = 'self'
 
@@ -147,7 +152,7 @@ class edXdndtex(MyBaseCommand):  # insert external drag-and-drop problem (should
 
 
 class edXshowhide(Base.Environment):  # block of text to be hidden by default, but with clickable "show"
-    args = ' { id } { description } self'
+    args = ' { description } self'
 
 
 class edXscript(MyBaseVerbatim):

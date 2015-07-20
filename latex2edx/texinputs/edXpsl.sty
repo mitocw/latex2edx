@@ -166,11 +166,11 @@
   \vspace {-2mm}
  } { }
 
-\NewDocumentEnvironment { edXshowhide } { m m o }
+\NewDocumentEnvironment { edXshowhide } { m o }
  {
   \begin{quote}
    {
-    \textbf { Showhide: ~ #2 ~ (ID: ~ #1): }
+    \textbf { Showhide: ~ #1: }
    }
  } {
   \end{quote}
@@ -303,6 +303,23 @@
   \tl_use:N \l_aboxopt_seq
  }
 
+\seq_new:N \l_aboxsuf_seq
+\NewDocumentCommand { \AboxSuffix } { m }
+ {
+  \tl_set:Nn \l_aboxsuf_seq {#1}
+  % Prepend an empty trailing_text attribute in case not specified
+  \regex_replace_once:nnN
+   { (:?.*) }
+   { trailing_text="\cS\ "\cS\ \1 }
+   \l_aboxsuf_seq
+  % Extract trailing_text
+  \regex_replace_once:nnN
+   { (?:.*)trailing_text=['"]+(.*?)['"]+(?:.*) }
+   { \1 }
+   \l_aboxsuf_seq
+  \tl_use:N \l_aboxsuf_seq
+ }
+
 \NewDocumentCommand \edXabox      { m }
  {
   \ifthenelse
@@ -328,6 +345,7 @@
    } {
     \begin{minipage}{0.4\hsize} \hfill \end{minipage}
    }
+  \AboxSuffix{#1}
  }
 
 % ToCRef addition (for links to a static table of a contents: tocindex.html)

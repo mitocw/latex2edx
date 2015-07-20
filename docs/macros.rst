@@ -46,18 +46,20 @@ within it.  In addition, the course itself is defined with certain properties.
 
 These are the structural macros defined for use in latex2edx:
 
-============= =========== ============================================================
-Macro Name    Type        Arguments
-============= =========== ============================================================
-edXcourse     Environment { course_number } { display_name } [ attributes ]
-edXchapter    Environment { display_name } [ attributes ]
-edXsection    Environment { display_name } [ attributes ]
-edXsequential Environment { display_name } [ attributes ]
-edXvertical   Environment { display_name } [ attributes ]
-============= =========== ============================================================
+============== =========== ============================================================
+Macro Name     Type        Arguments
+============== =========== ============================================================
+edXcourse      Environment { course_number } { display_name } [ attributes ]
+edXchapter     Environment { display_name } [ attributes ]
+edXsection     Environment { display_name } [ attributes ]
+edXsequential  Environment { display_name } [ attributes ]
+edXvertical    Environment { display_name } [ attributes ]
+edXconditional Environment { display_name } [ attributes ]
+============== =========== ============================================================
 
-The last four macros also exist in starred versions (e.g. ``edXchapter*``),
-which in agreement with standard LaTeX notation stand for unnumbered sections.
+The edXchapter, edXsection, edXsequential, and edXvertical macros also
+exist in starred versions (e.g. ``edXchapter*``), which in agreement
+with standard LaTeX notation stand for unnumbered sections.
 
 Each of these macros may have optional "attributes" defined, which
 specify content metadata.  Each "attributes" string should be a
@@ -158,6 +160,22 @@ problem elements together, such that they are displayed as one
 vertical unit, when using the edX platform to render edX course
 content.
 
+edXconditional
+^^^^^^^^^^^^^^
+
+Eample::
+
+    \begin{edXconditional}{Concept Question 1 - Explanation}[sources=i4x://MITx/8.421.1x/problem/problem_Concept_Question_1 attempted=True message="Please do Concept Question 1 first, then refresh the page to show this explanation."]
+
+      \edXvideo{Concept Question 1: Video Explanation}{SomeYTID}
+
+    \end{edXconditional}
+
+A conditional element displays its contents only when certain
+conditions are satisfied.  The "attempted", "submitted", and "correct" conditions apply to CAPA
+problems.  "poll_answer" and "voted" apply to poll_questions.
+
+
 Content Macros
 --------------
 
@@ -255,10 +273,12 @@ for the example above. With a "Download video" button linking to
 ``https://s3.amazonaws.com/edx-course/video/mit-xxx/MITxxxTxxx-Gxxxx.mp4`` 
 specified by the optional ``source`` attribute.
 
-| TODO: add information about how to use non-YouTube video sources
+To use non-YouTube video sources, provide a URL in place of the YouTube ID, e.g.::
+
+    \edXvideo{A sample video}{https://my_video_server/a_video.mp4}
 
 A video element may be within a sequential or vertical, placed in
-parallel with problem and text.
+parallel with problem and text.  A video element may also be placed inside a conditional.
 
 edXdiscussion
 ^^^^^^^^^^^^^
