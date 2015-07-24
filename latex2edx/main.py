@@ -672,10 +672,19 @@ class latex2edx(object):
             paref = tocref.getparent()
             paref.text += tocref.tail
             paref.remove(tocref)
-            while paref.tag not in ['html', 'problem']:
+            while paref.tag not in ['html', 'problem', 'vertical']:
                 paref = paref.getparent()
+                pareftag = paref.tag
             # EVH: Prepend letter to identify content type
-            if paref.tag == 'problem':
+            if pareftag == 'vertical':
+                parind = []
+                for i, child in enumerate(paref):
+                    if child.tag in ['html', 'problem']:
+                        parind = min(parind, i)
+                    if child.tag == 'problem':
+                        pareftag = 'problem'
+                paref = paref[parind]
+            if pareftag == 'problem':
                 parefname = 'P' + paref.get('display_name')
                 oldtag = paref.get('measureable_outcomes')
                 tagname = tagref
