@@ -79,6 +79,7 @@ class MyRenderer(XHTML.Renderer):
         return '[mathjaxinline]%s[/mathjaxinline]' % x
         
     filter_fix_displaymath_match = [r'(?s)<math>\\begin{equation}(.*?)\\end{equation}</math>',
+                                    r'(?s)<math>\\begin{equation\*}(.*?)\\end{equation\*}</math>',
                                     r'(?s)<displaymath>\\begin{edXmath}(.*?)\\end{edXmath}</displaymath>',
                                     r'(?s)<math>\\\[(.*?)\\\]</math>',
                                     ]
@@ -379,6 +380,7 @@ class plastex2xhtml(object):
                            'edXtext',
                            'edXproblem',
                            'edXsolution',
+                           'edXshowhide',
                            ]
 
         newstring = []
