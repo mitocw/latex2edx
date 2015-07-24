@@ -87,7 +87,7 @@ class latex2edx(object):
     '''
 
     DescriptorTags = ['course', 'chapter', 'sequential', 'vertical', 'html', 'problem', 'video',
-                      'conditional', 'combinedopenended', 'randomize', 'discussion']
+                      'conditional', 'combinedopenended', 'randomize', 'discussion', 'lti']
 
     def __init__(self,
                  fn,
@@ -144,6 +144,7 @@ class latex2edx(object):
         self.xml_only = xml_only
         self.units_only = units_only
         self.popup_flag = popup_flag
+        self.verbose = verbose
         self.the_xml = None
 
         if output_fn is None or not output_fn:
@@ -168,6 +169,7 @@ class latex2edx(object):
                             self.process_include,
                             self.process_includepy,
                             self.process_video,
+                            self.process_lti,
                             self.process_general_hint_system,
                             self.check_all_python_scripts,
                             self.handle_policy_settings,
@@ -260,7 +262,7 @@ class latex2edx(object):
         self.xhtml2xbundle()
         self.xb.save(self.output_fn)
         print "xbundle generated (%s): " % self.output_fn
-        tags = ['chapter', 'sequential', 'problem', 'html', 'video']
+        tags = ['chapter', 'sequential', 'problem', 'html', 'video', 'lti']
         for tag in tags:
             print "    %s: %d" % (tag, len(self.xb.course.findall('.//%s' % tag)))
         if self.xml_only:
@@ -1236,6 +1238,22 @@ class latex2edx(object):
                 vsource.set('src', ytid)
                 video.append(vsource)
 
+    def process_lti(self, tree):
+        '''
+        For LTI elements, any custom_* attributes should be moved into a special single 
+        "custom_parameters" attribute.
+        '''
+        for lti in tree.findall('.//lti'):
+            cplist = []
+            for key, val in lti.attrib.items():
+                if key.startswith('custom_'):
+                    cplist.append("%s=%s" % (key[7:], val))	# strip "custom_" prefix
+                    lti.attrib.pop(key)
+            if cplist:
+                lti.set('custom_parameters', '[%s]' % ', '.join([ '"' + x + '"' for x in cplist ]))
+            if self.verbose:
+                print "    lti %s, cp=%s" % (lti, lti.get('custom_parameters'))
+
     def process_showhide(self, tree):
         for showhide in tree.findall('.//edxshowhide'):
             desc = showhide.get('description', '')
@@ -1579,7 +1597,7 @@ class latex2edx(object):
         Convert attrib_string in <problem>, <chapter>, etc. to attributes, intelligently.
         '''
         TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course', 'html', 'video', 'discussion', 'edxdndtex',
-                'conditional']
+                'conditional', 'lti']
         for tag in TAGS:
             for elem in xml.findall('.//%s' % tag):
                 self.do_attrib_string(elem)

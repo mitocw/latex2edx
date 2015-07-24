@@ -185,6 +185,7 @@ Macro Name    Type        Arguments
 edXproblem    Environment { display_name }{ attributes }
 edXtext       Environment { display_name } [ attributes ]
 edXvideo      Command     { display_name } { youtube_id } [ attrib_string ] 
+edXlti        Command     { display_name } { launch_url } { lti_id } [ attrib_string ] 
 edXdiscussion Command     { topic_name } [ attrib_string ] 
 ============= =========== ============================================================
 
@@ -279,6 +280,45 @@ To use non-YouTube video sources, provide a URL in place of the YouTube ID, e.g.
 
 A video element may be within a sequential or vertical, placed in
 parallel with problem and text.  A video element may also be placed inside a conditional.
+
+edXlti
+^^^^^^
+
+A LTI element embeds a third-party LTI provider tool, hosted on an external website, in the course.
+
+Example::
+
+    \edXlti{Textbook: Classical Resonnance}{http://textbook_lti_provider}{the_lti_id}[open_in_a_new_page="false" custom_page=Introduction custom_section=2 url_name="The_Textbook"]
+
+The first argument specifies the URL for the LTI provider site.
+
+The second argument specifies the ID of the LTI tool, as defined in
+the "lti_passports" entry of the edX policy file for the course.  That
+entry is used to define authentication information for LTI tool
+access, e.g. the consumer key.  For example::
+
+        ...
+
+        "lti_passports": [
+            "the_lti_id:__consumer_key__:a_secret_key"
+        ], 
+
+	...
+
+Optional arguments which may be specified include "open_in_a_new_page"
+and "custom_*" keys.  Custom keys are transformed by latex2edx into
+the "custom_parameters" field expected in edX XML.
+
+For example, the above edXlti statement compiles to produce this XML:
+
+      <lti display_name="Textbook: Classical Resonnance" launch_url="http://textbook_lti_provider" lti_id="the_lti_id" open_in_a_new_page="false" url_name="The_Textbook" custom_parameters="[&quot;page=Introduction&quot;, &quot;section=2&quot;]"/>
+
+External LTI tools can provide rich interactions, including
+interactive assessments which return grades to the edX instance.
+However, this comes at the cost of making course content less
+portable, and requiring maintenance of the separate LTI tool.  Also,
+learner activity data gathered by the LTI tool are not included in the
+edX tracking logs, and thus may be inaccessible for analysis.
 
 edXdiscussion
 ^^^^^^^^^^^^^
