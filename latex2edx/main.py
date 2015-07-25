@@ -925,7 +925,7 @@ class latex2edx(object):
                         eqnnum = 'NaN'
                     eqnlabel = eqnlabel[0]
                     eqnlabel = eqnlabel.replace(' ', '')
-                    eqndict[eqnlabel] = '({})'.format(eqnnum)
+                    eqndict[eqnlabel] = '{}'.format(eqnnum)
                     # EVH: Set id for linking if pop-up flag is False
                     tr.set('id', 'eqn{}'.format(eqnnum.replace('.', 'p')))
                     eqnattrib[eqnlabel] = {
@@ -1239,17 +1239,17 @@ class latex2edx(object):
 
     def process_lti(self, tree):
         '''
-        For LTI elements, any custom_* attributes should be moved into a special single 
+        For LTI elements, any custom_* attributes should be moved into a special single
         "custom_parameters" attribute.
         '''
         for lti in tree.findall('.//lti'):
             cplist = []
             for key, val in lti.attrib.items():
                 if key.startswith('custom_'):
-                    cplist.append("%s=%s" % (key[7:], val))	# strip "custom_" prefix
+                    cplist.append("%s=%s" % (key[7:], val))  # strip "custom_" prefix
                     lti.attrib.pop(key)
             if cplist:
-                lti.set('custom_parameters', '[%s]' % ', '.join([ '"' + x + '"' for x in cplist ]))
+                lti.set('custom_parameters', '[%s]' % ', '.join(['"' + x + '"' for x in cplist]))
             if self.verbose:
                 print "    lti %s, cp=%s" % (lti, lti.get('custom_parameters'))
 

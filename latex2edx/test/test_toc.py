@@ -81,8 +81,8 @@ class TestToC(unittest.TestCase):
             # Check the reference link text
             href = xml.findall('.//a[@href]')
             self.assertEqual(href[0].text, '0')  # Non-numbered chapter
-            self.assertEqual(href[1].text, '(1.2)')  # Numbered equation 2
-            self.assertEqual(href[2].text, '(1.3)')  # Numbered equation 3
+            self.assertEqual(href[1].text, '1.2')  # Numbered equation 2
+            self.assertEqual(href[2].text, '1.3')  # Numbered equation 3
             # Check for popup format
             self.assertEqual(href[1].get('href'), 'javascript: void(0)')
             self.assertEqual(href[2].get('href'), 'javascript: void(0)')
