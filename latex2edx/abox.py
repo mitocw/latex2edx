@@ -2,14 +2,18 @@
 #
 # Answer Box class
 #
-# object representation of abox, used in Tutor2, now generalized to latex and word input formats.
+# object representation of abox, used in Tutor2, now generalized to latex and
+#   word input formats.
 # 13-Aug-12 ichaung: merge in sari's changes
-# 13-Aug-12 ichuang: cleaned up, does more error checking, includes stub for shortanswer
-#                    note that shortanswer can be implemented right now using customresponse and textbox
-# 04-Sep-12 ichuang: switch from shlex to FSM, merge in changes for math and inline from 8.21
+# 13-Aug-12 ichuang: cleaned up, does more error checking, includes stub for
+#                    shortanswer note that shortanswer can be implemented right
+#                    now using customresponse and textbox
+# 04-Sep-12 ichuang: switch from shlex to FSM, merge in changes for math and
+#                    inline from 8.21
 # 13-Oct-12 ichuang: remove csv entirely, use FSM for splitting options instead
 # 20-Jan-13 ichuang: add formularesponse
-# 23-Jan-13 ichuang: add multiple-line customresponse, with proper inline and math handling
+# 23-Jan-13 ichuang: add multiple-line customresponse, with proper inline and
+#                    math handling
 
 import re
 
@@ -22,21 +26,24 @@ class AnswerBox(object):
         Parse a TUT abox and produce edX XML for a problem responsetype.
 
         Examples:
-        -----------------------------------------------------------------------------
-        <abox type="option" expect="float" options=" ","noneType","int","float" />
+        ------------------------------------------------------------------------
+        <abox
+            type="option"
+            expect="float"
+            options=" ","noneType","int","float" />
 
         <optionresponse>
-        <optioninput options="('noneType','int','float')"  correct="int">
+        <optioninput options="('noneType','int','float')"  correct="int" />
         </optionresponse>
 
-        -----------------------------------------------------------------------------
+        ------------------------------------------------------------------------
         <abox type="string" expect="Michigan" options="ci" />
 
         <stringresponse answer="Michigan" type="ci">
         <textline size="20" />
         </stringresponse>
 
-        -----------------------------------------------------------------------------
+        ------------------------------------------------------------------------
         <abox type="custom" expect="(3 * 5) / (2 + 3)" cfn="eq" />
 
         <customresponse cfn="eq">
@@ -45,16 +52,27 @@ class AnswerBox(object):
           <br />
         </customresponse>
 
-        -----------------------------------------------------------------------------
-        <abox type="custom" expect="20" answers="11","9" prompts="Integer 1:","Integer 2:" inline="1" cfn="test_add" />
+        ------------------------------------------------------------------------
+        <abox type="custom"
+              expect="20"
+              answers="11","9"
+              prompts="Integer 1:","Integer 2:"
+              inline="1"
+              cfn="test_add" />
 
         <customresponse cfn="test_add" expect="20" inline="1">
-            <p style="display:inline">Integer 1:<textline correct_answer="11" inline="1"/></p>
+            <p style="display:inline">
+                Integer 1:
+                <textline correct_answer="11" inline="1"/>
+            </p>
             <br/>
-            <p style="display:inline">Integer 2:<textline correct_answer="9" inline="1"/></p>
+            <p style="display:inline">
+                Integer 2:
+                <textline correct_answer="9" inline="1"/>
+            </p>
         </customresponse>
 
-        -----------------------------------------------------------------------------
+        ------------------------------------------------------------------------
         <abox type="jsinput"
               expect="(3 * 5) / (2 + 3)"
               cfn="eq"
@@ -72,27 +90,42 @@ class AnswerBox(object):
                 html_file="/static/jsinput.html" />
         </customresponse>
 
-        -----------------------------------------------------------------------------
+        ------------------------------------------------------------------------
         <abox type="numerical" expect="3.141" tolerance="5%" />
 
         <numericalresponse answer="5.0">
-        <responseparam type="tolerance" default="5%" name="tol" description="Numerical Tolerance" />
+        <responseparam type="tolerance"
+                       default="5%"
+                       name="tol"
+                       description="Numerical Tolerance" />
         <textline />
         </numericalresponse>
 
-        -----------------------------------------------------------------------------
-    <abox type="multichoice" expect="Yellow" options="Red","Green","Yellow","Blue" />
+        ------------------------------------------------------------------------
+    <abox type="multichoice"
+          expect="Yellow"
+          options="Red","Green","Yellow","Blue" />
 
         <multiplechoiceresponse direction="vertical" randomize="yes">
          <choicegroup type="MultipleChoice">
-            <choice location="random" correct="false" name="red">Red</choice>
-            <choice location="random" correct="true" name="green">Green</choice>
-            <choice location="random" correct="false" name="yellow">Yellow</choice>
-            <choice location="bottom" correct="false" name="blue">Blue</choice>
+            <choice location="random" correct="false" name="red">
+                Red
+            </choice>
+            <choice location="random" correct="true" name="green">
+                Green
+            </choice>
+            <choice location="random" correct="false" name="yellow">
+                Yellow
+            </choice>
+            <choice location="bottom" correct="false" name="blue">
+                Blue
+            </choice>
          </choicegroup>
         </multiplechoiceresponse>
-        -----------------------------------------------------------------------------
-    <abox type="oldmultichoice" expect="1","3" options="0","1","2","3","4" />
+        ------------------------------------------------------------------------
+    <abox type="oldmultichoice"
+          expect="1","3"
+          options="0","1","2","3","4" />
 
         <choiceresponse>
           <checkboxgroup>
@@ -103,10 +136,17 @@ class AnswerBox(object):
             <choice correct="false"><text>4</text></choice>
           </checkboxgroup>
         </choiceresponse>
-        -----------------------------------------------------------------------------
-        <abox type="formula" expect="m*c^2" samples="m,c@1,2:3,4#10" intype="cs" size="40" math="1" tolerance="0.01" feqin="1" />
+        ------------------------------------------------------------------------
+        <abox type="formula"
+              expect="m*c^2"
+              samples="m,c@1,2:3,4#10"
+              intype="cs"
+              size="40"
+              math="1"
+              tolerance="0.01"
+              feqin="1" />
 
-        format of samples:  <variables>@<lower_bounds>:<upper_bound>#<num_samples
+        format of samples: <variables>@<lower_bounds>:<upper_bound>#<num_samples
 
         * variables    - a set of variables that are allowed as student input
         * lower_bounds - for every variable defined in variables, a lower
@@ -114,23 +154,24 @@ class AnswerBox(object):
         * upper_bounds - for every variable defined in variables, an upper
                          bound on the numerical tests to use for that variable
 
-        if feqin is given as an attribute, then a formulaequationinput is used instead
-        of textline, for the input element.
+        if feqin is given as an attribute, then a formulaequationinput is used
+        instead of textline, for the input element.
 
         <formularesponse type="cs" samples="m,c@1,2:3,4#10" answer="m*c^2">
             <responseparam type="tolerance" default="0.01"/>
             <textline size="40" math="1" />
         </formularesponse>
 
-        -----------------------------------------------------------------------------
+        ------------------------------------------------------------------------
         Adaptive hints:
 
-        define the hints as a dict in an included python script, and give the name
-        of that dict as the parameter "hints".  Works inside customresponse,
-        optionresponse, and multiple choice problems, within latex2edx.
+        define the hints as a dict in an included python script, and give the
+        name of that dict as the parameter "hints".  Works inside
+        customresponse, optionresponse, and multiple choice problems, within
+        latex2edx.
 
-        latex2edx automatically translates <ed_general_hint_system/> into an import
-        of the general_hint_system.py python code.
+        latex2edx automatically translates <ed_general_hint_system/> into an
+        import of the general_hint_system.py python code.
 
         Thus, this input:
 
@@ -149,10 +190,10 @@ class AnswerBox(object):
         <hintgroup hintfn="do_hints_for_hint1">
         </customresponse>
 
-        -----------------------------------------------------------------------------
+        ------------------------------------------------------------------------
 
-        context is used for error reporting, and provides context like the line number and
-        filename where the abox is located.
+        context is used for error reporting, and provides context like the line
+        number and filename where the abox is located.
 
         '''
         self.aboxstr = aboxstr
@@ -231,12 +272,13 @@ class AnswerBox(object):
             expectstr, expects = self.get_options(abargs, 'expect')
             cnt = 1
             if self.verbose:
-                print "[abox.py] oldmultichoice: options=/%s/, expects=/%s/" % (options, expects)
+                print ("[abox.py] oldmultichoice: "
+                       "options=/{}/, expects=/{}/".format(options, expects))
             for op in options:
                 choice = etree.SubElement(cg, 'choice')
                 choice.set('correct', 'true' if (op in expects) else 'false')
                 choice.set('name', str(cnt))
-                choice.append(etree.XML("<text>%s</text>" % op))
+                choice.append(etree.XML("<text>{}</text>".format(op)))
                 cnt += 1
 
         elif abtype == 'shortanswerresponse':
@@ -252,7 +294,7 @@ class AnswerBox(object):
                 self.copy_attrib(abargs, 'expect', abxml)
 
             else:
-                abxml.tag = 'stringresponse'    # change to stringresponse for now (FIXME)
+                abxml.tag = 'stringresponse'  # FIXME changed to stringresponse
                 tl = etree.Element('textline')
                 if 'size' in abargs:
                     tl.set('size', self.stripquotes(abargs['size']))
@@ -326,7 +368,8 @@ class AnswerBox(object):
                 else:
                     elem = tl
                 if cnt > 0:
-                    abxml.append(etree.Element('br'))   # linebreak between boxes if multiple
+                    abxml.append(etree.Element('br'))
+                    # ^linebreak between boxes if multiple
                 abxml.append(elem)
                 cnt += 1
 
@@ -337,10 +380,16 @@ class AnswerBox(object):
             self.copy_attrib(abargs, 'expect', abxml)
             self.copy_attrib(abargs, 'options', abxml)
             if abxml.get('options', ''):
-                abxml.set('cfn_extra_args', 'options')  # tells sandbox to include 'options' in cfn call arguments
+                abxml.set('cfn_extra_args', 'options')
+                # ^tells sandbox to include 'options' in cfn call arguments
 
             js = etree.Element('jsinput')
-            jsattribs = ['width', 'height', 'gradefn', 'get_statefn', 'set_statefn', 'html_file']
+            jsattribs = ['width',
+                         'height',
+                         'gradefn',
+                         'get_statefn',
+                         'set_statefn',
+                         'html_file']
             for jsa in jsattribs:
                 self.copy_attrib(abargs, jsa, js)
             abxml.append(js)
@@ -366,17 +415,8 @@ class AnswerBox(object):
             abxml.append(tl)
             self.copy_attrib(abargs, 'options', abxml)
             answer = self.stripquotes(abargs['expect'])
-            # NOTE: The edX platform now allows mathematical expressions
-            #       and constants in the expect field.
-            # try:
-            #     x = float(answer)
-            # except Exception as err:
-            #     if not answer[0] == '$':    # may also be a string variable (starts with $)
-            #         print "Error - numericalresponse expects numerical expect value, for %s" % s
-            #         raise
             abxml.set('answer', answer)
             rp = etree.SubElement(tl, "responseparam")
-            # rp.attrib['description'] = "Numerical Tolerance" #not needed
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
 
@@ -429,9 +469,10 @@ class AnswerBox(object):
             self.require_args(['src', 'width', 'height', 'rectangle'])
             rect = abargs.get('rectangle')
             if re.match('\(\d+\,\d+\)\-\(\d+,\d+\)', rect) is None:  # check for rectangle syntax
-                msg = "[abox.py] ERROR: imageresponse rectancle %s has wrong syntax\n" % rect
-                msg += "Answer box string is \"%s\"\n" % self.aboxstr
-                msg += "abox located: %s\n" % self.context
+                msg = "[abox.py] ERROR: imageresponse"
+                msg += "rectangle {} has wrong syntax\n".format(rect)
+                msg += "Answer box string is \"{}\"\n".format(self.aboxstr)
+                msg += "abox located: {}\n".format(self.context)
                 raise Exception(msg)
                 # sys.exit(-1)
             ii = etree.Element('imageinput')
@@ -451,11 +492,15 @@ class AnswerBox(object):
         hint_extras = ''
         if 'hints' in abargs:
             hints = self.stripquotes(abargs['hints'])
-            hintfn = "do_hints_for_%s" % hints
+            hintfn = "do_hints_for_{}".format(hints)
             hintgroup = etree.SubElement(abxml, 'hintgroup')
             hintgroup.set('hintfn', hintfn)
             hint_extras = "<edx_general_hint_system />\n"
-            hint_extras += '<script type="text/python">\n%s = HintSystem(hints=%s).check_hint\n</script>\n' % (hintfn, hints)
+            hint_extras += '<script type="text/python">\n'
+            hint_extras += '{} = HintSystem(hints={}).check_hint\n'.format(
+                hintfn,
+                hints)
+            hint_extras += '</script>\n'
         self.hint_extras = hint_extras
 
         s = etree.tostring(abxml, pretty_print=True)
@@ -464,7 +509,7 @@ class AnswerBox(object):
         return etree.XML(s)
 
     def get_options(self, abargs, arg='options'):
-        optstr = abargs[arg]			# should be double quoted strings, comma delimited
+        optstr = abargs[arg]  # should be double quoted strings, comma delimited
         # EVH 01-22-2015: Inserting quotes around single option for proper
         # parsing of choices containing commas
         if not optstr.startswith('"') and not optstr.startswith("'"):
