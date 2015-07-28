@@ -468,8 +468,12 @@ class latex2edx(object):
         '''
         if self.section_only:
             return
+        if self.units_only:
+            return
         # EVH: Build course map from tree.
         course = tree.find('.//course')
+        if not course:
+            return
         cnumber = course.get('number')
         # EVH: Navigate course and set a 'tmploc' attribute with location for desired items
         maplist = []  # ['loc. str.']
@@ -1554,7 +1558,7 @@ class latex2edx(object):
                '&': 'and',
                '[': 'LB_',
                ']': '_RB',
-               '?# ': '_',
+               '?#* ': '_',
                }
         if not s:
             s = tag
