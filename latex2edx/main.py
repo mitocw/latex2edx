@@ -1184,7 +1184,7 @@ class latex2edx(object):
         p = xml.getparent()
         todrop = xml
         where2add = xml
-        if p.tag == 'p' and not p.text.strip():	 # if in empty <p> then remove that <p>
+        if p.tag == 'p' and not p.text.strip() and len(p.getchildren()) == 1:	 # if in empty <p> then remove that <p>
             todrop = p
             where2add = p
             p = p.getparent()

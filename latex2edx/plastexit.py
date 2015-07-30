@@ -394,9 +394,6 @@ class plastex2xhtml(object):
                     newstring.append('')
                 insert_nl = False
 
-            if line.startswith('\edXxml{'):	# special case: add newline for this
-                insert_nl = True
-
             if not r'\begin' in line:
                 newstring.append(line)
                 continue
