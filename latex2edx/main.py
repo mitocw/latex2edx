@@ -109,6 +109,7 @@ class latex2edx(object):
                  xml_only=False,
                  units_only=False,
                  popup_flag=False,
+                 allow_dirs=False,
                  ):
         '''
         extra_xml_filters = list of functions acting on XML, applied to XHTML
@@ -146,6 +147,7 @@ class latex2edx(object):
         self.popup_flag = popup_flag
         self.verbose = verbose
         self.the_xml = None
+        self.allow_dirs = allow_dirs
 
         if output_fn is None or not output_fn:
             if fn.endswith('.tex'):
@@ -1119,7 +1121,7 @@ class latex2edx(object):
             atin.set('value', data['label'])
             atin.set('type', 'button')
             atin.set('onclick', '%s();' % smfn)
-            
+
             for attrib in special_attribs:
                 data.pop(attrib)
 
@@ -1244,7 +1246,7 @@ class latex2edx(object):
 
     def process_lti(self, tree):
         '''
-        For LTI elements, any custom_* attributes should be moved into a special single 
+        For LTI elements, any custom_* attributes should be moved into a special single
         "custom_parameters" attribute.
         '''
         for lti in tree.findall('.//lti'):
@@ -1553,18 +1555,23 @@ class latex2edx(object):
         Use tag if provided.
         '''
         map = {'"\':<>': '',
-               ',/().;=+ ': '_',
-               '/': '__',
+               ',().;=+ ': '_',
                '&': 'and',
                '[': 'LB_',
                ']': '_RB',
                '?#* ': '_',
                }
+        if not self.allow_dirs :
+            map['/'] = '_'
         if not s:
             s = tag
         for m, v in map.items():
             for ch in m:
                 s = s.replace(ch, v)
+        if self.allow_dirs :
+            # Have to do this after the rest of the mapping, as we don't want
+            # ': to turn into nothing (ordering in dictionary is not guaranteed)
+            s = s.replace('/', ':')
         if s in self.URLNAMES and not s.endswith(tag):
             s = '%s_%s' % (tag, s)
         while s in self.URLNAMES:
@@ -1685,6 +1692,11 @@ def CommandLine():
                       dest="popups",
                       default=False,
                       help="enable equation and figure popup windows on clicking their references",)
+    parser.add_option("--allow-directories",
+                      action="store_true",
+                      dest="allow_dirs",
+                      default=False,
+                      help="allow subdirectory structure in the xml output",)
     (opts, args) = parser.parse_args()
 
     if len(args) < 1:
@@ -1709,5 +1721,6 @@ def CommandLine():
                   xml_only=opts.xml_only,
                   units_only=opts.units_only,
                   popup_flag=opts.popups,
+                  allow_dirs=opts.allow_dirs,
                   )
     c.convert()
