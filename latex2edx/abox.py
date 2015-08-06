@@ -387,7 +387,7 @@ class AnswerBox(object):
                 tl = etree.Element('formulaequationinput')
             else:
                 tl = etree.Element('textline')
-                self.copy_attrib(abargs, 'trailing_text', tl)
+            self.copy_attrib(abargs, 'trailing_text', tl)
             self.copy_attrib(abargs, 'size', tl)
             self.copy_attrib(abargs, 'inline', tl)
             self.copy_attrib(abargs, 'math', tl)
