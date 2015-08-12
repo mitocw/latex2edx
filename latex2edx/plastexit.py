@@ -98,7 +98,8 @@ class MyRenderer(XHTML.Renderer):
 
     @classmethod
     def filter_fix_displaymathverbatim(cls, m):
-        return '[mathjax]%s[/mathjax]' % escape(m.group(1).strip())
+        x = escape(m.group(1).strip())
+        return '[mathjax]%s[/mathjax]' % x.replace('\\end{edXmath}', '')
 
     filter_fix_image_match = '<includegraphics style="(.*?)">(.*?)</includegraphics>'
 
