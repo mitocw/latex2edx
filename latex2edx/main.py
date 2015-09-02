@@ -474,7 +474,7 @@ class latex2edx(object):
             return
         # EVH: Build course map from tree.
         course = tree.find('.//course')
-        if not course:
+        if len(course) == 0:
             return
         cnumber = course.get('number')
         # EVH: Navigate course and set a 'tmploc' attribute with location for desired items
@@ -1556,14 +1556,14 @@ class latex2edx(object):
                ']': '_RB',
                '?#* ': '_',
                }
-        if not self.allow_dirs :
+        if not self.allow_dirs:
             map['/'] = '_'
         if not s:
             s = tag
         for m, v in map.items():
             for ch in m:
                 s = s.replace(ch, v)
-        if self.allow_dirs :
+        if self.allow_dirs:
             # Have to do this after the rest of the mapping, as we don't want
             # ': to turn into nothing (ordering in dictionary is not guaranteed)
             s = s.replace('/', ':')
