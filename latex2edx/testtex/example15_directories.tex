@@ -1,0 +1,43 @@
+%
+% File: example15_directories.tex
+%
+% Description: Test the allow-directories option for latex2edx
+%
+
+\documentclass[12pt]{article}
+\usepackage{edXpsl} % edX style file
+
+\usepackage{amsmath}
+
+\def\units#1{\mathrm{~#1}}
+\def\.{\smash\cdot}
+
+\begin{document}
+
+\begin{edXcourse}{DirectoryTest}{Test Nested Directories}
+
+\begin{edXchapter}{One}
+
+\begin{edXsequential}{Section}
+
+\begin{edXvertical}{Vertical}
+
+\begin{edXproblem}{This is a problem in a subdirectory}{url_name="test/subdirprob"}
+
+\edXxml{}
+This paragraph tests to ensure that the edXxml environment is handled properly.  Multiple calls to edXxml used to fail when they shared the same parent tag, in this case a paragraph tag.
+\edXxml{}
+
+$v = 5 \units{m\.s^{-2}}$
+
+\end{edXproblem}
+
+\end{edXvertical}
+
+\end{edXsequential}
+
+\end{edXchapter}
+
+\end{edXcourse}
+
+\end{document}
