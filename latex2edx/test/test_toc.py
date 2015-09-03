@@ -18,6 +18,8 @@ class TestToC(unittest.TestCase):
     This class inherits the `unittest.TestCase` class and contains the methods
     `test_toc1` and `test_toc2` that test the proper functionality of the
     latex2edx `label`, `ref`, `toclabel`, and `tocref` commands.
+    `test_toc3` tests the output tocindex.html file for the case when
+    verticals are referenced.
     '''
 
     def test_toc1(self):
@@ -54,6 +56,32 @@ class TestToC(unittest.TestCase):
             equation = xml.find('.//td[@class="equation"]')
             self.assertEqual(re.findall(r'\\label\{(.*?)\}', equation.text,
                                         re.S)[0], 'eq:pythagorean')
+            tocfn = '%s/tabs/tocindex.html' % tmdir
+            toc = etree.fromstring(open(tocfn).read().replace('<br>', '<br/>'))
+            toctitle = toc.find('.//h1')
+            self.assertEqual(toctitle.text, 'Table of Contents')
+            # Check the measurable outcome table headers
+            # table>tbody>tr>th>a>strong
+            toctabs = toc.findall('.//table')
+            self.assertEqual(toctabs[0][0][0][0][0][0].text, '0')
+            self.assertEqual(toctabs[1][0][0][0][0][0].text, 'MO1')
+            self.assertEqual(toctabs[2][0][0][0][0][0].text, 'MO2')
+            # table>tbody>tr>th>span
+            self.assertIn('Explore the edX platform',
+                          toctabs[1][0][0][0][1].text)
+            self.assertIn('Answer an edX question',
+                          toctabs[2][0][0][0][1].text)
+            # check example 'Learn' link
+            self.assertEqual(toctabs[1][0][1][0][0].text, 'Learn')
+            self.assertIn('Example text', toctabs[1][0][1][0][1][0][0].text)
+            # check example 'Assess' link
+            self.assertEqual(toctabs[0][0][1][0][2].text, 'Assess')
+            self.assertIn('Example problem', toctabs[0][0][1][0][3][0][0].text)
+            self.assertIn('Example problem', toctabs[1][0][1][0][3][0][0].text)
+            self.assertIn('Example problem', toctabs[2][0][1][0][3][0][0].text)
+            # tocbod = toc.find('.//body')
+            self.assertEqual(toc[1][8].tag, 'br')
+            self.assertIn('Module 1', toc[1][9][0].text)
 
     def test_toc2(self):
         '''
@@ -93,6 +121,37 @@ class TestToC(unittest.TestCase):
             taglist = xml.find('.//p[@id="taglist"]')
             self.assertEqual(taglist.get('tags'),
                              'mo:explore,mo:problem,chap:intro')
+
+    def test_toc3(self):
+        '''
+        Test the output of `latex2edx example17_toc_vert.tex` for proper
+        generation of a tocindex.html file based on the contents of a vertical.
+        '''
+        testdir = path(l2e.__file__).parent / 'testtex'
+        tfn = testdir / 'example17_toc_vert.tex'
+        print "file %s" % tfn
+        with make_temp_directory() as tmdir:
+            nfn = '%s/%s' % (tmdir, tfn.basename())
+            os.system('cp %s/* %s' % (testdir, tmdir))
+            os.chdir(tmdir)
+            l2eout = latex2edx(nfn, output_dir=tmdir)
+            l2eout.convert()
+
+            tocfn = '%s/tabs/tocindex.html' % tmdir
+            toc = etree.fromstring(open(tocfn).read().replace('<br>', '<br/>'))
+            toctitle = toc.find('.//h1')
+            self.assertEqual(toctitle.text, 'Table of Contents')
+            toctabs = toc.findall('.//table')
+            self.assertEqual(toctabs[0][0][0][0][0][0].text, 'MO1.1')
+            self.assertEqual(toctabs[1][0][0][0][0][0].text, 'MO1.2')
+            self.assertIn('Follow a Lesson',
+                          toctabs[0][0][0][0][1].text)
+            self.assertEqual(toctabs[0][0][1][0][0].text, 'Learn')
+            self.assertIn('Example text', toctabs[0][0][1][0][1][0][0].text)
+            self.assertIn('Answer a problem set',
+                          toctabs[1][0][0][0][1].text)
+            self.assertEqual(toctabs[1][0][1][0][2].text, 'Assess')
+            self.assertIn('Problem Set 1', toctabs[1][0][1][0][3][0][0].text)
 
 if __name__ == '__main__':
     unittest.main()
