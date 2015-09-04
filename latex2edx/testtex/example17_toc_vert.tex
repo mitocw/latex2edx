@@ -1,0 +1,110 @@
+%
+% File: example17_toc_vert.tex
+%
+% Description: Test \label, \ref, \toclabel, and \tocref and their usage
+%              with verticals
+%
+
+\documentclass[12pt]{article}
+\usepackage{edXpsl} % edX style file
+
+\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{edXcourse}{1.00x}{1.00x Fall 2014}[url_name=2014_Fall showanswer=always start=2014-10-06T12:00]
+
+%%====================================== CHAPTER 1
+\begin{edXchapter}{Chapter 1}[start="2014-10-04T04:00"]
+
+%%-------------------------------------- SEQUENTIAL 1-1: Measureable Outcomes
+\begin{edXsequential}{A problem section}[due="2014-10-22T04:00" graded=true]
+
+\begin{edXtext}{Objective}
+
+Measurable outcomes for this section:
+\begin{enumerate}
+  \item \toclabel{mo:lesson} Follow a Lesson
+  \item \toclabel{mo:pset} Answer a problem set
+\end{enumerate}
+
+\end{edXtext}
+
+\end{edXsequential}
+
+%%--------------------------------------
+\end{edXchapter}
+
+%%====================================== CHAPTER 2
+\begin{edXchapter}{Chapter 2}[start="2014-10-06"]
+
+%%-------------------------------------- SEQUENTIAL 2-1: Lecture 1
+\begin{edXsequential}{A lecture section}
+
+\begin{edXvertical}{A set of texts in a lesson}
+\tocref{mo:lesson}
+
+\begin{edXtext}{Example text}[url_name="text-L1"]
+
+In this section are some equations.
+
+Example equation:
+\begin{equation}
+  \label{eq:deriv}
+  \frac{d}{dx} e^x = e^x
+\end{equation}
+
+Example equation array:
+\begin{eqnarray}
+  z & = x \times y \label{eq:com1}\\
+  z & = y \times x \label{eq:com2}
+\end{eqnarray}
+
+The fact that for scalars Equation \ref{eq:com1} is equal to Equation \ref{eq:com2} is known as the commutative property.
+
+The label for this reference \ref{eq:unused} has not been defined.
+
+\end{edXtext}
+
+\end{edXvertical}
+
+\end{edXsequential}
+
+%%-------------------------------------- SEQUENTIAL 2-2: Problem Set 1
+\begin{edXsequential}{Another lecture section}
+
+\begin{edXvertical}{A vertical grouping}
+\tocref{mo:pset}
+
+\begin{edXtext}{Problem Set 1}
+
+In this sequential, we have a vertical element with introductory text and a Figure \ref{fig:examplefig}.
+\begin{figure}
+  \begin{center}
+    \includegraphics{example-image.png}
+    \caption{Example single figure}
+    \label{fig:examplefig}
+  \end{center}
+\end{figure}
+
+\end{edXtext}
+
+\begin{edXproblem}{Example Problem 1}{url_name="p1"}
+
+Followed by a problem with an Equation \ref{eq:sum}.
+\begin{equation}
+  \boxed{A = B + C}
+  \label{eq:sum}
+\end{equation}
+
+\end{edXproblem}
+
+\end{edXvertical}
+
+\end{edXsequential}
+
+%%--------------------------------------
+\end{edXchapter}
+
+%%======================================
+\end{edXcourse}
+
+\end{document}

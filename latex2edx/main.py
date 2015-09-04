@@ -474,7 +474,7 @@ class latex2edx(object):
             return
         # EVH: Build course map from tree.
         course = tree.find('.//course')
-        if not course:
+        if course is None:
             return
         cnumber = course.get('number')
         # EVH: Navigate course and set a 'tmploc' attribute with location for desired items
@@ -672,10 +672,19 @@ class latex2edx(object):
             paref = tocref.getparent()
             paref.text += tocref.tail
             paref.remove(tocref)
-            while paref.tag not in ['html', 'problem']:
+            while paref.tag not in ['html', 'problem', 'vertical']:
                 paref = paref.getparent()
+                pareftag = paref.tag
             # EVH: Prepend letter to identify content type
-            if paref.tag == 'problem':
+            if pareftag == 'vertical':
+                parind = []
+                for i, child in enumerate(paref):
+                    if child.tag in ['html', 'problem']:
+                        parind = min(parind, i)
+                    if child.tag == 'problem':
+                        pareftag = 'problem'
+                paref = paref[parind]
+            if pareftag == 'problem':
                 parefname = 'P' + paref.get('display_name')
                 oldtag = paref.get('measureable_outcomes')
                 tagname = tagref
@@ -888,6 +897,20 @@ class latex2edx(object):
                 for td in tr.findall('.//td'):
                     if td.get('class') == 'eqnnum':
                         eqnnumcell = td
+                        # EVH: Use plasTeX output to handle equation numbering
+                        eqncnt += 1
+                        if chapref == '0':
+                            eqnnum = '{}'.format(eqncnt)
+                        else:
+                            eqnnum = '{}.{}'.format(chapref, eqncnt)
+                        tr.remove(eqnnumcell)
+                        eqnnumcell = etree.SubElement(
+                            tr, "td", attrib=eqnnumcell.attrib)
+                        eqnnumcell.text = '({})'.format(eqnnum)
+                        eqnnumsty = eqnnumcell.get('style')
+                        eqnnumsty = re.sub('text-align:[a-zA-Z]+;', '', eqnnumsty)
+                        eqnnumsty += ';text-align:right'
+                        eqnnumcell.set('style', eqnnumsty)
                     elif td.text is not None:
                         eqncontent = td.text
                         if re.search(r'\\label\{(.*?)\}',
@@ -898,14 +921,13 @@ class latex2edx(object):
                                                 eqncontent)
                             td.text = eqncontent
                 if len(eqnlabel) != 0:
+                    # NOTE: EVH 2015-07-24 find a better way to handle labels
+                    # to unnumbered equations
+                    if eqnnumcell is None:
+                        eqnnum = 'NaN'
                     eqnlabel = eqnlabel[0]
-                    eqncnt += 1
                     eqnlabel = eqnlabel.replace(' ', '')
-                    if chapref == '0':
-                        eqnnum = '{}'.format(eqncnt)
-                    else:
-                        eqnnum = '{}.{}'.format(chapref, eqncnt)
-                    eqndict[eqnlabel] = '({})'.format(eqnnum)
+                    eqndict[eqnlabel] = '{}'.format(eqnnum)
                     # EVH: Set id for linking if pop-up flag is False
                     tr.set('id', 'eqn{}'.format(eqnnum.replace('.', 'p')))
                     eqnattrib[eqnlabel] = {
@@ -942,33 +964,6 @@ class latex2edx(object):
                     eqnattrib[eqnlabel]['onClick'] = (
                         "return newWindow({}, \'Equation {}\');".
                         format(htmlstr, eqnnum))
-                # replace the necessary subelements to get desired behavior
-                if table.get('class') == 'equation':
-                    # Only one 'tr' element in equation table, need to add 'td'
-                    tr.clear()
-                    eqncell = etree.SubElement(
-                        tr, "td", attrib={
-                            'style': ("width:80%;vertical-align:middle;"
-                                      "text-align:center;border-style:hidden"),
-                            'class': "equation"})
-                    eqncell.text = eqncontent
-                    eqnnumcell = None
-                if eqnnumcell is None:
-                    eqnnumcell = etree.SubElement(
-                        tr, "td", attrib={
-                            'style': ("width:20%;vertical-align:middle;"
-                                      "text-align:left;border-style:hidden"),
-                            'class': "eqnnum"})
-                else:
-                    tr.remove(eqnnumcell)
-                    eqnnumcell = etree.SubElement(
-                        tr, "td", attrib=eqnnumcell.attrib)
-                if len(eqnlabel) != 0:
-                    eqnnumcell.text = '({})'.format(eqnnum)
-                    eqnnumsty = eqnnumcell.get('style')
-                    eqnnumsty = re.sub('text-align:[a-zA-Z]+;', '', eqnnumsty)
-                    eqnnumsty += ';text-align:right'
-                    eqnnumcell.set('style', eqnnumsty)
 
         # EVH: Build keymap dictionary for keywords specified by the \index
         # command
@@ -1253,10 +1248,10 @@ class latex2edx(object):
             cplist = []
             for key, val in lti.attrib.items():
                 if key.startswith('custom_'):
-                    cplist.append("%s=%s" % (key[7:], val))	# strip "custom_" prefix
+                    cplist.append("%s=%s" % (key[7:], val))  # strip "custom_" prefix
                     lti.attrib.pop(key)
             if cplist:
-                lti.set('custom_parameters', '[%s]' % ', '.join([ '"' + x + '"' for x in cplist ]))
+                lti.set('custom_parameters', '[%s]' % ', '.join(['"' + x + '"' for x in cplist]))
             if self.verbose:
                 print "    lti %s, cp=%s" % (lti, lti.get('custom_parameters'))
 
@@ -1561,14 +1556,14 @@ class latex2edx(object):
                ']': '_RB',
                '?#* ': '_',
                }
-        if not self.allow_dirs :
+        if not self.allow_dirs:
             map['/'] = '_'
         if not s:
             s = tag
         for m, v in map.items():
             for ch in m:
                 s = s.replace(ch, v)
-        if self.allow_dirs :
+        if self.allow_dirs:
             # Have to do this after the rest of the mapping, as we don't want
             # ': to turn into nothing (ordering in dictionary is not guaranteed)
             s = s.replace('/', ':')

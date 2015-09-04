@@ -36,7 +36,8 @@ class MyRenderer(XHTML.Renderer):
             self.filters[ffm] = self.filter_fix_math
         for ffm in self.filter_fix_displaymath_match:
             self.filters[ffm] = self.filter_fix_displaymath
-        self.filters[self.filter_fix_displaymathverbatim_match] = self.filter_fix_displaymathverbatim
+        for ffm in self.filter_fix_displaymathverbatim_match:
+            self.filters[ffm] = self.filter_fix_displaymathverbatim
         self.filters[self.filter_fix_abox_match] = self.filter_fix_abox
         self.filters[self.filter_fix_abox_match_with_linenum] = self.filter_fix_abox_with_linenum
         self.filters[self.filter_fix_image_match] = self.filter_fix_image
@@ -79,6 +80,7 @@ class MyRenderer(XHTML.Renderer):
         return '[mathjaxinline]%s[/mathjaxinline]' % x
         
     filter_fix_displaymath_match = [r'(?s)<math>\\begin{equation}(.*?)\\end{equation}</math>',
+                                    r'(?s)<math>\\begin{equation\*}(.*?)\\end{equation\*}</math>',
                                     r'(?s)<displaymath>\\begin{edXmath}(.*?)\\end{edXmath}</displaymath>',
                                     r'(?s)<math>\\\[(.*?)\\\]</math>',
                                     ]
@@ -90,11 +92,14 @@ class MyRenderer(XHTML.Renderer):
             return "&nbsp;"
         return '[mathjax]%s[/mathjax]' % x
         
-    filter_fix_displaymathverbatim_match = r'(?s)<displaymathverbatim>\\begin{edXmath}(.*?)\\end{edXmath}</displaymathverbatim>'
+    filter_fix_displaymathverbatim_match = [r'(?s)<displaymathverbatim>\\begin{edXmath}(.*?)\\end{edXmath}</displaymathverbatim>',
+                                            r'(?s)<displaymathverbatim>\\edXmath(.*?)</displaymathverbatim>',
+                                            ]
 
     @classmethod
     def filter_fix_displaymathverbatim(cls, m):
-        return '[mathjax]%s[/mathjax]' % escape(m.group(1).strip())
+        x = escape(m.group(1).strip())
+        return '[mathjax]%s[/mathjax]' % x.replace('\\end{edXmath}', '')
 
     filter_fix_image_match = '<includegraphics style="(.*?)">(.*?)</includegraphics>'
 
@@ -379,6 +384,7 @@ class plastex2xhtml(object):
                            'edXtext',
                            'edXproblem',
                            'edXsolution',
+                           'edXshowhide',
                            ]
 
         newstring = []

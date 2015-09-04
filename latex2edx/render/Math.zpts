@@ -1,10 +1,11 @@
 name: math ensuremath
 <math tal:content='self/source'></math>
 
-name: displaymath equation
+name: displaymath equation equation*
 <table class="equation" width="100%" tal:attributes="id self/id" cellspacing="0" cellpadding="7">
 <tr>
-    <td class='equation'><math tal:content='self/source'></math></td>
+    <td class='equation' style="width:80%"><math tal:content='self/source'></math></td>
+    <td class="eqnnum" style="width:20%"><span tal:condition="self/ref">(<span tal:content="self/ref">1.1.1</span>)</span></td>
 </tr>
 </table>
 
