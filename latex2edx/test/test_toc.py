@@ -58,28 +58,26 @@ class TestToC(unittest.TestCase):
                                         re.S)[0], 'eq:pythagorean')
             tocfn = '%s/tabs/tocindex.html' % tmdir
             toc = etree.fromstring(open(tocfn).read().replace('<br>', '<br/>'))
-            toctitle = toc.find('.//h1')
-            self.assertEqual(toctitle.text, 'Table of Contents')
+            self.assertEqual(toc.findtext('body/h1'), 'Table of Contents')
             # Check the measurable outcome table headers
-            # table>tbody>tr>th>a>strong
-            toctabs = toc.findall('.//table')
-            self.assertEqual(toctabs[0][0][0][0][0][0].text, '0')
-            self.assertEqual(toctabs[1][0][0][0][0][0].text, 'MO1')
-            self.assertEqual(toctabs[2][0][0][0][0][0].text, 'MO2')
-            # table>tbody>tr>th>span
+            tocmos = toc.findall('.//table/tbody/tr/th/a')
+            self.assertEqual(tocmos[0][0].text, '0')
+            self.assertEqual(tocmos[1][0].text, 'MO1')
+            self.assertEqual(tocmos[2][0].text, 'MO2')
             self.assertIn('Explore the edX platform',
-                          toctabs[1][0][0][0][1].text)
+                          tocmos[1].getnext().text)
             self.assertIn('Answer an edX question',
-                          toctabs[2][0][0][0][1].text)
-            # check example 'Learn' link
-            self.assertEqual(toctabs[1][0][1][0][0].text, 'Learn')
-            self.assertIn('Example text', toctabs[1][0][1][0][1][0][0].text)
-            # check example 'Assess' link
-            self.assertEqual(toctabs[0][0][1][0][2].text, 'Assess')
-            self.assertIn('Example problem', toctabs[0][0][1][0][3][0][0].text)
-            self.assertIn('Example problem', toctabs[1][0][1][0][3][0][0].text)
-            self.assertIn('Example problem', toctabs[2][0][1][0][3][0][0].text)
-            # tocbod = toc.find('.//body')
+                          tocmos[2].getnext().text)
+            # check measurable outcomes subheadings
+            tocsubs = toc.find('.//table/tbody/tr/td')
+            self.assertEqual(tocsubs[0].text, 'Learn')
+            self.assertEqual(tocsubs[2].text, 'Assess')
+            # check reference to measurable outcomes
+            tocrefs = toc.findall('.//table/tbody/tr/td/ul/li/a')
+            self.assertIn('Example problem', tocrefs[0].text)
+            self.assertIn('Example text', tocrefs[1].text)
+            self.assertIn('Example problem', tocrefs[2].text)
+            self.assertIn('Example problem', tocrefs[3].text)
             self.assertEqual(toc[1][8].tag, 'br')
             self.assertIn('Module 1', toc[1][9][0].text)
 
@@ -139,19 +137,23 @@ class TestToC(unittest.TestCase):
 
             tocfn = '%s/tabs/tocindex.html' % tmdir
             toc = etree.fromstring(open(tocfn).read().replace('<br>', '<br/>'))
-            toctitle = toc.find('.//h1')
-            self.assertEqual(toctitle.text, 'Table of Contents')
-            toctabs = toc.findall('.//table')
-            self.assertEqual(toctabs[0][0][0][0][0][0].text, 'MO1.1')
-            self.assertEqual(toctabs[1][0][0][0][0][0].text, 'MO1.2')
-            self.assertIn('Follow a Lesson',
-                          toctabs[0][0][0][0][1].text)
-            self.assertEqual(toctabs[0][0][1][0][0].text, 'Learn')
-            self.assertIn('Example text', toctabs[0][0][1][0][1][0][0].text)
-            self.assertIn('Answer a problem set',
-                          toctabs[1][0][0][0][1].text)
-            self.assertEqual(toctabs[1][0][1][0][2].text, 'Assess')
-            self.assertIn('Problem Set 1', toctabs[1][0][1][0][3][0][0].text)
+            self.assertEqual(toc.findtext('body/h1'), 'Table of Contents')
+            # Check the measurable outcome table headers
+            tocmos = toc.findall('.//table/tbody/tr/th/a')
+            self.assertEqual(tocmos[0][0].text, 'MO1.1')
+            self.assertEqual(tocmos[1][0].text, 'MO1.2')
+            self.assertIn('Follow a Lesson', tocmos[0].getnext().text)
+            self.assertIn('Answer a problem set', tocmos[1].getnext().text)
+            # check measurable outcomes subheadings
+            tocsubs = toc.find('.//table/tbody/tr/td')
+            self.assertEqual(tocsubs[0].text, 'Learn')
+            self.assertEqual(tocsubs[2].text, 'Assess')
+            # check reference to measurable outcomes
+            tocref1 = toc.find('.//table/tbody/tr[@id="indmo1p1"]/td/ul/li/a')
+            self.assertIn('Example text', tocref1.text)
+            tocref2 = toc.find('.//table/tbody/tr[@id="indmo1p2"]/td/ul/li/a')
+            self.assertIn('Problem Set 1', tocref2.text)
+
 
 if __name__ == '__main__':
     unittest.main()
