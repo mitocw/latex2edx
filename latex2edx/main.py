@@ -474,7 +474,7 @@ class latex2edx(object):
             return
         # EVH: Build course map from tree.
         course = tree.find('.//course')
-        if len(course) == 0:
+        if course is None:
             return
         cnumber = course.get('number')
         # EVH: Navigate course and set a 'tmploc' attribute with location for desired items
