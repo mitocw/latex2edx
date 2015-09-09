@@ -50,7 +50,7 @@ name: edXdndtex
 <edxdndtex tal:attributes="linenum string:${self/attributes/linenum}; attrib_string self/attributes/attrib_string" tal:content='self'></edxdndtex>
 
 name: edXsolution
-<solution><font color="blue">Answer: </font><font color="blue" tal:content='self'></font></solution>
+<solution><p><b>Solution:</b></p><span tal:content='self'></span></solution>
 
 name: edXscript
 <script type="text/python" system_path="python_lib" tal:attributes="linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}" tal:content='self'></script>
