@@ -1555,6 +1555,8 @@ class latex2edx(object):
                '[': 'LB_',
                ']': '_RB',
                '?#* ': '_',
+               u'\u2013': '-',
+               u'\u2014': '-',
                }
         if not self.allow_dirs:
             map['/'] = '_'
