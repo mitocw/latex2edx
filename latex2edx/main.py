@@ -657,7 +657,7 @@ class latex2edx(object):
                 toclist.append(labelref)
                 tocdict[labelref] = [locstr, ptext]
                 # Change URL to point to the ToC location
-                labeldict[labelref][0] = ('../tocindex#anchor{}'.
+                labeldict[labelref][0] = ('../tocindex/#anchor{}'.
                                           format(labeldict[labelref][1].
                                                  upper().replace(r'.', 'p').
                                                  replace(':', '')))
