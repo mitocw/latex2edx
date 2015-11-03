@@ -582,7 +582,8 @@ class latex2edx(object):
                 # TODO: Find example and investigate how to refine (as above)
                 fig.set('id', 'fig{}'.format(fignum))
                 figattrib[figlabel] = {
-                    'href': '{}/#fig{}'.format(mapdict[locstr][0], fignum)}
+                    'href': '{}#fig{}'.format(mapdict[locstr][0], fignum),
+                    'onClick': 'location.reload()'}
                 if self.popup_flag:
                     imgsrcs = []
                     for img in fig.findall('.//img'):
@@ -931,8 +932,9 @@ class latex2edx(object):
                     # EVH: Set id for linking if pop-up flag is False
                     tr.set('id', 'eqn{}'.format(eqnnum.replace('.', 'p')))
                     eqnattrib[eqnlabel] = {
-                        'href': '{}/#eqn{}'.format(mapdict[locstr][0],
-                                                   eqnnum.replace('.', 'p'))}
+                        'href': '{}#eqn{}'.format(mapdict[locstr][0],
+                                                  eqnnum.replace('.', 'p')),
+                        'onClick': 'location.reload()'}
                 if self.popup_flag and len(eqnlabel) != 0:
                     eqnattrib[eqnlabel]['href'] = 'javascript: void(0)'
                     eqntablecontent = (etree.tostring(
