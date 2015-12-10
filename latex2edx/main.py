@@ -1705,11 +1705,15 @@ def CommandLine():
     fn = args[0]
 
     config = DEFAULT_CONFIG
+    extra_xml_filters = []
     # load local configuration file if available
     if os.path.exists(opts.config_file):
         import imp
+        # prepend the config file's directory to the path to allow local imports inside it
+        sys.path.insert(0, os.path.dirname(opts.config_file))
         cf = imp.load_source('config_file', opts.config_file)
         config.update(getattr(cf, 'local_config', {}))
+        extra_xml_filters.extend(getattr(cf, 'extra_xml_filters', []))
 
     c = latex2edx(fn, verbose=opts.verbose, output_fn=opts.output_fn,
                   output_dir=opts.output_dir,
@@ -1722,5 +1726,6 @@ def CommandLine():
                   units_only=opts.units_only,
                   popup_flag=opts.popups,
                   allow_dirs=opts.allow_dirs,
+                  extra_xml_filters=extra_xml_filters,
                   )
     c.convert()
