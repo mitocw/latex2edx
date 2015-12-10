@@ -1707,8 +1707,9 @@ def CommandLine():
     config = DEFAULT_CONFIG
     # load local configuration file if available
     if os.path.exists(opts.config_file):
-        lc = __import__(opts.config_file, fromlist=['local_config'])
-        config.update(lc.local_config)
+        import imp
+        cf = imp.load_source('config_file', opts.config_file)
+        config.update(getattr(cf, 'local_config', {}))
 
     c = latex2edx(fn, verbose=opts.verbose, output_fn=opts.output_fn,
                   output_dir=opts.output_dir,
