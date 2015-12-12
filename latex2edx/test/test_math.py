@@ -26,7 +26,7 @@ class TestMath(unittest.TestCase):
             os.chdir(tmdir)
             fp = MakeTeX(r'$\frac{\alpha}{\sqrt{1+\beta}}$').fp
             l2e = latex2edx(tmdir + '/test.tex', fp=fp, do_images=False, output_dir=tmdir)
-            self.assertIn(r'<div>[mathjaxinline]\frac{\alpha }{\sqrt {1+\beta }}[/mathjaxinline]</div>', l2e.xhtml)
+            self.assertIn(r'<div>[mathjaxinline]\frac{\alpha}{\sqrt{1+\beta}}[/mathjaxinline]</div>', l2e.xhtml.replace(' ', ''))
 
     def test_math2(self):
         with make_temp_directory() as tmdir:

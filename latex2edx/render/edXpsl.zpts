@@ -16,6 +16,9 @@ name: edXsequential edXsequential*
 name: edXconditional
 <conditional tal:attributes='display_name self/attributes/display_name; attrib_string string:${self/attributes/attrib_string}' tal:content='self'></conditional>
 
+name: edXlti
+<lti tal:attributes='display_name self/attributes/display_name; launch_url self/attributes/launch_url; lti_id self/attributes/lti_id; attrib_string string:${self/attributes/attrib_string}' tal:content='self'></lti>
+
 name: edXproblem
 <problem tal:attributes='display_name self/attributes/display_name; attrib_string self/attributes/attrib_string; linenum string:${self/attributes/linenum}; tex_filename string:${self/attributes/filename}'><text tal:content='self'></text></problem>
 
@@ -47,7 +50,7 @@ name: edXdndtex
 <edxdndtex tal:attributes="linenum string:${self/attributes/linenum}; attrib_string self/attributes/attrib_string" tal:content='self'></edxdndtex>
 
 name: edXsolution
-<solution><font color="blue">Answer: </font><font color="blue" tal:content='self'></font></solution>
+<solution><p><b>Solution:</b></p><span tal:content='self'></span></solution>
 
 name: edXscript
 <script type="text/python" system_path="python_lib" tal:attributes="linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}" tal:content='self'></script>
@@ -101,8 +104,7 @@ name: index
 <index tal:content='self'></index>
 
 name: href
-<a tal:condition="python:len(self)" target="_blank" tal:attributes="href string:${self/attributes/url}" tal:content='self'></a>
-<a tal:condition="python:len(self)==0" target="_blank" tal:attributes="href string:${self/attributes/url}" tal:content='self/attributes/url'></a>
+<a tal:condition="python:len(self)" target="_blank" tal:attributes="href string:${self/attributes/url}" tal:content='self'></a><a tal:condition="python:len(self)==0" target="_blank" tal:attributes="href string:${self/attributes/url}" tal:content='self/attributes/url'></a>
 
 name: textwidth
 \textwidth
