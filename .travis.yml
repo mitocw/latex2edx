@@ -7,8 +7,8 @@ before_install:
   - sudo apt-get install libxml2-utils dvipng texlive texlive-latex-extra poppler-utils
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
-  - ./miniconda.sh -b
-  - export PATH=/home/travis/miniconda/bin:$PATH
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
   - conda update --yes conda
   # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
   - sudo rm -rf /dev/shm
@@ -19,7 +19,7 @@ before_install:
   - source activate condaenv
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy
-  - pip install -r requirements.txt --allow-unverified PyXML
+  - pip install -r requirements.txt
   - pip install -r test_requirements.txt
 script:  bash test.sh -q
 after_success:
