@@ -12,6 +12,7 @@
 # 23-Jan-13 ichuang: add multiple-line customresponse, with proper inline and math handling
 
 import os, sys, string, re
+import hashlib	# for unique abox ID
 # import shlex	# for split keeping quoted strings intact
 # import csv	# for splitting quoted options
 
@@ -160,6 +161,9 @@ class AnswerBox(object):
         s = aboxstr
         s = s.replace(' in_check= ', ' ')
 
+        # unique ID for this abox, using hash
+        aboxid = hashlib.sha1(aboxstr).hexdigest()[:10]
+
         # parse answer box arguments into dict
         abargs = self.abox_args(s)
         self.abargs = abargs
@@ -192,6 +196,7 @@ class AnswerBox(object):
             abtype = 'symbolicresponse'  # default
         
         abxml = etree.Element(abtype)
+        script_code = None
 
         if abtype == 'optionresponse':
             self.require_args(['expect'])
@@ -295,6 +300,38 @@ class AnswerBox(object):
                 raise Exception(msg)
                 # sys.exit(-1)
 
+            # if wrapclass defined, then use that class to transform "expect" and "ans"
+            # before it is processed by cfn
+            wrapclass = abargs.get('wrapclass', '')
+            if wrapclass:
+                code_lines = []
+                wid = "wrap_%s" % (aboxid)
+                code_lines.append("%s = %s" % (wid, wrapclass))
+                orig_answers = answers[:]	# copy of answers
+                new_answers = []
+                acnt = 0
+                # wrap displayed answers
+                for ans in answers:
+                    acnt += 1
+                    aid = "ans_%s_%d" % (aboxid, acnt)
+                    code_lines.append("%s = %s.answer('''%s''')" % (aid, wid,ans))
+                    new_answers.append("$%s" % aid)
+                answers = new_answers
+
+                # wrap expected answer
+                expect = abxml.get("expect")
+                code_lines.append("expect_%s = %s.answer('''%s''')" % (wid, wid, expect))
+                abxml.set("expect", "$expect_%s" % wid)
+
+                # wrap the check function
+                code_lines.append("")
+                code_lines.append("@%s.grader" % wid)
+                code_lines.append("def cfn_%s(expect, ans):" % wid)
+                code_lines.append("    return %s(expect, ans)" % abxml.get('cfn'))
+                abxml.set("cfn", "cfn_%s" % wid)	# use wrapped check function
+
+                script_code = '\n'.join(code_lines)
+
             cnt = 0
             for ans, prompt in zip(answers, prompts):
                 if 'rows' in abargs:
@@ -344,8 +381,37 @@ class AnswerBox(object):
             tb = etree.Element('textbox')
             self.copy_attrib(abargs, 'rows', tb)
             self.copy_attrib(abargs, 'cols', tb)
+            self.copy_attrib(abargs, 'mode', tb)
+            self.copy_attrib(abargs, 'tabsize', tb)
             self.copy_attrib(abargs, 'tests', abxml)
+            self.copy_attrib(abargs, 'queuename', abxml)
             abxml.append(tb)
+            if abtype=="coderesponse":
+                #
+                # sample coderesponse:
+                #   <coderesponse queuename="MITx-42.01x">
+                #       <textbox rows="10" cols="80" mode="python" tabsize="4"/>
+                #       <codeparam>
+                #           <initial_display>
+                #             # students please write your program here
+                #             print ""
+                #           </initial_display>
+                #           <answer_display>
+                #             print "hello world"
+                #           </answer_display>
+                #           <grader_payload>
+                #           {"output": "hello world", "max_length": 2}
+                #           </grader_payload>
+                #       </codeparam>
+                #   </coderesponse>
+                #
+                cp = etree.SubElement(abxml, "codeparam")
+                cp_id = etree.SubElement(cp, "initial_display")
+                cp_id.text = abargs.get("initial_display", "")
+                cp_ad = etree.SubElement(cp, "answer_display")
+                cp_ad.text = abargs.get("answer_display", "")
+                cp_gp = etree.SubElement(cp, "grader_payload")
+                cp_gp.text = abargs.get("grader_payload", "")
             # turn script to <answer> later
 
         elif abtype == 'numericalresponse':
@@ -452,10 +518,22 @@ class AnswerBox(object):
             hint_extras += '<script type="text/python">\n%s = HintSystem(hints=%s).check_hint\n</script>\n' % (hintfn, hints)
         self.hint_extras = hint_extras
 
-        s = etree.tostring(abxml, pretty_print=True)
-        s = re.sub('(?ms)<html>(.*)</html>', '\\1', s)
+        xml_str = etree.tostring(abxml, pretty_print=True)
+        xml_str = re.sub('(?ms)<html>(.*)</html>', '\\1', xml_str)
         # print s
-        return etree.XML(s)
+
+        if script_code:
+            code_str = '<script type="text/python" system_path="python_lib">\n'
+            code_str += "<![CDATA[\n"
+            code_str += script_code
+            code_str += "\n]]>\n</script>\n"
+            xml_str = "<span>%s\n%s</span>" % (xml_str, code_str)
+            print "script code!"
+            print xml_str
+
+        the_xml = etree.XML(xml_str)
+
+        return the_xml
 
     def get_options(self, abargs, arg='options'):
         optstr = abargs[arg]			# should be double quoted strings, comma delimited
