@@ -306,6 +306,9 @@ class AnswerBox(object):
             if wrapclass:
                 code_lines = []
                 wid = "wrap_%s" % (aboxid)
+                the_import = abargs.get("import", "")
+                if the_import:
+                    code_lines.append("import %s" % the_import)
                 code_lines.append("%s = %s" % (wid, wrapclass))
                 orig_answers = answers[:]	# copy of answers
                 new_answers = []
@@ -326,8 +329,8 @@ class AnswerBox(object):
                 # wrap the check function
                 code_lines.append("")
                 code_lines.append("@%s.grader" % wid)
-                code_lines.append("def cfn_%s(expect, ans):" % wid)
-                code_lines.append("    return %s(expect, ans)" % abxml.get('cfn'))
+                code_lines.append("def cfn_%s(expect, ans, **kwargs):" % wid)
+                code_lines.append("    return %s(expect, ans, **kwargs)" % abxml.get('cfn'))
                 abxml.set("cfn", "cfn_%s" % wid)	# use wrapped check function
 
                 script_code = '\n'.join(code_lines)
