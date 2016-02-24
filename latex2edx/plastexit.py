@@ -59,6 +59,7 @@ class MyRenderer(XHTML.Renderer):
     @staticmethod
     def fix_math_common(m, removenl=True):
         x = m.group(1).strip()
+        x = x.replace('\\$ ','$')	# dollar sign must be escaped in plasTeX, but shouldn't be in XML
         x = x.replace(u'\u2019',"'")
         x = x.decode('ascii','ignore')
         x = x.replace('\\ensuremath','')
