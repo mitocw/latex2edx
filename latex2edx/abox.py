@@ -20,7 +20,7 @@ from lxml import etree
 
 
 class AnswerBox(object):
-    def __init__(self, aboxstr, context=None, verbose=False):
+    def __init__(self, aboxstr, config=None, context=None, verbose=False):
         '''
         Parse a TUT abox and produce edX XML for a problem responsetype.
 
@@ -153,6 +153,10 @@ class AnswerBox(object):
         self.aboxstr = aboxstr
         self.context = context
         self.verbose = verbose
+        if config is None:
+            self.config = {}
+        else:
+            self.config = config
         self.xml = self.abox2xml(aboxstr)
         self.xmlstr = self.hint_extras + etree.tostring(self.xml)
         
@@ -182,6 +186,7 @@ class AnswerBox(object):
                          'symbolic': 'symbolicresponse',
                          'image': 'imageresponse',
                          'jsinput': 'customresponse_jsinput',
+                         'config': 'config',	# special for setting default config parameters
                          }
 
         if 'type' in abargs and abargs['type'] in type2response:
@@ -197,6 +202,13 @@ class AnswerBox(object):
         
         abxml = etree.Element(abtype)
         script_code = None
+
+        # if config specifies default parameters for this type of answer box, then use them
+        if abtype in self.config:
+            for k,v in self.config[abtype].iteritems():
+                if k not in self.abargs:
+                    self.abargs[k] = v
+            print "abargs = ", abargs
 
         if abtype == 'optionresponse':
             self.require_args(['expect'])
@@ -503,6 +515,21 @@ class AnswerBox(object):
             self.copy_attrib(abargs, 'height', ii)
             self.copy_attrib(abargs, 'rectangle', ii)
             abxml.append(ii)
+
+        elif abtype=="config":
+            '''
+            Special case, used to set default configuration parameters.  Usage:
+
+            \edXabox{type='config' for="custom" wrapclass="my_wrapper"}
+            '''
+            abxml = etree.Element("span")	# make this empty
+            cfor = abargs.get('for')
+            if cfor and cfor in type2response:
+                params = abargs.copy()
+                params.pop('type')
+                params.pop('for')
+                self.config[type2response[cfor]] = params
+                print "[abox.py] Setting default parameters for %s to %s" % (cfor, params)
  
         # has hint function?
         if 'hintfn' in abargs:
@@ -680,3 +707,33 @@ def split_args_with_quoted_strings(command_line, checkfn=None):
     if arg != '':
         arg_list.append(arg)
     return arg_list
+
+#-----------------------------------------------------------------------------
+
+def test_abox1():
+    ab = AnswerBox('type="option" expect="float" options=" ","noneType","int","float"')
+    print ab.xmlstr
+    assert('''<optioninput options="('noneType','int','float')" correct="float"/>''' in ab.xmlstr)
+
+def test_abox2():
+    config = {}
+    ab = AnswerBox('type="config" for="custom" wrapclass=mywrap.wrap(debug=True) import=mywrap', config=config)
+    print ab.xmlstr
+    print "config=%s" % config
+    assert('''<span/>''' in ab.xmlstr)
+    assert('customresponse' in config)
+
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
+    print ab.xmlstr
+    assert('''def cfn_wrap_''' in ab.xmlstr)
+
+    # unset defaults
+    ab = AnswerBox('type="config" for="custom"', config=config)
+    print ab.xmlstr
+    print "config=%s" % config
+    assert('''<span/>''' in ab.xmlstr)
+    assert('customresponse' in config)
+
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
+    print ab.xmlstr
+    assert('''def cfn_wrap_''' not in ab.xmlstr)
