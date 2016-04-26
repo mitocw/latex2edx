@@ -333,7 +333,7 @@ class AnswerBox(object):
                 abxml.set('cfn_extra_args', 'options')  # tells sandbox to include 'options' in cfn call arguments
 
             js = etree.Element('jsinput')
-            jsattribs = ['width', 'height', 'gradefn', 'get_statefn', 'set_statefn', 'html_file']
+            jsattribs = ['width', 'height', 'gradefn', 'get_statefn', 'set_statefn', 'html_file', 'sop']
             for jsa in jsattribs:
                 self.copy_attrib(abargs, jsa, js)
             abxml.append(js)
