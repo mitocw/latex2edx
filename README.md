@@ -6,7 +6,7 @@ latex2edx
 [![PyPi Version](http://img.shields.io/pypi/v/latex2edx.svg?style=flat)](https://pypi.python.org/pypi/latex2edx)
 [![License AGPLv3](http://img.shields.io/badge/license-AGPv3-blue.svg?style=flat)](http://www.gnu.org/licenses/agpl-3.0.html)
 
-This is version 1.3 of the open-source latex2edx compiler for
+This is version 1.4.1 of the open-source latex2edx compiler for
 generating interactive MITx / edX courses from LaTeX
 
 ![latex2edx logo](https://raw.github.com/mitocw/latex2edx/master/docs/images/latex2edx-logo.png)
@@ -38,6 +38,8 @@ and detailed documentation:
 
    http://mitocw.github.io/latex2edx/html/index.html
 
+Version 1.4 adds the edXlti macro, provides better edXshowhide operation, 
+adds the coderesponse answer box type, adds wrapclass functionality for abox
 
 Requirements
 ============
