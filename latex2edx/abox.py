@@ -166,7 +166,10 @@ class AnswerBox(object):
         s = s.replace(' in_check= ', ' ')
 
         # unique ID for this abox, using hash
-        aboxid = hashlib.sha1(aboxstr).hexdigest()[:10]
+        try:
+            aboxid = hashlib.sha1(aboxstr).hexdigest()[:10]
+        except Exception as err:
+            aboxid = hashlib.sha1(aboxstr.encode('utf8')).hexdigest()[:10]
 
         # parse answer box arguments into dict
         abargs = self.abox_args(s)
