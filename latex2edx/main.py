@@ -885,7 +885,8 @@ class latex2edx(object):
         eqncnt = 0
         for table in tree.xpath('.//table[@class="equation"]|'
                                 './/table[@class="eqnarray"]'):
-            locstr = table.attrib.pop('tmploc')
+            if 'tmploc' in table.attrib:
+                locstr = table.attrib.pop('tmploc')
             if not locstr:
                 continue
             locref = mapdict[locstr][2]
@@ -1071,9 +1072,9 @@ class latex2edx(object):
                 if 'settings' in args:
                     args.pop('settings')
                     self.askta_data.update(args)
-                    # print "askTA settings updated: %s" % self.askta_data
+                    print "askTA settings updated: %s" % self.askta_data
                     # remove this element from xml tree
-                    self.remove_parent_p(askta)
+                    # self.remove_parent_p(askta)
                     p = askta.getparent()
                     p.remove(askta)
                     continue

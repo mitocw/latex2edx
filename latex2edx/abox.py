@@ -12,6 +12,7 @@
 # 23-Jan-13 ichuang: add multiple-line customresponse, with proper inline and math handling
 
 import os, sys, string, re
+import hashlib	# for unique abox ID
 # import shlex	# for split keeping quoted strings intact
 # import csv	# for splitting quoted options
 
@@ -19,7 +20,7 @@ from lxml import etree
 
 
 class AnswerBox(object):
-    def __init__(self, aboxstr, context=None, verbose=False):
+    def __init__(self, aboxstr, config=None, context=None, verbose=False):
         '''
         Parse a TUT abox and produce edX XML for a problem responsetype.
 
@@ -152,6 +153,10 @@ class AnswerBox(object):
         self.aboxstr = aboxstr
         self.context = context
         self.verbose = verbose
+        if config is None:
+            self.config = {}
+        else:
+            self.config = config
         self.xml = self.abox2xml(aboxstr)
         self.xmlstr = self.hint_extras + etree.tostring(self.xml)
         
@@ -159,6 +164,12 @@ class AnswerBox(object):
         if aboxstr.startswith('abox '): aboxstr = aboxstr[5:]
         s = aboxstr
         s = s.replace(' in_check= ', ' ')
+
+        # unique ID for this abox, using hash
+        try:
+            aboxid = hashlib.sha1(aboxstr).hexdigest()[:10]
+        except Exception as err:
+            aboxid = hashlib.sha1(aboxstr.encode('utf8')).hexdigest()[:10]
 
         # parse answer box arguments into dict
         abargs = self.abox_args(s)
@@ -178,6 +189,7 @@ class AnswerBox(object):
                          'symbolic': 'symbolicresponse',
                          'image': 'imageresponse',
                          'jsinput': 'customresponse_jsinput',
+                         'config': 'config',	# special for setting default config parameters
                          }
 
         if 'type' in abargs and abargs['type'] in type2response:
@@ -192,6 +204,14 @@ class AnswerBox(object):
             abtype = 'symbolicresponse'  # default
         
         abxml = etree.Element(abtype)
+        script_code = None
+
+        # if config specifies default parameters for this type of answer box, then use them
+        if abtype in self.config:
+            for k,v in self.config[abtype].iteritems():
+                if k not in self.abargs:
+                    self.abargs[k] = v
+            print "abargs = ", abargs
 
         if abtype == 'optionresponse':
             self.require_args(['expect'])
@@ -295,6 +315,41 @@ class AnswerBox(object):
                 raise Exception(msg)
                 # sys.exit(-1)
 
+            # if wrapclass defined, then use that class to transform "expect" and "ans"
+            # before it is processed by cfn
+            wrapclass = abargs.get('wrapclass', '')
+            if wrapclass:
+                code_lines = []
+                wid = "wrap_%s" % (aboxid)
+                the_import = abargs.get("import", "")
+                if the_import:
+                    code_lines.append("import %s" % the_import)
+                code_lines.append("%s = %s" % (wid, wrapclass))
+                orig_answers = answers[:]	# copy of answers
+                new_answers = []
+                acnt = 0
+                # wrap displayed answers
+                for ans in answers:
+                    acnt += 1
+                    aid = "ans_%s_%d" % (aboxid, acnt)
+                    code_lines.append("%s = %s.answer('''%s''')" % (aid, wid,ans))
+                    new_answers.append("$%s" % aid)
+                answers = new_answers
+
+                # wrap expected answer
+                expect = abxml.get("expect")
+                code_lines.append("expect_%s = %s.answer('''%s''')" % (wid, wid, expect))
+                abxml.set("expect", "$expect_%s" % wid)
+
+                # wrap the check function
+                code_lines.append("")
+                code_lines.append("@%s.grader" % wid)
+                code_lines.append("def cfn_%s(expect, ans, **kwargs):" % wid)
+                code_lines.append("    return %s(expect, ans, **kwargs)" % abxml.get('cfn'))
+                abxml.set("cfn", "cfn_%s" % wid)	# use wrapped check function
+
+                script_code = '\n'.join(code_lines)
+
             cnt = 0
             for ans, prompt in zip(answers, prompts):
                 if 'rows' in abargs:
@@ -344,8 +399,37 @@ class AnswerBox(object):
             tb = etree.Element('textbox')
             self.copy_attrib(abargs, 'rows', tb)
             self.copy_attrib(abargs, 'cols', tb)
+            self.copy_attrib(abargs, 'mode', tb)
+            self.copy_attrib(abargs, 'tabsize', tb)
             self.copy_attrib(abargs, 'tests', abxml)
+            self.copy_attrib(abargs, 'queuename', abxml)
             abxml.append(tb)
+            if abtype=="coderesponse":
+                #
+                # sample coderesponse:
+                #   <coderesponse queuename="MITx-42.01x">
+                #       <textbox rows="10" cols="80" mode="python" tabsize="4"/>
+                #       <codeparam>
+                #           <initial_display>
+                #             # students please write your program here
+                #             print ""
+                #           </initial_display>
+                #           <answer_display>
+                #             print "hello world"
+                #           </answer_display>
+                #           <grader_payload>
+                #           {"output": "hello world", "max_length": 2}
+                #           </grader_payload>
+                #       </codeparam>
+                #   </coderesponse>
+                #
+                cp = etree.SubElement(abxml, "codeparam")
+                cp_id = etree.SubElement(cp, "initial_display")
+                cp_id.text = abargs.get("initial_display", "")
+                cp_ad = etree.SubElement(cp, "answer_display")
+                cp_ad.text = abargs.get("answer_display", "")
+                cp_gp = etree.SubElement(cp, "grader_payload")
+                cp_gp.text = abargs.get("grader_payload", "")
             # turn script to <answer> later
 
         elif abtype == 'numericalresponse':
@@ -434,6 +518,21 @@ class AnswerBox(object):
             self.copy_attrib(abargs, 'height', ii)
             self.copy_attrib(abargs, 'rectangle', ii)
             abxml.append(ii)
+
+        elif abtype=="config":
+            '''
+            Special case, used to set default configuration parameters.  Usage:
+
+            \edXabox{type='config' for="custom" wrapclass="my_wrapper"}
+            '''
+            abxml = etree.Element("span")	# make this empty
+            cfor = abargs.get('for')
+            if cfor and cfor in type2response:
+                params = abargs.copy()
+                params.pop('type')
+                params.pop('for')
+                self.config[type2response[cfor]] = params
+                print "[abox.py] Setting default parameters for %s to %s" % (cfor, params)
  
         # has hint function?
         if 'hintfn' in abargs:
@@ -452,10 +551,22 @@ class AnswerBox(object):
             hint_extras += '<script type="text/python">\n%s = HintSystem(hints=%s).check_hint\n</script>\n' % (hintfn, hints)
         self.hint_extras = hint_extras
 
-        s = etree.tostring(abxml, pretty_print=True)
-        s = re.sub('(?ms)<html>(.*)</html>', '\\1', s)
+        xml_str = etree.tostring(abxml, pretty_print=True)
+        xml_str = re.sub('(?ms)<html>(.*)</html>', '\\1', xml_str)
         # print s
-        return etree.XML(s)
+
+        if script_code:
+            code_str = '<script type="text/python" system_path="python_lib">\n'
+            code_str += "<![CDATA[\n"
+            code_str += script_code
+            code_str += "\n]]>\n</script>\n"
+            xml_str = "<span>%s\n%s</span>" % (xml_str, code_str)
+            print "script code!"
+            print xml_str
+
+        the_xml = etree.XML(xml_str)
+
+        return the_xml
 
     def get_options(self, abargs, arg='options'):
         optstr = abargs[arg]			# should be double quoted strings, comma delimited
@@ -599,3 +710,33 @@ def split_args_with_quoted_strings(command_line, checkfn=None):
     if arg != '':
         arg_list.append(arg)
     return arg_list
+
+#-----------------------------------------------------------------------------
+
+def test_abox1():
+    ab = AnswerBox('type="option" expect="float" options=" ","noneType","int","float"')
+    print ab.xmlstr
+    assert('''<optioninput options="('noneType','int','float')" correct="float"/>''' in ab.xmlstr)
+
+def test_abox2():
+    config = {}
+    ab = AnswerBox('type="config" for="custom" wrapclass=mywrap.wrap(debug=True) import=mywrap', config=config)
+    print ab.xmlstr
+    print "config=%s" % config
+    assert('''<span/>''' in ab.xmlstr)
+    assert('customresponse' in config)
+
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
+    print ab.xmlstr
+    assert('''def cfn_wrap_''' in ab.xmlstr)
+
+    # unset defaults
+    ab = AnswerBox('type="config" for="custom"', config=config)
+    print ab.xmlstr
+    print "config=%s" % config
+    assert('''<span/>''' in ab.xmlstr)
+    assert('customresponse' in config)
+
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
+    print ab.xmlstr
+    assert('''def cfn_wrap_''' not in ab.xmlstr)
