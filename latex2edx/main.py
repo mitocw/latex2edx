@@ -897,7 +897,7 @@ class latex2edx(object):
                 eqnnumcell = None
                 eqnlabel = []
                 for td in tr.findall('.//td'):
-                    if td.get('class') == 'eqnnum':
+                    if td.get('class') == 'eqnnum' and td.text != u'\u00A0':
                         eqnnumcell = td
                         # EVH: Use plasTeX output to handle equation numbering
                         eqncnt += 1
