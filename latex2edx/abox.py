@@ -145,6 +145,18 @@ class AnswerBox(object):
         </customresponse>
 
         -----------------------------------------------------------------------------
+        Unit tests:
+
+        Unit tests for answer boxes can be generated with latex2edx and aboxes, by using
+        arguments test_pass, test_fail, and test_spec, e.g.
+
+        \edXabox{type="custom" expect=10 cfn=mytest test_fail=12 test_pass=10}
+
+        should generate two unit test caes for the answer box - one which is expected 
+        to be graded "incorrect" (the test_fail case), and one which is expected
+        to be graded "correct" (the test_pass case).
+
+        -----------------------------------------------------------------------------
 
         context is used for error reporting, and provides context like the line number and
         filename where the abox is located.
@@ -153,12 +165,16 @@ class AnswerBox(object):
         self.aboxstr = aboxstr
         self.context = context
         self.verbose = verbose
+        self.tests = []
+        self.has_test_pass = False
         if config is None:
             self.config = {}
         else:
             self.config = config
         self.xml = self.abox2xml(aboxstr)
-        self.xmlstr = self.hint_extras + etree.tostring(self.xml)
+        self.xmlstr_no_hints = etree.tostring(self.xml)
+        self.xmlstr = self.hint_extras + self.xmlstr_no_hints
+        self.xmlstr_no_hints = self.xmlstr_no_hints.strip()	# cannonicalize, since it's may be used as a key 
         
     def abox2xml(self, aboxstr):
         if aboxstr.startswith('abox '): aboxstr = aboxstr[5:]
@@ -217,11 +233,20 @@ class AnswerBox(object):
             self.require_args(['expect'])
             oi = etree.Element('optioninput')
             optionstr, options = self.get_options(abargs)
+            expected = self.stripquotes(abargs['expect'])
             oi.set('options', optionstr)
-            oi.set('correct', self.stripquotes(abargs['expect']))
+            oi.set('correct', expected)
             abxml.append(oi)
             self.copy_attrib(abargs, 'inline', abxml)
             self.copy_attrib(abargs, 'inline', oi)
+            try:
+                expect_idx = options.index(expected)
+            except Exception as err:
+                raise Exception("[abox] Error: expected=%s is not one of the options=%s for aboxstr=%s" % (expected, options, aboxstr))
+            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
+                self.tests.append({'responses': [expected],
+                                   'expected': ['correct'],
+                                   })
             
         if abtype == 'multiplechoiceresponse':
             self.require_args(['expect', 'options'])
@@ -230,12 +255,19 @@ class AnswerBox(object):
             optionstr, options = self.get_options(abargs)
             expectstr, expectset = self.get_options(abargs, arg='expect')
             cnt = 1
+            correctset = []
             for op in options:
                 choice = etree.SubElement(cg, 'choice')
                 choice.set('correct', 'true' if op in expectset else 'false')
                 choice.set('name', str(cnt))
                 choice.append(etree.XML("<text> %s</text>" % op))
+                if op in expectset:
+                    correctset.append(cnt)
                 cnt += 1
+            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
+                self.tests.append({'responses': ["choice_%d" % x for x in correctset],
+                                   'expected': ['correct'] * len(correctset),
+                                   })
             
         if abtype == 'choiceresponse':
             self.require_args(['expect', 'options'])
@@ -243,6 +275,7 @@ class AnswerBox(object):
             optionstr, options = self.get_options(abargs)
             expectstr, expects = self.get_options(abargs, 'expect')
             cnt = 1
+            correctset = []
             if self.verbose:
                 print "[abox.py] oldmultichoice: options=/%s/, expects=/%s/" % (options, expects)
             for op in options:
@@ -250,7 +283,13 @@ class AnswerBox(object):
                 choice.set('correct', 'true' if (op in expects) else 'false')
                 choice.set('name', str(cnt))
                 choice.append(etree.XML("<text>%s</text>" % op))
+                if op in expects:
+                    correctset.append(cnt)
                 cnt += 1
+            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
+                self.tests.append({'responses': ["choice_%d" % x for x in correctset],
+                                   'expected': ['correct'] * len(correctset),
+                                   })
 
         elif abtype == 'shortanswerresponse':
             print "[latex2html.abox] Warning - short answer response quite yet implemented in edX!"
@@ -377,6 +416,12 @@ class AnswerBox(object):
                     abxml.append(etree.Element('br'))   # linebreak between boxes if multiple
                 abxml.append(elem)
                 cnt += 1
+
+            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
+                self.tests.append({'responses': answers,
+                                   'expected': ['correct'] * len(answers),
+                                   'box_indexes': zip([0]*len(answers), range(len(answers))),
+                                   })
                     
         elif abtype == 'customresponse_jsinput':
             abxml.tag = 'customresponse'
@@ -575,7 +620,6 @@ class AnswerBox(object):
         if not optstr.startswith('"') and not optstr.startswith("'"):
             optraw = repr(optstr)
             optstr = optraw[0] + optstr + optraw[0]
-        # options = [c for c in csv.reader([optstr])][0]	# turn into list of strings
         options = split_args_with_quoted_strings(optstr, lambda(x): x == ',')		# turn into list of strings
         options = map(self.stripquotes, options)
         options = [x.strip() for x in options]		# strip strings
@@ -595,9 +639,42 @@ class AnswerBox(object):
                 raise Exception(msg)
                 # sys.exit(-1)
             
+    def process_test_arg(self, key, val):
+        '''
+        Record a unit test case.  These are specified by arguments like test_pass=...
+        test_fail=..., test_spec=...
+        '''
+        test_args = map(self.stripquotes, split_args_with_quoted_strings(val, lambda(x): x == ','))
+        if key=="test_spec":
+            nargs = len(test_args)
+            if not (nargs&1==0):
+                raise Exception("[abox] test_spec must be given with an even number of subarguments, specifying equal number of responses and expected grader outputs")
+            responses = test_args[:nargs/2]
+            expected = test_args[nargs/2:]
+            if 'correct' in expected:
+                self.has_test_pass = True
+        elif key=="test_pass":
+            responses = test_args
+            expected = "correct"
+            self.has_test_pass = True
+        elif key=="test_fail":
+            responses = test_args
+            expected = "incorrect"
+        else:
+            raise Exception("[abox] unknown test argument key %s" % key)
+        test = {'responses': responses, 
+                'expected': expected,
+                'box_indexes': zip([0]*len(responses), range(len(responses))),
+        }
+        self.tests.append(test)
+
     def abox_args(self, s):
         '''
         Parse arguments of abox.  Splits by space delimitation.
+
+        Test-spec argument keys are handled specially: test_*=...
+        Arguments with those keys are stored in self.tests ; they may be used
+        by the caller to construct answer box unit tests and course unit tests.
         '''
         s = s.replace(u'\u2019', "'")
         try:
@@ -614,9 +691,14 @@ class AnswerBox(object):
 
         if '' in abargstxt:
             abargstxt.remove('')
-            
+
+        abargs = {}
         try:
-            abargs = dict([x.split('=', 1) for x in abargstxt])
+            for key, val in [x.split('=', 1) for x in abargstxt]:
+                if key.startswith("test_"):
+                    self.process_test_arg(key, val)
+                else:
+                    abargs[key] = val
         except Exception, err:
             print "Error %s" % err
             print "Failed in parsing args = %s" % s
@@ -643,7 +725,6 @@ class AnswerBox(object):
 
         
 def split_args_with_quoted_strings(command_line, checkfn=None):
-
     """from pexpect.py
     This splits a command line into a list of arguments. It splits arguments
     on spaces, but handles embedded quotes, doublequotes, and escaped
@@ -740,3 +821,89 @@ def test_abox2():
     ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
     print ab.xmlstr
     assert('''def cfn_wrap_''' not in ab.xmlstr)
+
+def test_abox_unit_test1():
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10')
+    assert(ab.tests[0]['responses']==['10'])
+
+def test_abox_unit_test2():
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10 test_fail=3')
+    assert(len(ab.tests)==2)
+    assert(ab.tests[0]['responses']==['10'])
+
+def test_abox_unit_test3():
+    the_err = None
+    try:
+        ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10 test_fail=3 test_bad=5')
+    except Exception as err:
+        the_err = err
+    assert "unknown test argument key" in str(the_err)
+
+def test_abox_unit_test4():
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10 test_fail=3 test_pass=11')
+    print ab.tests
+    assert(len(ab.tests)==3)
+    assert(ab.tests[2]['responses']==['11'])
+    assert(ab.tests[2]['expected']=='correct')
+
+def test_abox_unit_test5():
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest test_spec=12,incorrect')
+    assert(ab.tests[0]['responses']==['12'])
+    assert(ab.tests[0]['expected']==['incorrect'])
+
+def test_abox_unit_test6():
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest test_spec=12,10,incorrect,correct')
+    assert(ab.tests[0]['responses']==['12',"10"])
+    assert(ab.tests[0]['expected']==['incorrect',"correct"])
+
+def test_abox_mc_ut1():
+    ab = AnswerBox('type="multichoice" options="green","blue","red" expect="blue"')
+    print ab.xmlstr
+    assert('choicegroup' in ab.xmlstr)
+    assert(ab.tests[0]['responses']==['choice_2'])
+    assert(ab.tests[0]['expected']==['correct'])
+
+def test_abox_mc_ut2():
+    ab = AnswerBox('type="oldmultichoice" options="green","blue","red" expect="blue","red"')
+    print ab.xmlstr
+    assert('checkboxgroup' in ab.xmlstr)
+    assert(ab.tests[0]['responses']==['choice_2', 'choice_3'])
+    assert(ab.tests[0]['expected']==['correct', 'correct'])
+
+def test_abox_option_ut1():
+    ab = AnswerBox('type="option" options="green","blue","red" expect="blue"')
+    print ab.xmlstr
+    assert('optionresponse' in ab.xmlstr)
+    assert(ab.tests[0]['responses']==['blue'])
+    assert(ab.tests[0]['expected']==['correct'])
+    
+def test_abox_option_ut2():
+    the_err = None
+    try:
+        ab = AnswerBox('type="option" options="green","blue","red" expect="orange"')
+    except Exception as err:
+        the_err = err
+    assert("orange is not one of the options" in str(the_err))
+    
+def test_abox_custom_ut1():
+    ab = AnswerBox('type="custom" expect="20" answers="11","9" prompts="Integer 1:","Integer 2:" inline="1" cfn="test_add"')
+    assert('customresponse' in ab.xmlstr)
+    assert(len(ab.tests)==1)
+    assert(ab.tests[0]['responses']==['11', '9'])
+    assert(ab.tests[0]['expected']==['correct', 'correct'])
+
+def test_abox_custom_ut2():
+    ab = AnswerBox('type="custom" expect="20" answers="11","9" prompts="Integer 1:","Integer 2:" inline="1" '
+                   'cfn="test_add" test_fail="11","8" test_pass="10","10" '
+                   'test_spec="7","13","correct","correct" ')
+    assert('customresponse' in ab.xmlstr)
+    assert(len(ab.tests)==3)
+    assert(ab.tests[0]['responses']==['11', '8'])
+    assert(ab.tests[0]['expected']=='incorrect')
+    assert(ab.tests[1]['responses']==['10', '10'])
+    assert(ab.tests[1]['expected']=='correct')
+    assert(ab.tests[2]['responses']==['7', '13'])
+    assert(ab.tests[2]['expected']==['correct']*2)
+    assert(ab.tests[0]['box_indexes'] == [(0,0), (0,1)])
+
+    

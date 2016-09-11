@@ -15,7 +15,7 @@ data_files = [
 
 setup(
     name='latex2edx',
-    version='1.4.1',
+    version='1.5',
     author='I. Chuang',
     author_email='ichuang@mit.edu',
     packages=['latex2edx', 'latex2edx.test'],
@@ -35,6 +35,7 @@ setup(
                       'plastex',
                       'beautifulsoup',
                       'latex2dnd',
+                      'pyyaml',
                       ],
     package_dir={'latex2edx': 'latex2edx'},
     package_data={'latex2edx': ['render/*', 'testtex/*', 'plastexpy/*.py',

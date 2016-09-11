@@ -20,6 +20,7 @@ except:
 from path import path  # needs path.py
 from lxml import etree
 from plastexit import plastex2xhtml
+from course_tests import AnswerBoxUnitTest, CourseUnitTestSet
 from abox import split_args_with_quoted_strings
 
 # from logging import Logger
@@ -110,9 +111,12 @@ class latex2edx(object):
                  units_only=False,
                  popup_flag=False,
                  allow_dirs=False,
+                 output_cutset='',
                  ):
         '''
         extra_xml_filters = list of functions acting on XML, applied to XHTML
+
+        output_cutset = `str` : set to filename to store output course unit tests for answer boxes.  These tests can be run using edxcut.
         '''
 
         if not output_dir:
@@ -148,6 +152,7 @@ class latex2edx(object):
         self.verbose = verbose
         self.the_xml = None
         self.allow_dirs = allow_dirs
+        self.output_cutset = output_cutset
 
         if output_fn is None or not output_fn:
             if fn.endswith('.tex'):
@@ -178,6 +183,9 @@ class latex2edx(object):
                             ]
         if extra_xml_filters:
             self.fix_filters += extra_xml_filters
+
+        if self.output_cutset:
+            self.fix_filters.append(self.generate_course_unit_tests)
 
         self.URLNAMES = []
 
@@ -237,6 +245,8 @@ class latex2edx(object):
         all the fix_filters.
 
         Cache result, so we only do the computation once.
+
+        Returns a string (giving the filter-processed XML representation)
         '''
         if self.the_xml is None:
             xml = etree.fromstring(self.xhtml)
@@ -1527,6 +1537,90 @@ class latex2edx(object):
                 raise Exception(self.standard_error_msg(script))
             os.unlink(pyfile.name)
 
+    def generate_course_unit_tests(self, xml):
+        '''
+        Generate course unit tests for all (suitable) answer boxes.
+        The unit tests are stored as a YAML file, and may be used
+        to test an edX course (on an openedx site) using the edxcut package.
+
+        We construct the unit test set by going through all responses elements
+        in the XML, and retrieving their corresponding AnswerBox objects, which
+        have unit test response & expectation specifications.
+
+        The actual unit test YAML file is generated using CourseUnitTestSet.
+        '''
+        responsetags = ['customresponse', 'optionresponse', 'multiplechoiceresponse', 
+                        'choiceresponse']
+        cutset = CourseUnitTestSet()
+        for problem in xml.findall('.//problem'):
+            dn = problem.get('display_name')
+            un = problem.get('url_name')
+            # need to know the order of the responses, if there are multiple aboxes in a problem.
+            # this is because they are submitted all together, and the edx platform uses a 
+            # sequential index to number the input string IDs.
+            #
+            # Thus, we walk the tree, and keep orer intact
+
+            response_elements = []
+            def walk(xml):
+                if xml.tag in responsetags:
+                    response_elements.append(xml)
+                else:
+                    for elem in xml:
+                        walk(elem)
+            walk(problem)
+
+            response_tests = []
+
+            for response in response_elements:
+                xmlstr = etree.tostring(response)
+                abox = self.p2x.renderer.answer_box_objects.get(xmlstr.strip(), None)
+                if not abox:
+                    if self.verbose:
+                        print "[latex2edx] generate_course_unit_tests %s: failed to find abox for response '%s'" % (un, xmlstr)
+                    continue
+                if self.verbose:
+                    print "[latex2edx] generate_course_unit_tests %s: found abox %s" % (un, abox.aboxstr)
+                
+                # turn abox test list (of dicts) into list of AnswerBoxUnitTest objects
+                abox_test_set = []
+                count = 0
+                for test in abox.tests:
+                    count += 1
+                    test['url_name'] = un
+                    # print "test_spec=%s" % test
+                    abut = AnswerBoxUnitTest(test_spec=test, test_name="%s/test_%d" % (dn, count))
+                    abox_test_set.append(abut)
+
+                response_tests.append(abox_test_set)
+
+            # now construct the actual test cases, combining all tests for all aboxes in this problem
+            all_combined_tests = []
+            def make_test(all_tests, the_test=None):
+                if len(all_tests)>0:
+                    this_test_set = all_tests[0]
+                    for a_test in this_test_set:
+                        if not the_test:
+                            make_test(all_tests[1:], a_test)
+                        else:
+                            make_test(all_tests[1:], the_test + a_test)
+                else:
+                    if the_test:
+                        all_combined_tests.append(the_test)
+
+            make_test(response_tests)
+            if self.verbose:
+                print "[latex2edx] generate_course_unit_tests adding %d tests for problem %s" % (len(all_combined_tests), un)
+
+            count = 0
+            for test in all_combined_tests:	# rename tests, since counts may have changed
+                count += 1
+                test.name = "(%s) %s/test_%d" % (dn, un, count)
+                
+            cutset.add_tests(all_combined_tests)
+        cutset.output_to_file(self.output_cutset)
+        print "[latex2edx] %s course unit tests output to %s" % (len(cutset.tests), self.output_cutset)
+
     def add_url_names(self, xml):
         '''
         Generate unique url_name database keys for all XML descriptor tags, for
@@ -1697,6 +1791,11 @@ def CommandLine():
                       dest="allow_dirs",
                       default=False,
                       help="allow subdirectory structure in the xml output",)
+    parser.add_option("--output-course-unit-tests",
+                      action="store",
+                      dest="output_cutset",
+                      default="",
+                      help="filename in which to output answer box unit test set (YAML format) for the course, made for testing with edxcut",)
     (opts, args) = parser.parse_args()
 
     if len(args) < 1:
@@ -1727,6 +1826,9 @@ def CommandLine():
                   units_only=opts.units_only,
                   popup_flag=opts.popups,
                   allow_dirs=opts.allow_dirs,
+                  output_cutset=opts.output_cutset,
                   extra_xml_filters=extra_xml_filters,
                   )
     c.convert()
+
+

@@ -29,7 +29,6 @@ Usage
 Usage: latex2edx [options] filename.tex
 
 Options:
-
   --version             show program's version number and exit
   -h, --help            show this help message and exit
   -v, --verbose         verbose error messages
@@ -40,6 +39,25 @@ Options:
   -c CONFIG_FILE, --config-file=CONFIG_FILE
                         configuration file to load
   -m, --merge-chapters  merge chapters into existing course directory
+  -P, --update-policy-file
+                        update policy.json from settings in latex file
+  --suppress-policy-settings
+                        suppress policy settings from XML files
+  --suppress-verticals  do not automatically add extra verticals needed for
+                        Studio compatibility
+  -S, --section-only    export only edXsections (sequentials) -- no course or
+                        chapters
+  -x, --xml-only        export only xbundle xml file -- no separate course
+                        content
+  --units-only          export only units, including problem, html -- no
+                        course, chapter, section
+  --popups              enable equation and figure popup windows on clicking
+                        their references
+  --allow-directories   allow subdirectory structure in the xml output
+  --output-course-unit-tests=OUTPUT_CUTSET
+                        filename in which to output answer box unit test set
+                        (YAML format) for the course, made for testing with
+                        edxcut
 
 Example
 =======
@@ -111,3 +129,6 @@ History
 *     .3: Ensure edXinclude doesn't leave contents within a <p>; nicer error messages for include, with linenum
 *     .4: Include linenum, filename in more error msgs; add --section-only, --xml-only, --units-only output fmts
 * v1.4.0: Enable cross-referencing with \ref and \label; add --popups output fmt for eqns and figs; add ToC generation with \tocref and \toclabel
+*     .1: allow user-specified extra xml filters ; allow variables in math expressions
+* v1.5.0: provide course unit tests of answer boxes; the course unit test YAML file can be used with the edxcut package
+*         to perform unit tests of running courses on an edx platform instance

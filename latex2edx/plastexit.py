@@ -29,6 +29,7 @@ class MyRenderer(XHTML.Renderer):
         self.imdir = imdir
         self.imurl = imurl
         self.imfnset = []
+        self.answer_box_objects = {}	# tracks AnswerBox objects, using their xmlstr repr as keys
         self.abox_config = {}	# used by AnswerBox to store state, like default config parameters
 
         # setup filters
@@ -185,12 +186,16 @@ class MyRenderer(XHTML.Renderer):
     filter_fix_abox_match = r'(?s)<abox(|linenum="\d+" filename="[^>]+")>(.*?)</abox>'
 
     def filter_fix_abox(self, m):
-        return AnswerBox(m.group(1), config=self.abox_config).xmlstr
+        abox = AnswerBox(m.group(1), config=self.abox_config)
+        self.answer_box_objects[abox.xmlstr_no_hints] = abox
+        return abox.xmlstr
 
     filter_fix_abox_match_with_linenum = r'(?s)<abox (linenum="\d+" filename="[^>]+")>(.*?)</abox>'
 
     def filter_fix_abox_with_linenum(self, m):
-        return AnswerBox(m.group(2), config=self.abox_config, context=m.group(1)).xmlstr
+        abox = AnswerBox(m.group(2), config=self.abox_config, context=m.group(1))
+        self.answer_box_objects[abox.xmlstr_no_hints] = abox
+        return abox.xmlstr
 
     @staticmethod
     def fix_unicode(stxt):

@@ -6,7 +6,7 @@ latex2edx
 [![PyPi Version](http://img.shields.io/pypi/v/latex2edx.svg?style=flat)](https://pypi.python.org/pypi/latex2edx)
 [![License AGPLv3](http://img.shields.io/badge/license-AGPv3-blue.svg?style=flat)](http://www.gnu.org/licenses/agpl-3.0.html)
 
-This is version 1.4.1 of the open-source latex2edx compiler for
+This is version 1.5 of the open-source latex2edx compiler for
 generating interactive MITx / edX courses from LaTeX
 
 ![latex2edx logo](https://raw.github.com/mitocw/latex2edx/master/docs/images/latex2edx-logo.png)
@@ -41,12 +41,21 @@ and detailed documentation:
 Version 1.4 adds the edXlti macro, provides better edXshowhide operation, 
 adds the coderesponse answer box type, adds wrapclass functionality for abox
 
+Version 1.5 adds unit tests for courses.  With the --output-course-unit-tests 
+option, an output filename can be specified, where answer box unit tests
+are written in YAML format.  This "course unit test" set can then be used
+with the [edxcut package](https://github.com/mitodl/edxcut), to execute unit 
+tests on a running edx course instance.
+
 Requirements
 ============
 
 * python 2.7
 * python-lxml
+* plastex
 * beautifulsoup
+* latex2dnd
+* pyyaml
 
 Installation
 ============
@@ -92,6 +101,13 @@ Options:
                         content
   --units-only          export only units, including problem, html -- no
                         course, chapter, section
+  --popups              enable equation and figure popup windows on clicking
+                        their references
+  --allow-directories   allow subdirectory structure in the xml output
+  --output-course-unit-tests=OUTPUT_CUTSET
+                        filename in which to output answer box unit test set
+                        (YAML format) for the course, made for testing with
+                        edxcut
 ```
 
 Example
@@ -164,3 +180,6 @@ History
 *     .3: Ensure edXinclude doesn't leave contents within a p; nicer error messages for include, with linenum
 *     .4: Include linenum, filename in more error msgs; add --section-only, --xml-only, --units-only output fmts
 * v1.4.0: Enable cross-referencing with \ref and \label; add --popups output fmt for eqns and figs; add ToC generation with \tocref and \toclabel
+*     .1: allow user-specified extra xml filters ; allow variables in math expressions
+* v1.5.0: provide course unit tests of answer boxes; the course unit test YAML file can be used with the edxcut package
+*         to perform unit tests of running courses on an edx platform instance

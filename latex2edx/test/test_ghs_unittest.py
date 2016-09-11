@@ -21,9 +21,11 @@ class TestGHS(unittest.TestCase):
         libpath = path(os.path.abspath(mydir + '/python_lib'))
         if str(mydir) == '':
             libpath = '..' + libpath
+        print "libpath=%s" % libpath
         os.chdir(libpath)
         import pytest
         errno = pytest.main('test_ghs.py')
+        print "errno=%s" % errno
         assert(errno == 0)
 
 if __name__ == '__main__':
