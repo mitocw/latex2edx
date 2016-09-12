@@ -127,6 +127,31 @@ class TestCourseUnitTests(unittest.TestCase):
             self.assertEqual(cutset.tests[0].url_name, "a_problem")
             self.assertEqual(cutset.tests[0].responses, ["red", "11"])
             self.assertEqual(cutset.tests[0].expected, ["correct", "incorrect"])
+
+    def test_latex2edx_cutset5(self):
+        with make_temp_directory() as tmdir:
+            os.chdir(tmdir)
+            ofn = "testcuts.yaml"
+            tex = r'''\begin{edXproblem}{A problem}{url_name="a_problem"}
     
+                   \edXabox{type="option" options="red","green","blue" expect="red"}
+    
+            \edXinline{What is $n$ for $C^\perp$?~} \edXabox{type=symbolic size=10 expect="3"  inline="1"}
+
+            \edXinline{$d(C) = $} \edXabox{type=numerical size=10 expect="5" inline="1"}
+
+            \edXinline{$\Delta t = $} \edXabox{type="custom" expect="pi" cfn=sympy_formula_check inline="1"}
+
+            \edXinline{$\Delta t = $} \edXabox{type="formula" expect="pi" inline="1" samples='pi@1:10#10'}
+
+                   \end{edXproblem}'''
+            l2e = latex2edx(tmdir + '/test.tex', latex_string=tex, add_wrap=True,
+                            do_images=False, output_dir=tmdir, output_cutset=ofn)
+            xmlstr = l2e.xml
+            cutset = CourseUnitTestSet(fn=ofn)
+            self.assertEqual(len(cutset.tests), 1)
+            self.assertEqual(cutset.tests[0].url_name, "a_problem")
+            self.assertEqual(len(cutset.tests[0].responses), 5)
+
 if __name__ == '__main__':
     unittest.main()

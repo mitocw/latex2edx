@@ -323,13 +323,18 @@ class AnswerBox(object):
                 tl.set('size', self.stripquotes(abargs['size']))
             self.copy_attrib(abargs, 'trailing_text', tl)
             abxml.append(tl)
-            abxml.set('answer', self.stripquotes(abargs['expect']))
+            answer = self.stripquotes(abargs['expect'])
+            abxml.set('answer', answer)
             if 'options' in abargs:
                 abxml.set('type', self.stripquotes(abargs['options']))
             else:
                 abxml.set('type', '')
             self.copy_attrib(abargs, 'inline', tl)
             self.copy_attrib(abargs, 'inline', abxml)
+            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
+                self.tests.append({'responses': [answer],
+                                   'expected': ['correct'],
+                                   })
 
         elif abtype == 'customresponse':
             self.require_args(['expect', 'cfn'])
@@ -498,10 +503,12 @@ class AnswerBox(object):
             #         raise
             abxml.set('answer', answer)
             rp = etree.SubElement(tl, "responseparam")
-            # rp.attrib['description'] = "Numerical Tolerance" #not needed
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
-            # rp.attrib['name'] = "tol" #not needed
+            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
+                self.tests.append({'responses': [answer],
+                                   'expected': ['correct'],
+                                   })
         
         elif abtype == 'formularesponse':
             self.require_args(['expect', 'samples'])
@@ -528,6 +535,10 @@ class AnswerBox(object):
             rp = etree.SubElement(tl, "responseparam")
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
+            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
+                self.tests.append({'responses': [answer],
+                                   'expected': ['correct'],
+                                   })
 
         elif abtype == 'symbolicresponse':
             self.require_args(['expect'])
@@ -543,10 +554,15 @@ class AnswerBox(object):
             abxml.append(tl)
             self.copy_attrib(abargs, 'inline', abxml)
             if 'correct_answer' in abargs:
-                tl.set('correct_answer', self.stripquotes(abargs['correct_answer']))
+                answer = self.stripquotes(abargs['correct_answer'])
             else:
-                tl.set('correct_answer', self.stripquotes(abargs['expect']))
+                answer = self.stripquotes(abargs['expect'])
+            tl.set('correct_answer', answer)
             tl.set('math', '1')  # use dynamath
+            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
+                self.tests.append({'responses': [answer],
+                                   'expected': ['correct'],
+                                   })
             
         elif abtype == 'imageresponse':
             self.require_args(['src', 'width', 'height', 'rectangle'])
@@ -645,6 +661,7 @@ class AnswerBox(object):
         test_fail=..., test_spec=...
         '''
         test_args = map(self.stripquotes, split_args_with_quoted_strings(val, lambda(x): x == ','))
+        test_args = map(self.unescape, test_args)
         if key=="test_spec":
             nargs = len(test_args)
             if not (nargs&1==0):
@@ -667,6 +684,14 @@ class AnswerBox(object):
                 'box_indexes': zip([0]*len(responses), range(len(responses))),
         }
         self.tests.append(test)
+
+    def unescape(self, str):
+        '''
+        Unescape string which has been escaped for XML attribute encoding.
+        Specifically, 
+            &amp; -> &      &gt; -> >      &lt; -> <    
+        '''
+        return str.replace('&amp;', '&').replace('&gt;', '>').replace('&lt;', '<')
 
     def abox_args(self, s):
         '''

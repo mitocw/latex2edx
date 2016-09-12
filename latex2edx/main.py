@@ -1550,7 +1550,8 @@ class latex2edx(object):
         The actual unit test YAML file is generated using CourseUnitTestSet.
         '''
         responsetags = ['customresponse', 'optionresponse', 'multiplechoiceresponse', 
-                        'choiceresponse']
+                        'choiceresponse', 'numericalresponse', 'formularesponse',
+                        'stringresponse', 'symbolicresponse']
         cutset = CourseUnitTestSet()
         for problem in xml.findall('.//problem'):
             dn = problem.get('display_name')
