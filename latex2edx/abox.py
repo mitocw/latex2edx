@@ -376,9 +376,9 @@ class AnswerBox(object):
                 abxml.set('cfn_extra_args', 'options')  # tells sandbox to include 'options' in cfn call arguments
             if 'answers' not in abargs:
                 answers = [self.stripquotes(abargs['expect'])]
-                orig_answers = answers[:]	# copy of answers (answers may be changed, if wrapped)
             else:   # multiple inputs for this customresponse
                 ansstr, answers = self.get_options(abargs, 'answers')
+            orig_answers = answers[:]	# copy of answers (answers may be changed, if wrapped)
             if 'prompts' in abargs:
                 promptstr, prompts = self.get_options(abargs, 'prompts')
             else:
