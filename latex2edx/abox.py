@@ -376,6 +376,7 @@ class AnswerBox(object):
                 abxml.set('cfn_extra_args', 'options')  # tells sandbox to include 'options' in cfn call arguments
             if 'answers' not in abargs:
                 answers = [self.stripquotes(abargs['expect'])]
+                orig_answers = answers[:]	# copy of answers (answers may be changed, if wrapped)
             else:   # multiple inputs for this customresponse
                 ansstr, answers = self.get_options(abargs, 'answers')
             if 'prompts' in abargs:
@@ -399,7 +400,6 @@ class AnswerBox(object):
                 if the_import:
                     code_lines.append("import %s" % the_import)
                 code_lines.append("%s = %s" % (wid, wrapclass))
-                orig_answers = answers[:]	# copy of answers
                 new_answers = []
                 acnt = 0
                 # wrap displayed answers
@@ -453,7 +453,7 @@ class AnswerBox(object):
                 cnt += 1
 
             if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': answers,
+                self.tests.append({'responses': orig_answers,	# use original, unwrapped answwers
                                    'expected': ['correct'] * len(answers),
                                    'box_indexes': zip([0]*len(answers), range(len(answers))),
                                    })
