@@ -1,28 +1,36 @@
 #!/usr/bin/env python
-#
-# Answer Box class
-#
-# object representation of abox, used in Tutor2, now generalized to latex and word input formats.
-# 13-Aug-12 ichaung: merge in sari's changes
-# 13-Aug-12 ichuang: cleaned up, does more error checking, includes stub for shortanswer
-#                    note that shortanswer can be implemented right now using customresponse and textbox
-# 04-Sep-12 ichuang: switch from shlex to FSM, merge in changes for math and inline from 8.21
-# 13-Oct-12 ichuang: remove csv entirely, use FSM for splitting options instead
-# 20-Jan-13 ichuang: add formularesponse
-# 23-Jan-13 ichuang: add multiple-line customresponse, with proper inline and math handling
+'''
+The AnswerBox class provides an internal representation of the \edXabox{}
+macro and <abox>...</abox> XML element, used for specifying a query for 
+user input, and how the query should be evaluated for correctness, and 
+for hints.
+'''
 
-import os, sys, string, re
-import hashlib	# for unique abox ID
-# import shlex	# for split keeping quoted strings intact
-# import csv	# for splitting quoted options
+import os
+import sys
+import string
+import re
+import json
+import hashlib
+import datetime
 
 from lxml import etree
-
 
 class AnswerBox(object):
     def __init__(self, aboxstr, config=None, context=None, verbose=False):
         '''
-        Parse a TUT abox and produce edX XML for a problem responsetype.
+        The AnswerBox class provides an internal representation of the \edXabox{}
+        macro and <abox>...</abox> XML element, used for specifying a query for 
+        user input, and how the query should be evaluated for correctness, and 
+        for hints.
+
+        This class ingests the abox aguments, and produces edX XML as output.
+        The edX XML representation uses different "capa" problem "response" types,
+        to represent various answer box types.  This includes option, numerical, 
+        formula, custom, and many other response types.
+
+        This class can also generate data to produce unit tests for the answer 
+        boxes, to be used with the edxcut (edX Course Unit Test) package.
 
         Examples:
         -----------------------------------------------------------------------------
@@ -157,6 +165,27 @@ class AnswerBox(object):
         to be graded "correct" (the test_pass case).
 
         -----------------------------------------------------------------------------
+        multicoderesponse for xqueue problems
+
+        Some custom response problems require longer python code execution time than
+        is feasible for a live running open edX instance, within a codejail.  It is 
+        therefore desirable to be able to easily convert a custom response problem, and
+        its python code, into an asynchronously graded "xqueue" problem.
+
+        This can be accomplished by turning the "custom" abox into a "multicode" 
+        problem, and adding some additional metadata, e.g. to specify the queue name.
+        This causes the problem to use the edX "coderesponse" box, which sends the
+        user input to be graded asynchronously by an "xqueue" grader.  When done, the
+        grader's response is then presented to the learner.  Grading can take
+        an arbitrarily long time (even days, so in principle it could involve manual
+        intervention).
+
+        A coderesponse object has a textarea, though, versus customresponse, which 
+        uses textline inputs.  Some HTML and javascript must thus be injected, to 
+        present input fields, and to synchronize those fields with its JSON encoded 
+        equivalent, in the textarea.  The textarea is hidden from the user.
+        
+        -----------------------------------------------------------------------------
 
         context is used for error reporting, and provides context like the line number and
         filename where the abox is located.
@@ -204,6 +233,7 @@ class AnswerBox(object):
                          'string': 'stringresponse',
                          'symbolic': 'symbolicresponse',
                          'image': 'imageresponse',
+                         'multicode': 'multicoderesponse',
                          'jsinput': 'customresponse_jsinput',
                          'config': 'config',	# special for setting default config parameters
                          }
@@ -443,6 +473,194 @@ class AnswerBox(object):
                 self.copy_attrib(abargs, jsa, js)
             abxml.append(js)
                     
+        # -----------------------------------------------------------------------------
+
+        elif abtype=='multicoderesponse':
+            #
+            # cfn is taken to set the "grader" parameter in graer_payload
+            # 
+            # requires queuename to be specified
+            # for multiple instances of the same grader, in one vertical, be sure to
+            # set "index" to different values.
+            # 
+            # The optional "debug" argument can be set to 1 (to show debug) or 0 
+            # (to suppress debug output, and to hide the textboxinput).  Debug defaults
+            # to True.
+            #
+            abxml.tag = "coderesponse"
+            self.require_args(['cfn', 'queuename'])
+
+            cfn = self.stripquotes(abargs['cfn'])
+            index = self.stripquotes(abargs.get('index', "")) or "1"
+            debug = abargs.get("debug", True) in [True, '1', 1]
+
+            tb = etree.Element('textbox')
+            tb.set('rows', abargs.get('rows', "5"))
+            tb.set('cols', abargs.get('cols', "80"))
+            tb.set("mode", "python")
+            if not debug:
+                tb.set('hidden', '1') 		# edX-platform not hiding textbox despite hidden=1?
+            abxml.append(tb)
+
+            self.copy_attrib(abargs,'queuename', abxml)
+
+            cp = etree.SubElement(abxml, "codeparam")
+            ide = etree.SubElement(cp, "initial_display");
+            ad = etree.SubElement(cp,"answer_display")
+            ad.text = "see text"
+            gp = etree.SubElement(cp, "grader_payload")
+            gp.text = json.dumps({"grader": cfn,		# xqueue config payload, sent to grader
+                                  'debug': debug,
+                              })
+
+            # now construct input elements for each prompt
+            mcrid = "%s_%s" % (cfn, index)
+            ispan = etree.Element("span")
+            ispan.set("id", "span_" + mcrid)
+            ispan.set("class", "multicoderesponse")
+
+            if 'prompts' in abargs:
+                promptstr, prompts = self.get_options(abargs,'prompts')
+            elif 'prompt' in abargs:
+                prompts = [self.stripquotes(abargs['prompt'])]
+            else:
+                prompts = ['']
+
+            numRepeatSizes = len(prompts)
+            if numRepeatSizes < 1:
+                numRepeatSizes = 1
+
+            if not 'sizes' in abargs:
+                if 'size' in abargs:
+                    sizes = [self.stripquotes(abargs['size'])] * numRepeatSizes
+                else:
+                    sizes = [''] * numRepeatSizes
+            else:
+                szstr, sizes = self.get_options(abargs,'sizes')
+
+            do_inline = abargs.get('inline')
+
+            if not len(prompts)==len(sizes):
+                print "Error: number of sizes and prompts must match in:"
+                print aboxstr
+                sys.exit(-1)
+
+            cnt = 0
+            for prompt, sz in zip(prompts,sizes):	# note - no answers, for multicoderesponse
+                # goal: end up with elements like this:
+                # <p style="display:inline">[mathjaxinline]\tt b=[/mathjaxinline]
+                #    <input size="25" id="cinput1" correct_answer="." class="inline" /></p>
+
+                pe = etree.SubElement(ispan, 'p')
+                if do_inline:
+                    pe.set('style','display:inline')
+                pe.text = prompt
+                ie = etree.SubElement(pe, "input")
+                if sz != '':
+                    ie.set('size', sz)
+                if do_inline:
+                    ie.set('style','display:inline')
+                ie.set('id', "input_%s_%d" % (mcrid, cnt+1))
+                ie.set('class', 'input_%s multicode_input_%d' % (mcrid, cnt+1))
+                etree.SubElement(ispan, 'br')
+                cnt += 1
+
+            # if hidden is a string, then create an empty span with that as the ID.
+            # For anchor to find correct codemirror.
+            hidden_arg = self.stripquotes(abargs.get("hidden", ""))
+            if hidden_arg:
+                hs = etree.SubElement(ispan, "span")
+                hs.set("id", hidden_arg)
+                hs.set("name", "hidden_arg")
+                hs.set("data-mcrid", mcrid)
+
+            # javascript for combining inputs and serializing into the textbox input of the coderesponse
+            js_extra = ""
+            if not debug:
+                js_extra = '$("#span_%s").parent().find(".CodeMirror").hide();' % (mcrid)	# hide textbox if not debugging
+
+            dtstr = datetime.datetime.now()
+            jscode = """
+                         console.log("Code version %s");
+
+            sync_multicoderesponse_inputs_%s = function(){
+                var mcrspan = $("#span_%s");
+                sync_multicoderesponse_inputs(mcrspan);
+            }
+
+            sync_multicoderesponse_inputs = function(mcrspan){
+                console.log("%s mcrspan = ", mcrspan);
+                var editor = mcrspan.parent().find(".CodeMirror")[0].CodeMirror;
+                console.log("%s textbox editor = ", editor);
+                var data = {};
+                mcrspan.find(".input_%s").each(function(kidx, elem){
+                    var cinput_name = elem.id;
+                    var cinput_val = $(elem).val();
+                    data[cinput_name] = cinput_val;
+                });
+                var datastr = JSON.stringify(data);
+                editor.setValue(datastr);
+                console.log("%s sync data: ", data);
+            }
+
+            $(".input_%s").change(sync_multicoderesponse_inputs_%s);
+
+            set_mcr_inputs = function(mcrspan, data){    // for init - set multicoderesponse inputs
+                // var mcrspan = $("#span_%s");
+                var cnt = 1;
+                data.forEach(function(x){
+                    mcrspan.find('input.multicode_input_' + cnt).val(x);
+                    cnt += 1
+                });
+                sync_multicoderesponse_inputs(mcrspan);
+            }
+
+            set_mcr_inputs_fromdict = function(mcrspan, data){    // for init - set multicoderesponse inputs
+                mcrspan.find('input').each(function(k, elem){
+                    var cinput_name = elem.id;
+                    $(elem).val(data[cinput_name]);
+                });
+            }
+
+            setup_initial_mcr_inputs_%s = function(){
+                var mcrspan = $("#span_%s");
+                try { var editor = mcrspan.parent().find(".CodeMirror")[0].CodeMirror; }
+                catch (err){  
+                    console.log("[setup_initial_mcr_inputs] no editor yet...", err);
+                    setTimeout(setup_initial_mcr_inputs_%s, 500);
+                    return;
+                }
+                %s
+                if (editor.mcr_inputs_processed){
+                    console.log("[setup_initial_mcr_inputs] inputs processed");
+                    return;
+                }
+                var datastr = editor.getValue();
+                try { var data = jQuery.parseJSON(datastr); }
+                catch (err){
+                    console.log("[setup_initial_mcr_inputs] codemirror text unparseable...", err);
+                    // setTimeout(setup_initial_mcr_inputs_%s, 500);
+                    return;
+                }
+                set_mcr_inputs_fromdict(mcrspan, data);
+            }
+        
+            setTimeout(setup_initial_mcr_inputs_%s, 500);
+
+            """ % (dtstr, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, js_extra, mcrid, mcrid)
+
+            jse = etree.Element("script")
+            jse.text = jscode
+            jse.set("type", "text/javascript");
+
+            # now assemble all the elements: put into a big span
+            aspan = etree.Element("span")
+            aspan.set("id", "bigspan_%s" % mcrid)
+            aspan.append(abxml)
+            aspan.append(ispan)
+            aspan.append(jse)
+            abxml = aspan	# use assembled span for the abox XML
+
         elif abtype == 'externalresponse' or abtype == 'coderesponse':
             if 'url' in abargs:
                 self.copy_attrib(abargs, 'url', abxml)
@@ -614,7 +832,6 @@ class AnswerBox(object):
 
         xml_str = etree.tostring(abxml, pretty_print=True)
         xml_str = re.sub('(?ms)<html>(.*)</html>', '\\1', xml_str)
-        # print s
 
         if script_code:
             code_str = '<script type="text/python" system_path="python_lib">\n'
@@ -930,5 +1147,22 @@ def test_abox_custom_ut2():
     assert(ab.tests[2]['responses']==['7', '13'])
     assert(ab.tests[2]['expected']==['correct']*2)
     assert(ab.tests[0]['box_indexes'] == [(0,0), (0,1)])
+
+def test_multicoderesponse1():
+    abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" inline="1"}"""
+    ab = AnswerBox(abstr)
+    xmlstr = etree.tostring(ab.xml)
+    print xmlstr
+    assert ab.xml
+    assert '<grader_payload>{"debug": true, "grader": "designGrader"}</grader_payload>' in xmlstr
+    assert '<p style="display:inline">$\mathtt{numtaps} = $<input size="10" style="display:inline" ' in xmlstr
+
+def test_multicoderesponse2():
+    abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
+    ab = AnswerBox(abstr)
+    xmlstr = etree.tostring(ab.xml)
+    print xmlstr
+    assert ab.xml
+    assert '<span id="abc123"' in xmlstr
 
     
