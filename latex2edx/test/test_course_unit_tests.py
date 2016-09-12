@@ -53,6 +53,25 @@ class TestCourseUnitTests(unittest.TestCase):
             self.assertEqual(cutset.tests[0].responses, ["green"])
             self.assertEqual(cutset.tests[0].expected, "incorrect")
 
+    def test_latex2edx_cutset1b(self):
+        with make_temp_directory() as tmdir:
+            os.chdir(tmdir)
+            ofn = "testcuts.yaml"
+            tex = r'''\begin{edXproblem}{A problem}{url_name="a_problem"}
+    
+                   \edXabox{type="option" options="<red>","green","blue" expect="<red>" 
+                            test_pass="<ruby>" test_fail="<green>"}
+    
+                   \end{edXproblem}'''
+            l2e = latex2edx(tmdir + '/test.tex', latex_string=tex, add_wrap=True,
+                            do_images=False, output_dir=tmdir, output_cutset=ofn)
+            xmlstr = l2e.xml
+            cutset = CourseUnitTestSet(fn=ofn)
+            self.assertEqual(len(cutset.tests), 2)
+            self.assertEqual(cutset.tests[0].url_name, "a_problem")
+            self.assertEqual(cutset.tests[0].responses, ["<ruby>"])
+            self.assertEqual(cutset.tests[0].expected, "correct")
+
     def test_latex2edx_cutset2(self):
         with make_temp_directory() as tmdir:
             os.chdir(tmdir)
