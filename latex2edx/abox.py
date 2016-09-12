@@ -509,8 +509,12 @@ class AnswerBox(object):
             ad = etree.SubElement(cp,"answer_display")
             ad.text = "see text"
             gp = etree.SubElement(cp, "grader_payload")
+            options = abargs.get('options', '')
+            expect = abargs.get('expect', '')
             gp.text = json.dumps({"grader": cfn,		# xqueue config payload, sent to grader
                                   'debug': debug,
+                                  'options': options,
+                                  'expect': expect,
                               })
 
             # now construct input elements for each prompt
