@@ -1041,7 +1041,7 @@ def test_abox1():
     print ab.xmlstr
     assert('''<optioninput options="('noneType','int','float')" correct="float"/>''' in ab.xmlstr)
 
-def test_abox2():
+def test_abox2_custom_config():
     config = {}
     ab = AnswerBox('type="config" for="custom" wrapclass=mywrap.wrap(debug=True) import=mywrap', config=config)
     print ab.xmlstr

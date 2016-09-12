@@ -3,7 +3,7 @@ Test various answer box types for proper XML rendering by `latex2edx/abox.py`
 '''
 from latex2edx.abox import AnswerBox
 import unittest
-
+from lxml import etree
 
 class Test_Abox(unittest.TestCase):
     '''
@@ -143,6 +143,130 @@ class Test_Abox(unittest.TestCase):
                       'expect="test">', xmlstr)
         self.assertIn('<textbox rows="30" cols="80" correct_answer="test" '
                       'inline="1"/>', xmlstr)
+
+    def test_abox2_custom_config(self):
+        config = {}
+        ab = AnswerBox('type="config" for="custom" wrapclass=mywrap.wrap(debug=True) import=mywrap', config=config)
+        print ab.xmlstr
+        print "config=%s" % config
+        assert('''<span/>''' in ab.xmlstr)
+        assert('customresponse' in config)
+    
+        ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
+        print ab.xmlstr
+        assert('''def cfn_wrap_''' in ab.xmlstr)
+    
+        # unset defaults
+        ab = AnswerBox('type="config" for="custom"', config=config)
+        print ab.xmlstr
+        print "config=%s" % config
+        assert('''<span/>''' in ab.xmlstr)
+        assert('customresponse' in config)
+    
+        ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
+        print ab.xmlstr
+        assert('''def cfn_wrap_''' not in ab.xmlstr)
+    
+    def test_abox_unit_test1(self):
+        ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10')
+        assert(ab.tests[0]['responses']==['10'])
+    
+    def test_abox_unit_test2(self):
+        ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10 test_fail=3')
+        assert(len(ab.tests)==2)
+        assert(ab.tests[0]['responses']==['10'])
+    
+    def test_abox_unit_test3(self):
+        the_err = None
+        try:
+            ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10 test_fail=3 test_bad=5')
+        except Exception as err:
+            the_err = err
+        assert "unknown test argument key" in str(the_err)
+    
+    def test_abox_unit_test4(self):
+        ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10 test_fail=3 test_pass=11')
+        print ab.tests
+        assert(len(ab.tests)==3)
+        assert(ab.tests[2]['responses']==['11'])
+        assert(ab.tests[2]['expected']=='correct')
+    
+    def test_abox_unit_test5(self):
+        ab = AnswerBox('type="custom" expect=10 cfn=mytest test_spec=12,incorrect')
+        assert(ab.tests[0]['responses']==['12'])
+        assert(ab.tests[0]['expected']==['incorrect'])
+    
+    def test_abox_unit_test6(self):
+        ab = AnswerBox('type="custom" expect=10 cfn=mytest test_spec=12,10,incorrect,correct')
+        assert(ab.tests[0]['responses']==['12',"10"])
+        assert(ab.tests[0]['expected']==['incorrect',"correct"])
+    
+    def test_abox_mc_ut1(self):
+        ab = AnswerBox('type="multichoice" options="green","blue","red" expect="blue"')
+        print ab.xmlstr
+        assert('choicegroup' in ab.xmlstr)
+        assert(ab.tests[0]['responses']==['choice_2'])
+        assert(ab.tests[0]['expected']==['correct'])
+    
+    def test_abox_mc_ut2(self):
+        ab = AnswerBox('type="oldmultichoice" options="green","blue","red" expect="blue","red"')
+        print ab.xmlstr
+        assert('checkboxgroup' in ab.xmlstr)
+        assert(ab.tests[0]['responses']==['choice_2', 'choice_3'])
+        assert(ab.tests[0]['expected']==['correct', 'correct'])
+    
+    def test_abox_option_ut1(self):
+        ab = AnswerBox('type="option" options="green","blue","red" expect="blue"')
+        print ab.xmlstr
+        assert('optionresponse' in ab.xmlstr)
+        assert(ab.tests[0]['responses']==['blue'])
+        assert(ab.tests[0]['expected']==['correct'])
+        
+    def test_abox_option_ut2(self):
+        the_err = None
+        try:
+            ab = AnswerBox('type="option" options="green","blue","red" expect="orange"')
+        except Exception as err:
+            the_err = err
+        assert("orange is not one of the options" in str(the_err))
+        
+    def test_abox_custom_ut1(self):
+        ab = AnswerBox('type="custom" expect="20" answers="11","9" prompts="Integer 1:","Integer 2:" inline="1" cfn="test_add"')
+        assert('customresponse' in ab.xmlstr)
+        assert(len(ab.tests)==1)
+        assert(ab.tests[0]['responses']==['11', '9'])
+        assert(ab.tests[0]['expected']==['correct', 'correct'])
+    
+    def test_abox_custom_ut2(self):
+        ab = AnswerBox('type="custom" expect="20" answers="11","9" prompts="Integer 1:","Integer 2:" inline="1" '
+                       'cfn="test_add" test_fail="11","8" test_pass="10","10" '
+                       'test_spec="7","13","correct","correct" ')
+        assert('customresponse' in ab.xmlstr)
+        assert(len(ab.tests)==3)
+        assert(ab.tests[0]['responses']==['11', '8'])
+        assert(ab.tests[0]['expected']=='incorrect')
+        assert(ab.tests[1]['responses']==['10', '10'])
+        assert(ab.tests[1]['expected']=='correct')
+        assert(ab.tests[2]['responses']==['7', '13'])
+        assert(ab.tests[2]['expected']==['correct']*2)
+        assert(ab.tests[0]['box_indexes'] == [(0,0), (0,1)])
+    
+    def test_multicoderesponse1(self):
+        abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" inline="1"}"""
+        ab = AnswerBox(abstr)
+        xmlstr = etree.tostring(ab.xml)
+        print xmlstr
+        assert ab.xml
+        assert '<grader_payload>{"debug": true, "grader": "designGrader"}</grader_payload>' in xmlstr
+        assert '<p style="display:inline">$\mathtt{numtaps} = $<input size="10" style="display:inline" ' in xmlstr
+    
+    def test_multicoderesponse2(self):
+        abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
+        ab = AnswerBox(abstr)
+        xmlstr = etree.tostring(ab.xml)
+        print xmlstr
+        assert ab.xml
+        assert '<span id="abc123"' in xmlstr
 
 if __name__ == '__main__':
     unittest.main()
