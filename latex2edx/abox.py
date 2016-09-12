@@ -1158,7 +1158,7 @@ def test_multicoderesponse1():
     xmlstr = etree.tostring(ab.xml)
     print xmlstr
     assert ab.xml
-    assert '<grader_payload>{"debug": true, "grader": "designGrader"}</grader_payload>' in xmlstr
+    assert '<grader_payload>{"debug": true, "grader": "designGrader", "options": "", "expect": ""}</grader_payload>' in xmlstr
     assert '<p style="display:inline">$\mathtt{numtaps} = $<input size="10" style="display:inline" ' in xmlstr
 
 def test_multicoderesponse2():
