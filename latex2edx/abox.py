@@ -201,9 +201,12 @@ class AnswerBox(object):
         else:
             self.config = config
         self.xml = self.abox2xml(aboxstr)
-        self.xmlstr_no_hints = etree.tostring(self.xml)
-        self.xmlstr = self.hint_extras + self.xmlstr_no_hints
-        self.xmlstr_no_hints = self.xmlstr_no_hints.strip()	# cannonicalize, since it's may be used as a key 
+        self.xml_just_code = self.xml
+        if self.xml.tag=="span":	# xml has script code
+            self.xml_just_code = self.xml[0]
+            
+        self.xmlstr = self.hint_extras + etree.tostring(self.xml)
+        self.xmlstr_just_code = etree.tostring(self.xml_just_code).strip()
         
     def abox2xml(self, aboxstr):
         if aboxstr.startswith('abox '): aboxstr = aboxstr[5:]
@@ -454,8 +457,8 @@ class AnswerBox(object):
 
             if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
                 self.tests.append({'responses': orig_answers,	# use original, unwrapped answwers
-                                   'expected': ['correct'] * len(answers),
-                                   'box_indexes': zip([0]*len(answers), range(len(answers))),
+                                   'expected': ['correct'] * len(orig_answers),
+                                   'box_indexes': zip([0]*len(orig_answers), range(len(orig_answers))),
                                    })
                     
         elif abtype == 'customresponse_jsinput':
@@ -843,8 +846,9 @@ class AnswerBox(object):
             code_str += script_code
             code_str += "\n]]>\n</script>\n"
             xml_str = "<span>%s\n%s</span>" % (xml_str, code_str)
-            print "script code!"
-            print xml_str
+            if self.verbose:
+                print "script code!"
+                print xml_str
 
         the_xml = etree.XML(xml_str)
 
