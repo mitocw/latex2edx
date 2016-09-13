@@ -3,7 +3,7 @@
 EXPECTED_ARGS=1
 E_BADARGS=65
 MAX_PYLINT_VIOLATIONS=2339
-MAX_PEP8_VIOLATIONS=1093
+MAX_PEP8_VIOLATIONS=1193
 PACKAGE_NAME=latex2edx
 
 progname=$(basename $0) 
@@ -85,7 +85,7 @@ test_results=$?
 if $quality; then
 	# Show nice reports
 	pylint --rcfile=$DIR/.pylintrc $PACKAGE_NAME
-	pep8 $PACKAGE_NAME --max-line-length=100
+	pep8 $PACKAGE_NAME --max-line-length=120
 	# Run again for automated violation testing
 	pylint_violations=$(pylint --rcfile=$DIR/.pylintrc $PACKAGE_NAME -r n | grep -v '\*\*\*\*\*\*\*\*\*\*' | wc -l)
 	pep8_violations=$(pep8 $PACKAGE_NAME | wc -l)
