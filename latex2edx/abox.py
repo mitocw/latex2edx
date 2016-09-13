@@ -202,7 +202,7 @@ class AnswerBox(object):
             self.config = config
         self.xml = self.abox2xml(aboxstr)
         self.xml_just_code = self.xml
-        if self.xml.tag=="span":	# xml has script code
+        if (self.xml.tag=="span") and len(self.xml)>1:	# xml has script code, and abtype is not config
             self.xml_just_code = self.xml[0]
             
         self.xmlstr = self.hint_extras + etree.tostring(self.xml)
@@ -297,10 +297,7 @@ class AnswerBox(object):
                 if op in expectset:
                     correctset.append(cnt)
                 cnt += 1
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': ["choice_%d" % x for x in correctset],
-                                   'expected': ['correct'] * len(correctset),
-                                   })
+            self.make_default_test_pass(["choice_%d" % x for x in correctset])
             
         if abtype == 'choiceresponse':
             self.require_args(['expect', 'options'])
@@ -319,10 +316,7 @@ class AnswerBox(object):
                 if op in expects:
                     correctset.append(cnt)
                 cnt += 1
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': ["choice_%d" % x for x in correctset],
-                                   'expected': ['correct'] * len(correctset),
-                                   })
+            self.make_default_test_pass(["choice_%d" % x for x in correctset])
 
         elif abtype == 'shortanswerresponse':
             print "[latex2html.abox] Warning - short answer response quite yet implemented in edX!"
@@ -364,10 +358,7 @@ class AnswerBox(object):
                 abxml.set('type', '')
             self.copy_attrib(abargs, 'inline', tl)
             self.copy_attrib(abargs, 'inline', abxml)
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': [answer],
-                                   'expected': ['correct'],
-                                   })
+            self.make_default_test_pass([answer])
 
         elif abtype == 'customresponse':
             self.require_args(['expect', 'cfn'])
@@ -455,11 +446,8 @@ class AnswerBox(object):
                 abxml.append(elem)
                 cnt += 1
 
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': orig_answers,	# use original, unwrapped answwers
-                                   'expected': ['correct'] * len(orig_answers),
-                                   'box_indexes': zip([0]*len(orig_answers), range(len(orig_answers))),
-                                   })
+            self.make_default_test_pass(orig_answers, None,
+                                        zip([0]*len(orig_answers), range(len(orig_answers))))
                     
         elif abtype == 'customresponse_jsinput':
             abxml.tag = 'customresponse'
@@ -516,8 +504,8 @@ class AnswerBox(object):
             expect = abargs.get('expect', '')
             gp.text = json.dumps({"grader": cfn,		# xqueue config payload, sent to grader
                                   'debug': debug,
-                                  'options': options,
-                                  'expect': expect,
+                                  'options': self.unescape(options),
+                                  'expect': self.unescape(expect),
                               })
 
             # now construct input elements for each prompt
@@ -730,10 +718,7 @@ class AnswerBox(object):
             rp = etree.SubElement(tl, "responseparam")
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': [answer],
-                                   'expected': ['correct'],
-                                   })
+            self.make_default_test_pass([answer])
         
         elif abtype == 'formularesponse':
             self.require_args(['expect', 'samples'])
@@ -760,10 +745,7 @@ class AnswerBox(object):
             rp = etree.SubElement(tl, "responseparam")
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': [answer],
-                                   'expected': ['correct'],
-                                   })
+            self.make_default_test_pass([answer])
 
         elif abtype == 'symbolicresponse':
             self.require_args(['expect'])
@@ -784,10 +766,7 @@ class AnswerBox(object):
                 answer = self.stripquotes(abargs['expect'])
             tl.set('correct_answer', answer)
             tl.set('math', '1')  # use dynamath
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': [answer],
-                                   'expected': ['correct'],
-                                   })
+            self.make_default_test_pass([answer])
             
         elif abtype == 'imageresponse':
             self.require_args(['src', 'width', 'height', 'rectangle'])
@@ -853,6 +832,19 @@ class AnswerBox(object):
         the_xml = etree.XML(xml_str)
 
         return the_xml
+
+    def make_default_test_pass(self, responses, expected=None, box_indexes=None):
+        '''
+        Add a test if there isn't an explicit test_pass defined.
+        Called by the various response constructions.
+        '''
+        if self.has_test_pass:
+            return
+        # generate unit test if no explicit tests specified in abox arguments
+        self.tests.append({'responses': map(self.unescape, responses),
+                           'expected': ['correct'] * len(responses),
+                           'box_indexes': box_indexes,
+        })
 
     def get_options(self, abargs, arg='options'):
         optstr = abargs[arg]			# should be double quoted strings, comma delimited
