@@ -208,14 +208,14 @@ class Test_Abox(unittest.TestCase):
         print ab.xmlstr
         assert('choicegroup' in ab.xmlstr)
         assert(ab.tests[0]['responses']==['choice_2'])
-        assert(ab.tests[0]['expected']==['correct'])
+        assert(ab.tests[0]['expected']=='correct')
     
     def test_abox_mc_ut2(self):
         ab = AnswerBox('type="oldmultichoice" options="green","blue","red" expect="blue","red"')
         print ab.xmlstr
         assert('checkboxgroup' in ab.xmlstr)
         assert(ab.tests[0]['responses']==['choice_2', 'choice_3'])
-        assert(ab.tests[0]['expected']==['correct', 'correct'])
+        assert(ab.tests[0]['expected']=='correct')
     
     def test_abox_option_ut1(self):
         ab = AnswerBox('type="option" options="green","blue","red" expect="blue"')
@@ -288,6 +288,12 @@ class Test_Abox(unittest.TestCase):
         print ab.xmlstr
         assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" not in ab.xmlstr
         assert """<grader_payload>{"a":2, "cfn":"test"}</grader_payload>""" in ab.xmlstr
+
+    def test_abox_multichoice_indexes1(self):
+        ab = AnswerBox('''inline=1 type='multichoice' expect="UL","DR" options="None","UL","UR","DL","DR"''')
+        assert('choiceresponse' in ab.xmlstr)
+        assert(len(ab.tests)==1)
+        assert(ab.tests[0]['box_indexes'] == [[0,0], [0,0]])
 
 if __name__ == '__main__':
     unittest.main()

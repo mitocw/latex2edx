@@ -297,7 +297,9 @@ class AnswerBox(object):
                 if op in expectset:
                     correctset.append(cnt)
                 cnt += 1
-            self.make_default_test_pass(["choice_%d" % x for x in correctset])
+            self.make_default_test_pass(["choice_%d" % x for x in correctset],
+                                        expected="correct",
+                                        box_indexes=[[0,0]]*len(correctset))
             
         if abtype == 'choiceresponse':
             self.require_args(['expect', 'options'])
@@ -316,7 +318,9 @@ class AnswerBox(object):
                 if op in expects:
                     correctset.append(cnt)
                 cnt += 1
-            self.make_default_test_pass(["choice_%d" % x for x in correctset])
+            self.make_default_test_pass(["choice_%d" % x for x in correctset],
+                                        expected="correct",
+                                        box_indexes=[[0,0]]*len(correctset))
 
         elif abtype == 'shortanswerresponse':
             print "[latex2html.abox] Warning - short answer response quite yet implemented in edX!"
@@ -851,9 +855,11 @@ class AnswerBox(object):
         '''
         if self.has_test_pass:
             return
+        # default box indexes increment "y" but not "x"
+        box_indexes = box_indexes or zip([0]*len(responses), range(len(responses)))
         # generate unit test if no explicit tests specified in abox arguments
         self.tests.append({'responses': map(self.unescape, responses),
-                           'expected': ['correct'] * len(responses),
+                           'expected': expected or ['correct'] * len(responses),
                            'box_indexes': box_indexes,
         })
 
@@ -1119,14 +1125,14 @@ def test_abox_mc_ut1():
     print ab.xmlstr
     assert('choicegroup' in ab.xmlstr)
     assert(ab.tests[0]['responses']==['choice_2'])
-    assert(ab.tests[0]['expected']==['correct'])
+    assert(ab.tests[0]['expected']=='correct')
 
 def test_abox_mc_ut2():
     ab = AnswerBox('type="oldmultichoice" options="green","blue","red" expect="blue","red"')
     print ab.xmlstr
     assert('checkboxgroup' in ab.xmlstr)
     assert(ab.tests[0]['responses']==['choice_2', 'choice_3'])
-    assert(ab.tests[0]['expected']==['correct', 'correct'])
+    assert(ab.tests[0]['expected']=='correct')
 
 def test_abox_option_ut1():
     ab = AnswerBox('type="option" options="green","blue","red" expect="blue"')
@@ -1197,6 +1203,12 @@ def test_abox_coderesponse2():
                    """grader_payload='{"a":2, "cfn":"test"}' """
                    'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
     print ab.xmlstr
-    assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" not in ab.xmlstr
+    assert ("""<grader_payload>{"debug": true, "grader": "qis_cfn", """
+            """options": "test_opt", "expect": "test_expect"}</grader_payload>""" not in ab.xmlstr)
     assert """<grader_payload>{"a":2, "cfn":"test"}</grader_payload>""" in ab.xmlstr
 
+def test_abox_multichoice_indexes1():
+    ab = AnswerBox('''inline=1 type='multichoice' expect="UL","DR" options="None","UL","UR","DL","DR"''')
+    assert('choiceresponse' in ab.xmlstr)
+    assert(len(ab.tests)==1)
+    assert(ab.tests[0]['box_indexes'] == [[0,0], [0,0]])
