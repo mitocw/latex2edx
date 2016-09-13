@@ -39,7 +39,7 @@ and detailed documentation:
    http://mitocw.github.io/latex2edx/html/index.html
 
 Version 1.4 adds the edXlti macro, provides better edXshowhide operation, 
-adds the coderesponse answer box type, adds wrapclass functionality for abox
+adds the coderesponse answer box type, adds wrapclass functionality for abox.
 
 Version 1.5 adds unit tests for courses.  With the --output-course-unit-tests 
 option, an output filename can be specified, where answer box unit tests
@@ -183,3 +183,4 @@ History
 *     .1: allow user-specified extra xml filters ; allow variables in math expressions
 * v1.5.0: provide course unit tests of answer boxes; the course unit test YAML file can be used with the edxcut package
 *         to perform unit tests of running courses on an edx platform instance
+* v1.5.1: Add multiresponse for asynchronously graded problems

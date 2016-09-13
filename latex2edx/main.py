@@ -1574,8 +1574,8 @@ class latex2edx(object):
             response_tests = []
 
             for response in response_elements:
-                xmlstr = etree.tostring(response)
-                abox = self.p2x.renderer.answer_box_objects.get(xmlstr.strip(), None)
+                xmlstr = etree.tostring(response).strip()
+                abox = self.p2x.renderer.answer_box_objects.get(xmlstr, None)
                 if not abox:
                     if self.verbose:
                         print "[latex2edx] generate_course_unit_tests %s: failed to find abox for response '%s'" % (un, xmlstr)
@@ -1787,6 +1787,11 @@ def CommandLine():
                       dest="popups",
                       default=False,
                       help="enable equation and figure popup windows on clicking their references",)
+    parser.add_option("--add-wrap",
+                      action="store_true",
+                      dest="add_wrap",
+                      default=False,
+                      help="add a standard latex wrapper, with documentclass and begin{document}...end{document}",)
     parser.add_option("--allow-directories",
                       action="store_true",
                       dest="allow_dirs",
@@ -1823,6 +1828,7 @@ def CommandLine():
                   suppress_policy=opts.suppress_policy,
                   suppress_verticals=opts.suppress_verticals,
                   section_only=opts.section_only,
+                  add_wrap=opts.add_wrap,
                   xml_only=opts.xml_only,
                   units_only=opts.units_only,
                   popup_flag=opts.popups,

@@ -187,14 +187,14 @@ class MyRenderer(XHTML.Renderer):
 
     def filter_fix_abox(self, m):
         abox = AnswerBox(m.group(1), config=self.abox_config)
-        self.answer_box_objects[abox.xmlstr_no_hints] = abox
+        self.answer_box_objects[abox.xmlstr_just_code] = abox
         return abox.xmlstr
 
     filter_fix_abox_match_with_linenum = r'(?s)<abox (linenum="\d+" filename="[^>]+")>(.*?)</abox>'
 
     def filter_fix_abox_with_linenum(self, m):
         abox = AnswerBox(m.group(2), config=self.abox_config, context=m.group(1))
-        self.answer_box_objects[abox.xmlstr_no_hints] = abox
+        self.answer_box_objects[abox.xmlstr_just_code] = abox
         return abox.xmlstr
 
     @staticmethod

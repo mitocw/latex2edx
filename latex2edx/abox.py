@@ -1,28 +1,36 @@
 #!/usr/bin/env python
-#
-# Answer Box class
-#
-# object representation of abox, used in Tutor2, now generalized to latex and word input formats.
-# 13-Aug-12 ichaung: merge in sari's changes
-# 13-Aug-12 ichuang: cleaned up, does more error checking, includes stub for shortanswer
-#                    note that shortanswer can be implemented right now using customresponse and textbox
-# 04-Sep-12 ichuang: switch from shlex to FSM, merge in changes for math and inline from 8.21
-# 13-Oct-12 ichuang: remove csv entirely, use FSM for splitting options instead
-# 20-Jan-13 ichuang: add formularesponse
-# 23-Jan-13 ichuang: add multiple-line customresponse, with proper inline and math handling
+'''
+The AnswerBox class provides an internal representation of the \edXabox{}
+macro and <abox>...</abox> XML element, used for specifying a query for 
+user input, and how the query should be evaluated for correctness, and 
+for hints.
+'''
 
-import os, sys, string, re
-import hashlib	# for unique abox ID
-# import shlex	# for split keeping quoted strings intact
-# import csv	# for splitting quoted options
+import os
+import sys
+import string
+import re
+import json
+import hashlib
+import datetime
 
 from lxml import etree
-
 
 class AnswerBox(object):
     def __init__(self, aboxstr, config=None, context=None, verbose=False):
         '''
-        Parse a TUT abox and produce edX XML for a problem responsetype.
+        The AnswerBox class provides an internal representation of the \edXabox{}
+        macro and <abox>...</abox> XML element, used for specifying a query for 
+        user input, and how the query should be evaluated for correctness, and 
+        for hints.
+
+        This class ingests the abox aguments, and produces edX XML as output.
+        The edX XML representation uses different "capa" problem "response" types,
+        to represent various answer box types.  This includes option, numerical, 
+        formula, custom, and many other response types.
+
+        This class can also generate data to produce unit tests for the answer 
+        boxes, to be used with the edxcut (edX Course Unit Test) package.
 
         Examples:
         -----------------------------------------------------------------------------
@@ -157,6 +165,27 @@ class AnswerBox(object):
         to be graded "correct" (the test_pass case).
 
         -----------------------------------------------------------------------------
+        multicoderesponse for xqueue problems
+
+        Some custom response problems require longer python code execution time than
+        is feasible for a live running open edX instance, within a codejail.  It is 
+        therefore desirable to be able to easily convert a custom response problem, and
+        its python code, into an asynchronously graded "xqueue" problem.
+
+        This can be accomplished by turning the "custom" abox into a "multicode" 
+        problem, and adding some additional metadata, e.g. to specify the queue name.
+        This causes the problem to use the edX "coderesponse" box, which sends the
+        user input to be graded asynchronously by an "xqueue" grader.  When done, the
+        grader's response is then presented to the learner.  Grading can take
+        an arbitrarily long time (even days, so in principle it could involve manual
+        intervention).
+
+        A coderesponse object has a textarea, though, versus customresponse, which 
+        uses textline inputs.  Some HTML and javascript must thus be injected, to 
+        present input fields, and to synchronize those fields with its JSON encoded 
+        equivalent, in the textarea.  The textarea is hidden from the user.
+        
+        -----------------------------------------------------------------------------
 
         context is used for error reporting, and provides context like the line number and
         filename where the abox is located.
@@ -172,9 +201,12 @@ class AnswerBox(object):
         else:
             self.config = config
         self.xml = self.abox2xml(aboxstr)
-        self.xmlstr_no_hints = etree.tostring(self.xml)
-        self.xmlstr = self.hint_extras + self.xmlstr_no_hints
-        self.xmlstr_no_hints = self.xmlstr_no_hints.strip()	# cannonicalize, since it's may be used as a key 
+        self.xml_just_code = self.xml
+        if (self.xml.tag=="span") and len(self.xml)>1:	# xml has script code, and abtype is not config
+            self.xml_just_code = self.xml[0]
+            
+        self.xmlstr = self.hint_extras + etree.tostring(self.xml)
+        self.xmlstr_just_code = etree.tostring(self.xml_just_code).strip()
         
     def abox2xml(self, aboxstr):
         if aboxstr.startswith('abox '): aboxstr = aboxstr[5:]
@@ -204,6 +236,7 @@ class AnswerBox(object):
                          'string': 'stringresponse',
                          'symbolic': 'symbolicresponse',
                          'image': 'imageresponse',
+                         'multicode': 'multicoderesponse',
                          'jsinput': 'customresponse_jsinput',
                          'config': 'config',	# special for setting default config parameters
                          }
@@ -264,10 +297,9 @@ class AnswerBox(object):
                 if op in expectset:
                     correctset.append(cnt)
                 cnt += 1
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': ["choice_%d" % x for x in correctset],
-                                   'expected': ['correct'] * len(correctset),
-                                   })
+            self.make_default_test_pass(["choice_%d" % x for x in correctset],
+                                        expected="correct",
+                                        box_indexes=[[0,0]]*len(correctset))
             
         if abtype == 'choiceresponse':
             self.require_args(['expect', 'options'])
@@ -286,10 +318,9 @@ class AnswerBox(object):
                 if op in expects:
                     correctset.append(cnt)
                 cnt += 1
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': ["choice_%d" % x for x in correctset],
-                                   'expected': ['correct'] * len(correctset),
-                                   })
+            self.make_default_test_pass(["choice_%d" % x for x in correctset],
+                                        expected="correct",
+                                        box_indexes=[[0,0]]*len(correctset))
 
         elif abtype == 'shortanswerresponse':
             print "[latex2html.abox] Warning - short answer response quite yet implemented in edX!"
@@ -331,10 +362,7 @@ class AnswerBox(object):
                 abxml.set('type', '')
             self.copy_attrib(abargs, 'inline', tl)
             self.copy_attrib(abargs, 'inline', abxml)
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': [answer],
-                                   'expected': ['correct'],
-                                   })
+            self.make_default_test_pass([answer])
 
         elif abtype == 'customresponse':
             self.require_args(['expect', 'cfn'])
@@ -348,6 +376,7 @@ class AnswerBox(object):
                 answers = [self.stripquotes(abargs['expect'])]
             else:   # multiple inputs for this customresponse
                 ansstr, answers = self.get_options(abargs, 'answers')
+            orig_answers = answers[:]	# copy of answers (answers may be changed, if wrapped)
             if 'prompts' in abargs:
                 promptstr, prompts = self.get_options(abargs, 'prompts')
             else:
@@ -369,7 +398,6 @@ class AnswerBox(object):
                 if the_import:
                     code_lines.append("import %s" % the_import)
                 code_lines.append("%s = %s" % (wid, wrapclass))
-                orig_answers = answers[:]	# copy of answers
                 new_answers = []
                 acnt = 0
                 # wrap displayed answers
@@ -422,11 +450,8 @@ class AnswerBox(object):
                 abxml.append(elem)
                 cnt += 1
 
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': answers,
-                                   'expected': ['correct'] * len(answers),
-                                   'box_indexes': zip([0]*len(answers), range(len(answers))),
-                                   })
+            self.make_default_test_pass(orig_answers, None,
+                                        zip([0]*len(orig_answers), range(len(orig_answers))))
                     
         elif abtype == 'customresponse_jsinput':
             abxml.tag = 'customresponse'
@@ -443,6 +468,198 @@ class AnswerBox(object):
                 self.copy_attrib(abargs, jsa, js)
             abxml.append(js)
                     
+        # -----------------------------------------------------------------------------
+
+        elif abtype=='multicoderesponse':
+            #
+            # cfn is taken to set the "grader" parameter in graer_payload
+            # 
+            # requires queuename to be specified
+            # for multiple instances of the same grader, in one vertical, be sure to
+            # set "index" to different values.
+            # 
+            # The optional "debug" argument can be set to 1 (to show debug) or 0 
+            # (to suppress debug output, and to hide the textboxinput).  Debug defaults
+            # to True.
+            #
+            abxml.tag = "coderesponse"
+            self.require_args(['cfn', 'queuename'])
+
+            cfn = self.stripquotes(abargs['cfn'])
+            index = self.stripquotes(abargs.get('index', "")) or "1"
+            debug = abargs.get("debug", True) in [True, '1', 1]
+
+            tb = etree.Element('textbox')
+            tb.set('rows', abargs.get('rows', "5"))
+            tb.set('cols', abargs.get('cols', "80"))
+            tb.set("mode", "python")
+            if not debug:
+                tb.set('hidden', '1') 		# edX-platform not hiding textbox despite hidden=1?
+            abxml.append(tb)
+
+            self.copy_attrib(abargs,'queuename', abxml)
+
+            cp = etree.SubElement(abxml, "codeparam")
+            ide = etree.SubElement(cp, "initial_display");
+            ad = etree.SubElement(cp,"answer_display")
+            ad.text = "see text"
+            gp = etree.SubElement(cp, "grader_payload")
+            options = abargs.get('options', '')
+            expect = abargs.get('expect', '')
+            gp.text = json.dumps({"grader": cfn,		# xqueue config payload, sent to grader
+                                  'debug': debug,
+                                  'options': self.unescape(options),
+                                  'expect': self.unescape(expect),
+                              })
+
+            # now construct input elements for each prompt
+            mcrid = "%s_%s" % (cfn, index)
+            ispan = etree.Element("span")
+            ispan.set("id", "span_" + mcrid)
+            ispan.set("class", "multicoderesponse")
+
+            if 'prompts' in abargs:
+                promptstr, prompts = self.get_options(abargs,'prompts')
+            elif 'prompt' in abargs:
+                prompts = [self.stripquotes(abargs['prompt'])]
+            else:
+                prompts = ['']
+
+            numRepeatSizes = len(prompts)
+            if numRepeatSizes < 1:
+                numRepeatSizes = 1
+
+            if not 'sizes' in abargs:
+                if 'size' in abargs:
+                    sizes = [self.stripquotes(abargs['size'])] * numRepeatSizes
+                else:
+                    sizes = [''] * numRepeatSizes
+            else:
+                szstr, sizes = self.get_options(abargs,'sizes')
+
+            do_inline = abargs.get('inline')
+
+            if not len(prompts)==len(sizes):
+                print "Error: number of sizes and prompts must match in:"
+                print aboxstr
+                sys.exit(-1)
+
+            cnt = 0
+            for prompt, sz in zip(prompts,sizes):	# note - no answers, for multicoderesponse
+                # goal: end up with elements like this:
+                # <p style="display:inline">[mathjaxinline]\tt b=[/mathjaxinline]
+                #    <input size="25" id="cinput1" correct_answer="." class="inline" /></p>
+
+                pe = etree.SubElement(ispan, 'p')
+                if do_inline:
+                    pe.set('style','display:inline')
+                pe.text = prompt
+                ie = etree.SubElement(pe, "input")
+                if sz != '':
+                    ie.set('size', sz)
+                if do_inline:
+                    ie.set('style','display:inline')
+                ie.set('id', "input_%s_%d" % (mcrid, cnt+1))
+                ie.set('class', 'input_%s multicode_input_%d' % (mcrid, cnt+1))
+                etree.SubElement(ispan, 'br')
+                cnt += 1
+
+            # if hidden is a string, then create an empty span with that as the ID.
+            # For anchor to find correct codemirror.
+            hidden_arg = self.stripquotes(abargs.get("hidden", ""))
+            if hidden_arg:
+                hs = etree.SubElement(ispan, "span")
+                hs.set("id", hidden_arg)
+                hs.set("name", "hidden_arg")
+                hs.set("data-mcrid", mcrid)
+
+            # javascript for combining inputs and serializing into the textbox input of the coderesponse
+            js_extra = ""
+            if not debug:
+                js_extra = '$("#span_%s").parent().find(".CodeMirror").hide();' % (mcrid)	# hide textbox if not debugging
+
+            dtstr = datetime.datetime.now()
+            jscode = """
+                         console.log("Code version %s");
+
+            sync_multicoderesponse_inputs_%s = function(){
+                var mcrspan = $("#span_%s");
+                sync_multicoderesponse_inputs(mcrspan);
+            }
+
+            sync_multicoderesponse_inputs = function(mcrspan){
+                console.log("%s mcrspan = ", mcrspan);
+                var editor = mcrspan.parent().find(".CodeMirror")[0].CodeMirror;
+                console.log("%s textbox editor = ", editor);
+                var data = {};
+                mcrspan.find(".input_%s").each(function(kidx, elem){
+                    var cinput_name = elem.id;
+                    var cinput_val = $(elem).val();
+                    data[cinput_name] = cinput_val;
+                });
+                var datastr = JSON.stringify(data);
+                editor.setValue(datastr);
+                console.log("%s sync data: ", data);
+            }
+
+            $(".input_%s").change(sync_multicoderesponse_inputs_%s);
+
+            set_mcr_inputs = function(mcrspan, data){    // for init - set multicoderesponse inputs
+                // var mcrspan = $("#span_%s");
+                var cnt = 1;
+                data.forEach(function(x){
+                    mcrspan.find('input.multicode_input_' + cnt).val(x);
+                    cnt += 1
+                });
+                sync_multicoderesponse_inputs(mcrspan);
+            }
+
+            set_mcr_inputs_fromdict = function(mcrspan, data){    // for init - set multicoderesponse inputs
+                mcrspan.find('input').each(function(k, elem){
+                    var cinput_name = elem.id;
+                    $(elem).val(data[cinput_name]);
+                });
+            }
+
+            setup_initial_mcr_inputs_%s = function(){
+                var mcrspan = $("#span_%s");
+                try { var editor = mcrspan.parent().find(".CodeMirror")[0].CodeMirror; }
+                catch (err){  
+                    console.log("[setup_initial_mcr_inputs] no editor yet...", err);
+                    setTimeout(setup_initial_mcr_inputs_%s, 500);
+                    return;
+                }
+                %s
+                if (editor.mcr_inputs_processed){
+                    console.log("[setup_initial_mcr_inputs] inputs processed");
+                    return;
+                }
+                var datastr = editor.getValue();
+                try { var data = jQuery.parseJSON(datastr); }
+                catch (err){
+                    console.log("[setup_initial_mcr_inputs] codemirror text unparseable...", err);
+                    // setTimeout(setup_initial_mcr_inputs_%s, 500);
+                    return;
+                }
+                set_mcr_inputs_fromdict(mcrspan, data);
+            }
+        
+            setTimeout(setup_initial_mcr_inputs_%s, 500);
+
+            """ % (dtstr, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, js_extra, mcrid, mcrid)
+
+            jse = etree.Element("script")
+            jse.text = jscode
+            jse.set("type", "text/javascript");
+
+            # now assemble all the elements: put into a big span
+            aspan = etree.Element("span")
+            aspan.set("id", "bigspan_%s" % mcrid)
+            aspan.append(abxml)
+            aspan.append(ispan)
+            aspan.append(jse)
+            abxml = aspan	# use assembled span for the abox XML
+
         elif abtype == 'externalresponse' or abtype == 'coderesponse':
             if 'url' in abargs:
                 self.copy_attrib(abargs, 'url', abxml)
@@ -479,7 +696,18 @@ class AnswerBox(object):
                 cp_ad = etree.SubElement(cp, "answer_display")
                 cp_ad.text = abargs.get("answer_display", "")
                 cp_gp = etree.SubElement(cp, "grader_payload")
-                cp_gp.text = abargs.get("grader_payload", "")
+                gp = abargs.get("grader_payload", "")
+                if not gp:
+                    cfn = self.stripquotes(abargs.get('cfn', ''))
+                    debug = abargs.get("debug", True) in [True, '1', 1]
+                    options = abargs.get('options', '')
+                    expect = abargs.get('expect', '')
+                    gp = json.dumps({"grader": cfn,		# xqueue config payload, sent to grader
+                                     'debug': debug,
+                                     'options': self.unescape(options),
+                                     'expect': self.unescape(expect),
+                    })
+                cp_gp.text = gp
             # turn script to <answer> later
 
         elif abtype == 'numericalresponse':
@@ -505,10 +733,7 @@ class AnswerBox(object):
             rp = etree.SubElement(tl, "responseparam")
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': [answer],
-                                   'expected': ['correct'],
-                                   })
+            self.make_default_test_pass([answer])
         
         elif abtype == 'formularesponse':
             self.require_args(['expect', 'samples'])
@@ -535,10 +760,7 @@ class AnswerBox(object):
             rp = etree.SubElement(tl, "responseparam")
             rp.attrib['type'] = "tolerance"
             rp.attrib['default'] = abargs.get('tolerance') or "0.00001"
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': [answer],
-                                   'expected': ['correct'],
-                                   })
+            self.make_default_test_pass([answer])
 
         elif abtype == 'symbolicresponse':
             self.require_args(['expect'])
@@ -559,10 +781,7 @@ class AnswerBox(object):
                 answer = self.stripquotes(abargs['expect'])
             tl.set('correct_answer', answer)
             tl.set('math', '1')  # use dynamath
-            if not self.has_test_pass:		# generate unit test if no explicit tests specified in abox arguments
-                self.tests.append({'responses': [answer],
-                                   'expected': ['correct'],
-                                   })
+            self.make_default_test_pass([answer])
             
         elif abtype == 'imageresponse':
             self.require_args(['src', 'width', 'height', 'rectangle'])
@@ -614,7 +833,6 @@ class AnswerBox(object):
 
         xml_str = etree.tostring(abxml, pretty_print=True)
         xml_str = re.sub('(?ms)<html>(.*)</html>', '\\1', xml_str)
-        # print s
 
         if script_code:
             code_str = '<script type="text/python" system_path="python_lib">\n'
@@ -622,12 +840,28 @@ class AnswerBox(object):
             code_str += script_code
             code_str += "\n]]>\n</script>\n"
             xml_str = "<span>%s\n%s</span>" % (xml_str, code_str)
-            print "script code!"
-            print xml_str
+            if self.verbose:
+                print "script code!"
+                print xml_str
 
         the_xml = etree.XML(xml_str)
 
         return the_xml
+
+    def make_default_test_pass(self, responses, expected=None, box_indexes=None):
+        '''
+        Add a test if there isn't an explicit test_pass defined.
+        Called by the various response constructions.
+        '''
+        if self.has_test_pass:
+            return
+        # default box indexes increment "y" but not "x"
+        box_indexes = box_indexes or zip([0]*len(responses), range(len(responses)))
+        # generate unit test if no explicit tests specified in abox arguments
+        self.tests.append({'responses': map(self.unescape, responses),
+                           'expected': expected or ['correct'] * len(responses),
+                           'box_indexes': box_indexes,
+        })
 
     def get_options(self, abargs, arg='options'):
         optstr = abargs[arg]			# should be double quoted strings, comma delimited
@@ -679,11 +913,14 @@ class AnswerBox(object):
             expected = "incorrect"
         else:
             raise Exception("[abox] unknown test argument key %s" % key)
-        test = {'responses': responses, 
-                'expected': expected,
-                'box_indexes': zip([0]*len(responses), range(len(responses))),
-        }
-        self.tests.append(test)
+        if responses and (not responses[0]==''):
+            test = {'responses': responses, 
+                    'expected': expected,
+                    'box_indexes': zip([0]*len(responses), range(len(responses))),
+            }
+            self.tests.append(test)
+        elif self.verbose:
+            print '[abox] Warning: empty test_pass="" in %s' % self.aboxstr
 
     def unescape(self, str):
         '''
@@ -824,7 +1061,7 @@ def test_abox1():
     print ab.xmlstr
     assert('''<optioninput options="('noneType','int','float')" correct="float"/>''' in ab.xmlstr)
 
-def test_abox2():
+def test_abox2_custom_config():
     config = {}
     ab = AnswerBox('type="config" for="custom" wrapclass=mywrap.wrap(debug=True) import=mywrap', config=config)
     print ab.xmlstr
@@ -835,6 +1072,8 @@ def test_abox2():
     ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
     print ab.xmlstr
     assert('''def cfn_wrap_''' in ab.xmlstr)
+    assert "span" not in ab.xmlstr_just_code
+    assert "span" in ab.xmlstr
 
     # unset defaults
     ab = AnswerBox('type="config" for="custom"', config=config)
@@ -886,14 +1125,14 @@ def test_abox_mc_ut1():
     print ab.xmlstr
     assert('choicegroup' in ab.xmlstr)
     assert(ab.tests[0]['responses']==['choice_2'])
-    assert(ab.tests[0]['expected']==['correct'])
+    assert(ab.tests[0]['expected']=='correct')
 
 def test_abox_mc_ut2():
     ab = AnswerBox('type="oldmultichoice" options="green","blue","red" expect="blue","red"')
     print ab.xmlstr
     assert('checkboxgroup' in ab.xmlstr)
     assert(ab.tests[0]['responses']==['choice_2', 'choice_3'])
-    assert(ab.tests[0]['expected']==['correct', 'correct'])
+    assert(ab.tests[0]['expected']=='correct')
 
 def test_abox_option_ut1():
     ab = AnswerBox('type="option" options="green","blue","red" expect="blue"')
@@ -931,4 +1170,45 @@ def test_abox_custom_ut2():
     assert(ab.tests[2]['expected']==['correct']*2)
     assert(ab.tests[0]['box_indexes'] == [(0,0), (0,1)])
 
-    
+def test_multicoderesponse1():
+    abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" inline="1"}"""
+    ab = AnswerBox(abstr)
+    xmlstr = etree.tostring(ab.xml)
+    print xmlstr
+    assert ab.xml
+    assert '<grader_payload>{"debug": true, "grader": "designGrader", "options": "", "expect": ""}</grader_payload>' in xmlstr
+    assert '<p style="display:inline">$\mathtt{numtaps} = $<input size="10" style="display:inline" ' in xmlstr
+
+def test_multicoderesponse2():
+    abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
+    ab = AnswerBox(abstr)
+    xmlstr = etree.tostring(ab.xml)
+    print xmlstr
+    assert ab.xml
+    assert '<span id="abc123"' in xmlstr
+
+def test_abox_skip_unit_test6():
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=""', verbose=True)
+    print ab.tests
+    assert(len(ab.tests)==0)
+
+def test_abox_coderesponse1():
+    ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
+                   'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
+    print ab.xmlstr
+    assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" in ab.xmlstr
+
+def test_abox_coderesponse2():
+    ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
+                   """grader_payload='{"a":2, "cfn":"test"}' """
+                   'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
+    print ab.xmlstr
+    assert ("""<grader_payload>{"debug": true, "grader": "qis_cfn", """
+            """options": "test_opt", "expect": "test_expect"}</grader_payload>""" not in ab.xmlstr)
+    assert """<grader_payload>{"a":2, "cfn":"test"}</grader_payload>""" in ab.xmlstr
+
+def test_abox_multichoice_indexes1():
+    ab = AnswerBox('''inline=1 type='multichoice' expect="UL","DR" options="None","UL","UR","DL","DR"''')
+    assert('choiceresponse' in ab.xmlstr)
+    assert(len(ab.tests)==1)
+    assert(ab.tests[0]['box_indexes'] == [[0,0], [0,0]])

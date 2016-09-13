@@ -172,5 +172,28 @@ class TestCourseUnitTests(unittest.TestCase):
             self.assertEqual(cutset.tests[0].url_name, "a_problem")
             self.assertEqual(len(cutset.tests[0].responses), 5)
 
+    def test_latex2edx_cutset_wrap1(self):
+        with make_temp_directory() as tmdir:
+            os.chdir(tmdir)
+            ofn = "testcuts.yaml"
+            tex = r'''
+                   \begin{edXproblem}{A problem with wrapped abox}{url_name="a_problem"}
+
+\edXinline{$C(ZX) =$} \edXabox{type="custom" size=60 
+  expect="[H(1),CNOT(2,1)]" options="nqubits=3" 
+  cfn=check_clifford_circuit_eq inline="1"
+  wrapclass=subtext2.Subtext(debug=True,sanitize_allow_lists=False) import=subtext2
+}
+                   \end{edXproblem}
+            '''
+            l2e = latex2edx(tmdir + '/test.tex', latex_string=tex, add_wrap=True,
+                            do_images=False, output_dir=tmdir, output_cutset=ofn)
+            xmlstr = l2e.xml
+            cutset = CourseUnitTestSet(fn=ofn)
+            self.assertEqual(len(cutset.tests), 1)
+            self.assertEqual(cutset.tests[0].url_name, "a_problem")
+            self.assertEqual(cutset.tests[0].responses, ["[H(1),CNOT(2,1)]"])
+            self.assertEqual(cutset.tests[0].expected, ["correct"])
+
 if __name__ == '__main__':
     unittest.main()
