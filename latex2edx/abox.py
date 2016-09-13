@@ -692,7 +692,18 @@ class AnswerBox(object):
                 cp_ad = etree.SubElement(cp, "answer_display")
                 cp_ad.text = abargs.get("answer_display", "")
                 cp_gp = etree.SubElement(cp, "grader_payload")
-                cp_gp.text = abargs.get("grader_payload", "")
+                gp = abargs.get("grader_payload", "")
+                if not gp:
+                    cfn = self.stripquotes(abargs.get('cfn', ''))
+                    debug = abargs.get("debug", True) in [True, '1', 1]
+                    options = abargs.get('options', '')
+                    expect = abargs.get('expect', '')
+                    gp = json.dumps({"grader": cfn,		# xqueue config payload, sent to grader
+                                     'debug': debug,
+                                     'options': self.unescape(options),
+                                     'expect': self.unescape(expect),
+                    })
+                cp_gp.text = gp
             # turn script to <answer> later
 
         elif abtype == 'numericalresponse':
@@ -1055,6 +1066,8 @@ def test_abox2_custom_config():
     ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
     print ab.xmlstr
     assert('''def cfn_wrap_''' in ab.xmlstr)
+    assert "span" not in ab.xmlstr_just_code
+    assert "span" in ab.xmlstr
 
     # unset defaults
     ab = AnswerBox('type="config" for="custom"', config=config)
@@ -1173,4 +1186,17 @@ def test_abox_skip_unit_test6():
     print ab.tests
     assert(len(ab.tests)==0)
 
-    
+def test_abox_coderesponse1():
+    ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
+                   'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
+    print ab.xmlstr
+    assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" in ab.xmlstr
+
+def test_abox_coderesponse2():
+    ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
+                   """grader_payload='{"a":2, "cfn":"test"}' """
+                   'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
+    print ab.xmlstr
+    assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" not in ab.xmlstr
+    assert """<grader_payload>{"a":2, "cfn":"test"}</grader_payload>""" in ab.xmlstr
+

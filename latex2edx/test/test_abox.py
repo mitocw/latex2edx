@@ -155,6 +155,8 @@ class Test_Abox(unittest.TestCase):
         ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
         print ab.xmlstr
         assert('''def cfn_wrap_''' in ab.xmlstr)
+        assert "span" not in ab.xmlstr_just_code
+        assert "span" in ab.xmlstr
     
         # unset defaults
         ab = AnswerBox('type="config" for="custom"', config=config)
@@ -267,6 +269,25 @@ class Test_Abox(unittest.TestCase):
         print xmlstr
         assert ab.xml
         assert '<span id="abc123"' in xmlstr
+
+    def test_abox_skip_unit_test6(self):
+        ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=""', verbose=True)
+        print ab.tests
+        assert(len(ab.tests)==0)
+    
+    def test_abox_coderesponse1(self):
+        ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
+                       'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
+        print ab.xmlstr
+        assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" in ab.xmlstr
+
+    def test_abox_coderesponse2(self):
+        ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
+                       """grader_payload='{"a":2, "cfn":"test"}' """
+                       'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
+        print ab.xmlstr
+        assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" not in ab.xmlstr
+        assert """<grader_payload>{"a":2, "cfn":"test"}</grader_payload>""" in ab.xmlstr
 
 if __name__ == '__main__':
     unittest.main()
