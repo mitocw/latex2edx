@@ -896,11 +896,14 @@ class AnswerBox(object):
             expected = "incorrect"
         else:
             raise Exception("[abox] unknown test argument key %s" % key)
-        test = {'responses': responses, 
-                'expected': expected,
-                'box_indexes': zip([0]*len(responses), range(len(responses))),
-        }
-        self.tests.append(test)
+        if responses and (not responses[0]==''):
+            test = {'responses': responses, 
+                    'expected': expected,
+                    'box_indexes': zip([0]*len(responses), range(len(responses))),
+            }
+            self.tests.append(test)
+        elif self.verbose:
+            print '[abox] Warning: empty test_pass="" in %s' % self.aboxstr
 
     def unescape(self, str):
         '''
@@ -1164,5 +1167,10 @@ def test_multicoderesponse2():
     print xmlstr
     assert ab.xml
     assert '<span id="abc123"' in xmlstr
+
+def test_abox_skip_unit_test6():
+    ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=""', verbose=True)
+    print ab.tests
+    assert(len(ab.tests)==0)
 
     
