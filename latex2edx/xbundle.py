@@ -24,7 +24,10 @@ import subprocess
 
 from lxml import etree
 from lxml.html.soupparser import fromstring as fsbs
-from path import path	# needs path.py
+try:
+    from path import path	# needs path.py
+except Exception as err:
+    from path import Path as path
 
 #-----------------------------------------------------------------------------
 

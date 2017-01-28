@@ -17,7 +17,11 @@ try:
 except:
     from ordereddict import OrderedDict
 
-from path import path  # needs path.py
+try:
+    from path import path	# needs path.py
+except Exception as err:
+    from path import Path as path
+
 from lxml import etree
 from plastexit import plastex2xhtml
 from course_tests import AnswerBoxUnitTest, CourseUnitTestSet
