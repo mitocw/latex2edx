@@ -5,7 +5,10 @@ a searchable index, currently only seems to work as a static page.
 import json
 import os
 import unittest
-from path import path  # needs path.py
+try:
+    from path import path	# needs path.py
+except Exception as err:
+    from path import Path as path
 
 import latex2edx as l2e
 from latex2edx.main import latex2edx

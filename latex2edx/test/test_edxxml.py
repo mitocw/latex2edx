@@ -3,7 +3,10 @@ Test XML insertion using the `edXxml` command with example13_edxxml.tex
 '''
 import os
 import unittest
-from path import path  # needs path.py
+try:
+    from path import path	# needs path.py
+except Exception as err:
+    from path import Path as path
 
 import latex2edx as l2e
 from latex2edx.main import latex2edx

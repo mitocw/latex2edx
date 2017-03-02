@@ -1,7 +1,10 @@
 import os
 import unittest
 import sys
-from path import path
+try:
+    from path import path	# needs path.py
+except Exception as err:
+    from path import Path as path
 
 # sys.path.append('../python_lib')
 # from general_hint_system import *

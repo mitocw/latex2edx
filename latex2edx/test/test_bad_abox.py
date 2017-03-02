@@ -3,7 +3,10 @@ import contextlib
 import unittest
 import tempfile
 import shutil
-from path import path  # needs path.py
+try:
+    from path import path	# needs path.py
+except Exception as err:
+    from path import Path as path
 from StringIO import StringIO
 
 import latex2edx as l2emod

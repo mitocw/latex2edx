@@ -5,7 +5,10 @@ supporting latex2edx.js and latex2edx.css in the static directory.
 import os
 import unittest
 from lxml import etree
-from path import path  # needs path.py
+try:
+    from path import path	# needs path.py
+except Exception as err:
+    from path import Path as path
 
 import latex2edx as l2e
 from latex2edx.main import latex2edx

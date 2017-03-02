@@ -5,7 +5,10 @@ file structure in the url_name field of problem elements.
 import os
 import unittest
 from lxml import etree
-from path import path  # needs path.py
+try:
+    from path import path	# needs path.py
+except Exception as err:
+    from path import Path as path
 
 import latex2edx as l2e
 from latex2edx.main import latex2edx

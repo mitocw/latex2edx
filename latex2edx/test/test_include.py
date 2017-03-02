@@ -1,7 +1,10 @@
 import os
 import re
 import unittest
-from path import path  # needs path.py
+try:
+    from path import path	# needs path.py
+except Exception as err:
+    from path import Path as path
 from lxml import etree
 from StringIO import StringIO
 
