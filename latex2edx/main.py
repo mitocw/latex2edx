@@ -1613,7 +1613,11 @@ class latex2edx(object):
                     if the_test:
                         all_combined_tests.append(the_test)
 
-            make_test(response_tests)
+            try:
+                make_test(response_tests)
+            except Exception as err:
+                print "[latex2edx] Failed to generate course unit tests for problem %s, err=%s" % (un, str(err))
+                continue
             if self.verbose:
                 print "[latex2edx] generate_course_unit_tests adding %d tests for problem %s" % (len(all_combined_tests), un)
 
