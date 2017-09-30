@@ -1414,6 +1414,7 @@ class latex2edx(object):
     def process_dndtex(self, tree):
         '''
         Handle \edXdndtex{dnd_file.tex} inclusion of latex2dnd tex inputs.
+        The file may also be a dnd_file.dndspec
         '''
         tag = './/edxdndtex'
         for dndxml in tree.findall(tag):
@@ -1425,8 +1426,8 @@ class latex2edx(object):
                 print "See tex file %s line %s" % (texfn, linenum)
                 raise
             dndfn = dndfn.strip()
-            if not dndfn.endswith('.tex'):
-                print "Error: dnd file %s should be a .tex file!" % dndfn
+            if not (dndfn.endswith('.tex') or dndfn.endswith('.dndspec')):
+                print "Error: dnd file %s should be a .tex or a .dndspec file!" % dndfn
                 print "See tex file %s line %s" % (texfn, linenum)
                 raise
             if not os.path.exists(dndfn):
@@ -1436,7 +1437,7 @@ class latex2edx(object):
             try:
                 dndsrc = open(dndfn).read()
             except Exception, err:
-                print "Error %s: cannot open dnd tex file %s to read" % (err, dndfn)
+                print "Error %s: cannot open dnd tex / dndpec file %s to read" % (err, dndfn)
                 print "See tex file %s line %s" % (texfn, linenum)
                 raise
 
@@ -1450,7 +1451,7 @@ class latex2edx(object):
             # run latex2dnd only when the dndfile_dnd.xml file is older than dndfile.tex
 
             fnb = os.path.basename(dndfn)
-            fnpre = fnb[:-4]
+            fnpre = fnb.rsplit('.', 1)[0]
             fndir = path(os.path.dirname(dndfn))
             xmlfn = fndir / (fnpre + '_dnd.xml')
 
@@ -1466,7 +1467,7 @@ class latex2edx(object):
                 options = ''
                 if dndxml.get('can_reuse', 'False').lower().strip() != 'false':
                     options += '-C'
-                cmd = 'cd "%s"; latex2dnd -r %s -v %s %s.tex' % (fndir, dndxml.get('resolution', 210), options, fnpre)
+                cmd = 'cd "%s"; latex2dnd --cleanup -r %s -v %s %s' % (fndir, dndxml.get('resolution', 210), options, fnb)
                 print "--> Running %s" % cmd
                 sys.stdout.flush()
                 status = os.system(cmd)
