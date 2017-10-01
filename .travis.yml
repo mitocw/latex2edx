@@ -2,7 +2,8 @@ language: python
 python:
   - "2.7"
 before_install:
-  - sudo add-apt-repository ppa:texlive-backports/ppa -y
+  # - sudo add-apt-repository ppa:texlive-backports/ppa -y
+  - sudo add-apt-repository ppa:jonathonf/texlive -y
   - sudo apt-get update -y
   - sudo apt-get install libxml2-utils dvipng texlive texlive-latex-extra poppler-utils
   - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
