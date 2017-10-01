@@ -184,3 +184,4 @@ History
 * v1.5.0: provide course unit tests of answer boxes; the course unit test YAML file can be used with the edxcut package
 *         to perform unit tests of running courses on an edx platform instance
 * v1.5.1: Add multicode for asynchronously graded problems
+* v1.5.2: Allow .dndspec files to be used instead of just .tex, e.g.: \edXdndtex{dnd_file.dndspec}
