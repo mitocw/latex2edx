@@ -296,3 +296,6 @@ class edXgitlink(Command):
         self.attributes['url'] = '%s/%s#L%s' % (self.attributes['url_root'].source, tex.filename, tex.lineNumber)
         # print "root=%s, name=%s" % (self.attributes['url_root'].source, self.attributes['name'].source)
         print "  --> edXgitlink: file=%s, line=%s, url=%s" % (tex.filename, tex.lineNumber, self.attributes['url'])
+
+class edXsplittest(MyBaseEnvironment):
+    args = '[ attrib_string:str ] self'

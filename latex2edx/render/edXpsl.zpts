@@ -111,3 +111,6 @@ name: textwidth
 
 name: edXgitlink
 <span class="gitlink" style="float:right"><a tal:attributes="href string:${self/attributes/url}" tal:content='self/attributes/name' /></span>
+
+name: edXsplittest
+<split_test tal:attributes='attrib_string string:${self/attributes/attrib_string}' tal:content='self'></split_test>

@@ -181,6 +181,7 @@ class latex2edx(object):
                             self.process_includepy,
                             self.process_video,
                             self.process_lti,
+                            self.process_split_test,
                             self.process_general_hint_system,
                             self.check_all_python_scripts,
                             self.handle_policy_settings,
@@ -1091,6 +1092,9 @@ class latex2edx(object):
                     # self.remove_parent_p(askta)
                     p = askta.getparent()
                     p.remove(askta)
+                    if p.tag=='p' and not p.text.strip():	# remove extra <p> if present
+                        pp = p.getparent()
+                        pp.remove(p)
                     continue
 
             # generate button link, something like this:
@@ -1272,6 +1276,31 @@ class latex2edx(object):
             if self.verbose:
                 print "    lti %s, cp=%s" % (lti, lti.get('custom_parameters'))
 
+    def process_split_test(self, tree):
+        '''
+        For split_test elements, take all group_id_to_child<#>=gid attributes and combine them into a dict of the form { '<#>': gid, ...}
+        and set JSONified string of that dict as the group_id_to_child attribute value.
+        '''
+        for st in tree.findall('.//split_test'):
+            gilist = {}
+            for key, val in st.attrib.items():
+                if key.startswith('group_id_to_child'):
+                    gk = key.split('group_id_to_child')[-1]
+                    gilist[gk] = val
+                    st.attrib.pop(key)
+            if gilist:
+                st.set('group_id_to_child', json.dumps(gilist))
+
+            # remove parent <p> if it exists
+            parent = st.getparent()
+            pp = parent.getparent()
+            if parent.tag == 'p' and not parent.text.strip() and pp is not None:
+                parent.addprevious(st)
+                pp.remove(parent)
+
+            if self.verbose:
+                print "    split_test %s, group_id_to_child=%s" % (st, st.get('group_id_to_child'))
+
     def process_showhide(self, tree):
         for showhide in tree.findall('.//edxshowhide'):
             desc = showhide.get('description', '')
@@ -1296,7 +1325,10 @@ class latex2edx(object):
             subsub2.text = 'Show'
             par = newsh.getparent()
             while (par.tag != 'html') and (par.tag != 'problem'):
+                oldpar = par
                 par = par.getparent()
+                if par is None:
+                    raise Exception("Strange - showhide is in a %s environment?" % oldpar.tag)
                 if par.tag == 'vertical' or par.tag == 'sequential':
                     raise Exception("Must use showhide inside html or "
                                     "problem element")
@@ -1712,7 +1744,7 @@ class latex2edx(object):
         Convert attrib_string in <problem>, <chapter>, etc. to attributes, intelligently.
         '''
         TAGS = ['problem', 'chapter', 'sequential', 'vertical', 'course', 'html', 'video', 'discussion', 'edxdndtex',
-                'conditional', 'lti']
+                'conditional', 'lti', 'split_test']
         for tag in TAGS:
             for elem in xml.findall('.//%s' % tag):
                 self.do_attrib_string(elem)
