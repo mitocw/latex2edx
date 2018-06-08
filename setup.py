@@ -15,7 +15,7 @@ data_files = [
 
 setup(
     name='latex2edx',
-    version='1.5.2',
+    version='1.5.3',
     author='I. Chuang',
     author_email='ichuang@mit.edu',
     packages=['latex2edx', 'latex2edx.test'],
