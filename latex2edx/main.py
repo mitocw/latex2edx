@@ -635,6 +635,8 @@ class latex2edx(object):
         chapref = '0'
         for label in tree.xpath('.//label|//toclabel'):
             locstr = label.get('tmploc')
+            if not locstr:
+                continue
             if locstr.split('.')[-1] == '0':
                 locstr = locstr[:-2]
                 hlabel = True
@@ -1001,6 +1003,8 @@ class latex2edx(object):
         # EVH: Find and replace references everywhere with ref number and link
         for aref in tree.findall('.//ref'):
             reflabel = aref.text
+            if not 'tmploc' in aref.attrib:
+                continue
             locstr = aref.attrib.pop('tmploc')
             if self.popup_flag:
                 relurl = ''
