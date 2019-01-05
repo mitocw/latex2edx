@@ -136,6 +136,13 @@ class includegraphics(Base.Command):
     args = '[ width ] self'
 
 
+class marginote(Base.Command):  # tooltip margin note \marginote[options]{note}{anchor text}
+    args = '[ options ] { note } self'
+    def invoke(self, tex):
+        Command.invoke(self, tex)
+        print "  --> marginote in %s: note=%s, linenum=%s" % (tex.filename, self.attributes['note'].source, tex.lineNumber)
+
+
 class edXcite(Base.Command):  # tooltip citation (appears onmoseover, using <a title="self" href="#"><sup>[ref]</sup></a>)
     args = '[ ref ] self'
 

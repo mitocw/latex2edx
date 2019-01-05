@@ -16,6 +16,80 @@ import datetime
 
 from lxml import etree
 
+#-----------------------------------------------------------------------------
+# javascript for multicoderesponse and multiexternalresponse
+
+MULTICODE_JS_TEMPLATE = """
+                         console.log("Code version %s");
+
+            sync_multicoderesponse_inputs_%s = function(){
+                var mcrspan = $("#span_%s");
+                sync_multicoderesponse_inputs(mcrspan);
+            }
+
+            sync_multicoderesponse_inputs = function(mcrspan){
+                console.log("%s mcrspan = ", mcrspan);
+                var editor = mcrspan.parent().find(".CodeMirror")[0].CodeMirror;
+                console.log("%s textbox editor = ", editor);
+                var data = {};
+                mcrspan.find(".input_%s").each(function(kidx, elem){
+                    var cinput_name = elem.id;
+                    var cinput_val = $(elem).val();
+                    data[cinput_name] = cinput_val;
+                });
+                var datastr = JSON.stringify(data);
+                editor.setValue(datastr);
+                console.log("%s sync data: ", data);
+            }
+
+            $(".input_%s").change(sync_multicoderesponse_inputs_%s);
+
+            set_mcr_inputs = function(mcrspan, data){    // for init - set multicoderesponse inputs
+                // var mcrspan = $("#span_%s");
+                var cnt = 1;
+                data.forEach(function(x){
+                    mcrspan.find('input.multicode_input_' + cnt).val(x);
+                    cnt += 1
+                });
+                sync_multicoderesponse_inputs(mcrspan);
+            }
+
+            set_mcr_inputs_fromdict = function(mcrspan, data){    // for init - set multicoderesponse inputs
+                mcrspan.find('input').each(function(k, elem){
+                    var cinput_name = elem.id;
+                    $(elem).val(data[cinput_name]);
+                });
+            }
+
+            setup_initial_mcr_inputs_%s = function(){
+                var mcrspan = $("#span_%s");
+                try { var editor = mcrspan.parent().find(".CodeMirror")[0].CodeMirror; }
+                catch (err){  
+                    console.log("[setup_initial_mcr_inputs] no editor yet...", err);
+                    setTimeout(setup_initial_mcr_inputs_%s, 500);
+                    return;
+                }
+                %s
+                if (editor.mcr_inputs_processed){
+                    console.log("[setup_initial_mcr_inputs] inputs processed");
+                    return;
+                }
+                var datastr = editor.getValue();
+                try { var data = jQuery.parseJSON(datastr); }
+                catch (err){
+                    console.log("[setup_initial_mcr_inputs] codemirror text unparseable...", err);
+                    // setTimeout(setup_initial_mcr_inputs_%s, 500);
+                    return;
+                }
+                set_mcr_inputs_fromdict(mcrspan, data);
+            }
+        
+            setTimeout(setup_initial_mcr_inputs_%s, 500);
+
+            """
+
+#-----------------------------------------------------------------------------
+
 class AnswerBox(object):
     def __init__(self, aboxstr, config=None, context=None, verbose=False):
         '''
@@ -186,6 +260,12 @@ class AnswerBox(object):
         equivalent, in the textarea.  The textarea is hidden from the user.
         
         -----------------------------------------------------------------------------
+        multiexternalresponse for externalresponse using multiple input fields
+
+        multiexternalresponse provides for externalresponse what multicoderesponse
+        provides for coderesponse.
+        
+        -----------------------------------------------------------------------------
 
         context is used for error reporting, and provides context like the line number and
         filename where the abox is located.
@@ -237,6 +317,7 @@ class AnswerBox(object):
                          'symbolic': 'symbolicresponse',
                          'image': 'imageresponse',
                          'multicode': 'multicoderesponse',
+                         'multiexternal': 'multiexternalresponse',
                          'jsinput': 'customresponse_jsinput',
                          'config': 'config',	# special for setting default config parameters
                          }
@@ -470,7 +551,7 @@ class AnswerBox(object):
                     
         # -----------------------------------------------------------------------------
 
-        elif abtype=='multicoderesponse':
+        elif abtype in ['multicoderesponse', 'multiexternalresponse']:
             #
             # cfn is taken to set the "grader" parameter in graer_payload
             # 
@@ -482,8 +563,15 @@ class AnswerBox(object):
             # (to suppress debug output, and to hide the textboxinput).  Debug defaults
             # to True.
             #
-            abxml.tag = "coderesponse"
-            self.require_args(['cfn', 'queuename'])
+            # For multiexternalresponse, the grader parameters are encoded in a
+            # <script type="text/python">...</script> stanza.
+
+            tags = {'multicoderesponse': "coderesponse",
+                    'multiexternalresponse': "externalresponse"
+                    }
+            
+            abxml.tag = tags[abtype]
+            self.require_args(['cfn'])		# for externalresponse, thesse are put into a script stanza
 
             cfn = self.stripquotes(abargs['cfn'])
             index = self.stripquotes(abargs.get('index', "")) or "1"
@@ -497,20 +585,36 @@ class AnswerBox(object):
                 tb.set('hidden', '1') 		# edX-platform not hiding textbox despite hidden=1?
             abxml.append(tb)
 
-            self.copy_attrib(abargs,'queuename', abxml)
-
-            cp = etree.SubElement(abxml, "codeparam")
-            ide = etree.SubElement(cp, "initial_display");
-            ad = etree.SubElement(cp,"answer_display")
-            ad.text = "see text"
-            gp = etree.SubElement(cp, "grader_payload")
+            # setup grader payload options json
             options = abargs.get('options', '')
             expect = abargs.get('expect', '')
-            gp.text = json.dumps({"grader": cfn,		# xqueue config payload, sent to grader
+            gp_json = json.dumps({"grader": cfn,		# xqueue config payload, sent to grader
                                   'debug': debug,
                                   'options': self.unescape(options),
                                   'expect': self.unescape(expect),
-                              })
+                                  'queuename': abargs.get("queuename"),
+            })
+
+            if abtype in ['multicoderesponse']:
+                self.require_args(['queuename'])
+                self.copy_attrib(abargs,'queuename', abxml)
+                cp = etree.SubElement(abxml, "codeparam")
+                ide = etree.SubElement(cp, "initial_display");
+                ad = etree.SubElement(cp,"answer_display")
+                ad.text = "see text"
+                gp = etree.SubElement(cp, "grader_payload")
+                gp.text = gp_json
+
+            elif abtype in ['multiexternalresponse']:
+                stext = "\ngrader_payload = '%s'\n" % gp_json
+                api_key = abargs.get("api_key")
+                if api_key:
+                    stext = '\nAPI_KEY="%s"' % api_key + stext
+                self.require_args(['url'])
+                self.copy_attrib(abargs, 'url', abxml)
+                script_elem = etree.Element("script")
+                script_elem.set("type", "text/python")
+                script_elem.text = stext
 
             # now construct input elements for each prompt
             mcrid = "%s_%s" % (cfn, index)
@@ -579,78 +683,12 @@ class AnswerBox(object):
                 js_extra = '$("#span_%s").parent().find(".CodeMirror").hide();' % (mcrid)	# hide textbox if not debugging
 
             dtstr = datetime.datetime.now()
-            jscode = """
-                         console.log("Code version %s");
 
-            sync_multicoderesponse_inputs_%s = function(){
-                var mcrspan = $("#span_%s");
-                sync_multicoderesponse_inputs(mcrspan);
-            }
-
-            sync_multicoderesponse_inputs = function(mcrspan){
-                console.log("%s mcrspan = ", mcrspan);
-                var editor = mcrspan.parent().find(".CodeMirror")[0].CodeMirror;
-                console.log("%s textbox editor = ", editor);
-                var data = {};
-                mcrspan.find(".input_%s").each(function(kidx, elem){
-                    var cinput_name = elem.id;
-                    var cinput_val = $(elem).val();
-                    data[cinput_name] = cinput_val;
-                });
-                var datastr = JSON.stringify(data);
-                editor.setValue(datastr);
-                console.log("%s sync data: ", data);
-            }
-
-            $(".input_%s").change(sync_multicoderesponse_inputs_%s);
-
-            set_mcr_inputs = function(mcrspan, data){    // for init - set multicoderesponse inputs
-                // var mcrspan = $("#span_%s");
-                var cnt = 1;
-                data.forEach(function(x){
-                    mcrspan.find('input.multicode_input_' + cnt).val(x);
-                    cnt += 1
-                });
-                sync_multicoderesponse_inputs(mcrspan);
-            }
-
-            set_mcr_inputs_fromdict = function(mcrspan, data){    // for init - set multicoderesponse inputs
-                mcrspan.find('input').each(function(k, elem){
-                    var cinput_name = elem.id;
-                    $(elem).val(data[cinput_name]);
-                });
-            }
-
-            setup_initial_mcr_inputs_%s = function(){
-                var mcrspan = $("#span_%s");
-                try { var editor = mcrspan.parent().find(".CodeMirror")[0].CodeMirror; }
-                catch (err){  
-                    console.log("[setup_initial_mcr_inputs] no editor yet...", err);
-                    setTimeout(setup_initial_mcr_inputs_%s, 500);
-                    return;
-                }
-                %s
-                if (editor.mcr_inputs_processed){
-                    console.log("[setup_initial_mcr_inputs] inputs processed");
-                    return;
-                }
-                var datastr = editor.getValue();
-                try { var data = jQuery.parseJSON(datastr); }
-                catch (err){
-                    console.log("[setup_initial_mcr_inputs] codemirror text unparseable...", err);
-                    // setTimeout(setup_initial_mcr_inputs_%s, 500);
-                    return;
-                }
-                set_mcr_inputs_fromdict(mcrspan, data);
-            }
-        
-            setTimeout(setup_initial_mcr_inputs_%s, 500);
-
-            """ % (dtstr, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, js_extra, mcrid, mcrid)
+            jscode = MULTICODE_JS_TEMPLATE % (dtstr, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, mcrid, js_extra, mcrid, mcrid)
 
             jse = etree.Element("script")
             jse.text = jscode
-            jse.set("type", "text/javascript");
+            jse.set("type", "text/javascript")
 
             # now assemble all the elements: put into a big span
             aspan = etree.Element("span")
@@ -658,6 +696,16 @@ class AnswerBox(object):
             aspan.append(abxml)
             aspan.append(ispan)
             aspan.append(jse)
+
+            if abtype in ['multiexternalresponse']:
+                aspan.append(script_elem)
+                atext = abargs.get("answer", "")
+                if atext:
+                    answer = etree.SubElement(abxml, "answer")
+                    answer.text = atext
+                tests = etree.SubElement(abxml, "tests")
+                tests.text = abargs.get("tests", "")
+
             abxml = aspan	# use assembled span for the abox XML
 
         elif abtype == 'externalresponse' or abtype == 'coderesponse':
@@ -668,10 +716,18 @@ class AnswerBox(object):
             self.copy_attrib(abargs, 'cols', tb)
             self.copy_attrib(abargs, 'mode', tb)
             self.copy_attrib(abargs, 'tabsize', tb)
-            self.copy_attrib(abargs, 'tests', abxml)
             self.copy_attrib(abargs, 'queuename', abxml)
             abxml.append(tb)
-            if abtype=="coderesponse":
+
+            if abtype=="externalresponse":
+                atext = abargs.get("answer", "")
+                if atext:
+                    answer = etree.SubElement(abxml, "answer")
+                    answer.text = atext
+                tests = etree.SubElement(abxml, "tests")
+                tests.text = abargs.get("tests", "")
+            
+            elif abtype=="coderesponse":
                 #
                 # sample coderesponse:
                 #   <coderesponse queuename="MITx-42.01x">
@@ -1212,3 +1268,43 @@ def test_abox_multichoice_indexes1():
     assert('choiceresponse' in ab.xmlstr)
     assert(len(ab.tests)==1)
     assert(ab.tests[0]['box_indexes'] == [[0,0], [0,0]])
+
+def test_multiexternalresponse1():
+    abstr = """\edXabox{expect="." url="https://localhost/test/6341" type="multiexternal" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
+    ab = AnswerBox(abstr)
+    xmlstr = etree.tostring(ab.xml)
+    print xmlstr
+    assert ab.xml is not None
+    assert '<span id="abc123"' in xmlstr
+    m = re.search('<script type="text/python">(.*)</script>', xmlstr, flags=re.M+re.S)
+    sc = m.group(1)
+    context = {}
+    exec(sc, globals(), context)
+    print context
+    gp = json.loads(context['grader_payload'])
+    assert gp['grader']=="designGrader"
+
+def test_multiexternalresponse2():
+    abstr = """\edXabox{type="multiexternal" 
+  url="http://localhost:9091/grade"
+  size=70
+  debug=0
+  hidden="parity_circuit"
+  prompts="circuit = "
+  expect="[]"
+  options="nqubits=5"
+  cfn=qis_qcircuit
+  inline="1"
+}
+"""
+    abstr = abstr.replace('\n', ' ')
+    # abstr = """\edXabox{expect="." url="https://localhost/test/6341" type="multiexternal" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
+    abstr = """type="multiexternal" api_key="secret_key" url="http://localhost:9091/grade"  size=70  debug=0  hidden="parity_circuit"  prompts="circuit = "  expect="[]"  options="nqubits=5"  cfn=qis_qcircuit  inline="1" """
+    ab = AnswerBox(abstr)
+    xmlstr = etree.tostring(ab.xml)
+    print xmlstr
+    assert "<answer" not in xmlstr
+    m = re.search('<script type="text/python">(.*)</script>', xmlstr, flags=re.M+re.S)
+    sc = m.group(1)
+    assert 'API_KEY="secret_key"' in sc
+    

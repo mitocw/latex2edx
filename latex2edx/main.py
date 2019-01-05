@@ -182,6 +182,7 @@ class latex2edx(object):
                             self.process_video,
                             self.process_lti,
                             self.process_split_test,
+                            self.process_marginote,
                             self.process_general_hint_system,
                             self.check_all_python_scripts,
                             self.handle_policy_settings,
@@ -1305,6 +1306,62 @@ class latex2edx(object):
             if self.verbose:
                 print "    split_test %s, group_id_to_child=%s" % (st, st.get('group_id_to_child'))
 
+    def process_marginote(self, tree):
+        '''
+        \marginote[options]{note}{anchor text}
+        --> <marginote options><desc>note</desc> anchor text</marginote>
+        '''
+        for mn in tree.findall('.//marginote'):
+            mn.tag = "span"
+            mn.set('class', "marginote")
+            desc = mn.find(".//desc")
+            if desc is None:
+                raise Exception("Oops, missing note text in marginote=%s" % etree.tostring(mn))
+            desc.tag = "span"
+            desc.set('class', 'marginote_desc')
+            desc.set('style', "display:none")
+            if self.verbose:
+                print("    marginote %s" % (mn))
+
+            # insert <script> tag for marginote javascript, if not already in this container
+            par = self.find_container_root(mn, "marginote")
+            if not par.findall('.//script[@src="/static/marginotes.js"]'):
+                par.append(etree.Element("script", 
+                                        {'type': 'text/javascript',
+                                         'src': '/static/marginotes.js'}))
+                self.copy_to_static("marginotes.js", 'marginotes JavaScript')
+
+    def find_container_root(self, elem, name="current_element"):
+        '''
+        Find containing html or parent container, for element elem
+        '''
+        par = elem.getparent()
+        while (par.tag != 'html') and (par.tag != 'problem'):
+            oldpar = par
+            par = par.getparent()
+            if par is None:
+                raise Exception("Strange - %s is in a %s environment?" % (name, oldpar.tag))
+            if par.tag == 'vertical' or par.tag == 'sequential':
+                raise Exception("Must use %s inside html or problem element" % name)
+        return par
+
+    def copy_to_static(self, resource_fn, description="resource file"):
+        '''
+        Copy named resource file to the course's static files directory.
+        Ensure that the static files directory exists.
+        '''
+        staticdir = self.output_dir / 'static'
+        if not os.path.exists(staticdir):
+            if not os.path.exists(self.output_dir):
+                os.mkdir(self.output_dir)
+            os.mkdir(staticdir)
+        if not os.path.exists(staticdir / resource_fn):
+            l2ejs = pkg_resources.resource_filename(__name__, resource_fn)
+            cmd = 'cp {} {}/'.format(l2ejs, staticdir)
+            print '----> Copying {}: {}'.format(description, cmd)
+            sys.stdout.flush()
+            os.system(cmd)
+
     def process_showhide(self, tree):
         for showhide in tree.findall('.//edxshowhide'):
             desc = showhide.get('description', '')
@@ -1327,16 +1384,8 @@ class latex2edx(object):
             subsub2 = etree.SubElement(sub2, 'a',
                                        {'href': 'javascript: {return false;}'})
             subsub2.text = 'Show'
-            par = newsh.getparent()
-            while (par.tag != 'html') and (par.tag != 'problem'):
-                oldpar = par
-                par = par.getparent()
-                if par is None:
-                    raise Exception("Strange - showhide is in a %s environment?" % oldpar.tag)
-                if par.tag == 'vertical' or par.tag == 'sequential':
-                    raise Exception("Must use showhide inside html or "
-                                    "problem element")
-                    break
+            par = self.find_container_root(newsh, "showhide")
+
             scriptforsh = etree.Element('SCRIPT',
                                         {'type': 'text/javascript',
                                          'src': '/static/latex2edx.js'})
@@ -1347,25 +1396,8 @@ class latex2edx(object):
             if len(par.findall('.//SCRIPT[@src="/static/latex2edx.js"]')) == 0:
                 par.append(scriptforsh)
                 par.append(styleforsh)
-                staticdir = self.output_dir / 'static'
-                if not os.path.exists(staticdir):
-                    if not os.path.exists(self.output_dir):
-                        os.mkdir(self.output_dir)
-                    os.mkdir(staticdir)
-                if not os.path.exists(staticdir / 'latex2edx.js'):
-                    l2ejs = pkg_resources.resource_filename(__name__,
-                                                            'latex2edx.js')
-                    cmd = 'cp {} {}/'.format(l2ejs, staticdir)
-                    print '----> Copying showhide JavaScript: {}'.format(cmd)
-                    sys.stdout.flush()
-                    os.system(cmd)
-                if not os.path.exists(staticdir / 'latex2edx.css'):
-                    l2ecss = pkg_resources.resource_filename(__name__,
-                                                             'latex2edx.css')
-                    cmd = 'cp {} {}/'.format(l2ecss, staticdir)
-                    print '----> Copyting showhide CSS: {}'.format(cmd)
-                    sys.stdout.flush()
-                    os.system(cmd)
+                self.copy_to_static("latex2edx.js", 'showhide JavaScript')
+                self.copy_to_static("latex2edx.css", 'showhide CSS')
 
     def process_include(self, tree, do_python=False):
         '''

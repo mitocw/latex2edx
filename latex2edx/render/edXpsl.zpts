@@ -79,6 +79,9 @@ name: includegraphics
 name: edXcite
 <edxcite tal:attributes="ref string:${self/attributes/ref}" tal:content='self'></edxcite>
 
+name: marginote
+<marginote tal:attributes="options string:${self/attributes/options}"><desc tal:content='string:${self/attributes/note}'></desc><span tal:content='self'></span></marginote>
+
 name: section
 <h2 tal:content='self'></h2>
 

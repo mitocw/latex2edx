@@ -64,7 +64,13 @@ class MyRenderer(XHTML.Renderer):
         x = m.group(1).strip()
         x = x.replace('\\$ ','$')	# dollar sign must be escaped in plasTeX, but shouldn't be in XML
         x = x.replace(u'\u2019',"'")
-        x = x.decode('ascii','ignore')
+        x = x.replace(u'\u201c',"'")
+        try:
+            x = x.decode('ascii','ignore')
+        except Exception as err:
+            print("Failed to decode string:")
+            print(x)
+            raise 
         x = x.replace('\\ensuremath','')
         x = x.replace('{^\\circ','{}^\\circ')	# workaround plasTeX bug
         if removenl:
@@ -77,7 +83,12 @@ class MyRenderer(XHTML.Renderer):
 
     @classmethod
     def filter_fix_math(cls, m):
-        x = cls.fix_math_common(m)
+        try:
+            x = cls.fix_math_common(m)
+        except Exception as err:
+            print("Failed to fix_math_common, match=")
+            print(m.group(1))
+            raise
         if len(x)==0 or x=="\displaystyle":
             return "&nbsp;"
         return '[mathjaxinline]%s[/mathjaxinline]' % x
