@@ -27,7 +27,7 @@ class TestGHS(unittest.TestCase):
         print "libpath=%s" % libpath
         os.chdir(libpath)
         import pytest
-        errno = pytest.main('test_ghs.py')
+        errno = pytest.main(['test_ghs.py'])
         print "errno=%s" % errno
         assert(errno == 0)
 
