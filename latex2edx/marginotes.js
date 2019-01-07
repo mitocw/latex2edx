@@ -30,50 +30,74 @@
       var field = options.field || 'desc'
       var spans = this.filter('span')
 
-      $('body').append('<div class="margintooltip" style="display: none;"></div>')
+      // $('body').append('<div class="margintooltip" style="display: none;"></div>')
       spans.css({
         'border-bottom': '1px dashed #337ab7',
         'cursor': 'help'
       })
-      this.hover(function (e) {
-	var desc_span = $(this).find(".marginote_desc");
 
+
+      this.hover(function (e) {
+
+	var desc_span = $(this).find(".marginote_desc");
+        var tooltip = desc_span;
         var description = $(desc_span).html();
         var parent = $(this.parentElement)
+        var xblock = $(this).closest(".xblock")
         var position = parent.position()
 	var offset = parent.offset();
-        var tooltip = $('.margintooltip')
+	var xblock_offset = xblock.offset();
+	var height = parent.height();
+        // var tooltip = $('.margintooltip')
 
         var width = options.width || 150;
-        var left = options.left || (offset.left - 30);
+        var left = options.left || (xblock_offset.left - 30);
+	left = left - width - 5;
+	if (left < 0){ left = 0; }
         var top = options.top || (offset.top);
-        top = top + (options.top_offset || 0);
+	var xblock_top = xblock.offset().top;
+        top = top + (options.top_offset || 0) - window.scrollY;	// since using position: fixed
 
-        console.log("[marginotes] width=", width,  " left=", left, " top=", top);
+	  try{
+	      if ($(parent)[0].classList.contains("xblock")){
+		  height = $(this).height();
+	      }
+	  }
+	  catch(err){
+	      console.log("[marginotes] could note get classList of parent=", parent);
+	      console.log("[marginotes] err=", err);
+	  }
+
+        console.log("[marginotes] width=", width,  " left=", left, " top=", top, " height=", height, " parent=", parent);
         console.log("[marginotes] position=", position, " offset=", offset, " desc_span=", desc_span);
 
         tooltip
           .css({
             'border-right': 'solid 2px #337ab7',
             'font-size': '13px',
-            'left': left - width - 5,
-            'min-height': parent.height(),
+            'left': left,
+            'min-height': height,
             'padding-right': '7px',
-            'position': 'absolute',
+            // 'position': 'absolute',
+            'position': 'fixed',
             'text-align': 'right',
             'top': top,
+            'background-color': 'white',
             'width': width
           })
           // .text(description)
-          .html(description)
+          // .html(description)
           .stop()
           .fadeIn({
             duration:100,
             queue: false
           })
       }, function () {
-        $('.margintooltip').stop()
-        $('.margintooltip').fadeOut({
+        //$('.margintooltip').stop()
+        //$('.margintooltip').fadeOut({
+	var tooltip = $(this).find(".marginote_desc");
+        tooltip.stop()
+        tooltip.fadeOut({
           duration: 100
         })
       })
