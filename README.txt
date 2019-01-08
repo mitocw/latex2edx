@@ -135,4 +135,6 @@ History
 * v1.5.1: Add multicode for asynchronously graded problems
 * v1.5.2: allow \edXdndtex to include dndspec file ; latest path.py conventions
 * v1.5.3: Add \edXsplittest
+* v1.5.4: Add \marginote{note text}{anchor text}
+* v1.5.5: Add command options: --timestamp --timestamp-revision <REV> --timestamp-threshold 5
 

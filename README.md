@@ -187,3 +187,4 @@ History
 * v1.5.2: Allow .dndspec files to be used instead of just .tex, e.g.: \edXdndtex{dnd_file.dndspec}
 * v1.5.3: Add \edXsplittest
 * v1.5.4: Add \marginote{note text}{anchor text}
+* v1.5.5: Add command options: --timestamp --timestamp-revision <REV> --timestamp-threshold 5
