@@ -116,6 +116,9 @@ class latex2edx(object):
                  popup_flag=False,
                  allow_dirs=False,
                  output_cutset='',
+                 add_timestamp=False,
+                 timestamp_revision="",
+                 timestamp_threshold=10,
                  ):
         '''
         extra_xml_filters = list of functions acting on XML, applied to XHTML
@@ -157,6 +160,9 @@ class latex2edx(object):
         self.the_xml = None
         self.allow_dirs = allow_dirs
         self.output_cutset = output_cutset
+        self.add_timestamp = add_timestamp
+        self.timestamp_revision = timestamp_revision
+        self.timestamp_threshold = timestamp_threshold
 
         if output_fn is None or not output_fn:
             if fn.endswith('.tex'):
@@ -186,6 +192,7 @@ class latex2edx(object):
                             self.process_general_hint_system,
                             self.check_all_python_scripts,
                             self.handle_policy_settings,
+                            self.process_add_timestamp,
                             ]
         if extra_xml_filters:
             self.fix_filters += extra_xml_filters
@@ -1182,6 +1189,28 @@ class latex2edx(object):
             return x[1:-1]
         return x
 
+    def process_add_timestamp(self, tree):
+        '''
+        Add timestamps at the bottom of every HTML page
+        '''
+        if not self.add_timestamp:
+            return
+        ts = datetime.datetime.now().strftime("%A %B %d, %Y; %I:%M:%S %p")
+        stamp = "This page was last updated on %s" % ts
+        if self.timestamp_revision:
+            stamp += " (revision %s)" % self.timestamp_revision
+        nadd = 0
+        nskip = 0
+        for html in tree.findall('.//html'):
+            if(len(html) < self.timestamp_threshold):
+                nskip += 1
+                continue
+            stamp_xml = etree.fromstring('<span><br/><span style="color:gray;font-size:10pt"><center>%s</center></span></span>' % stamp)
+            html.append(stamp_xml)
+            nadd += 1
+        print("Added timestamp to %d html pages (skipped %s)" % (nadd, nskip))
+        print("    timestamp = '%s'" % stamp)
+
     def process_edxcite(self, tree):
         '''
         Add citation link visible on mouse hoover.
@@ -1859,6 +1888,19 @@ def CommandLine():
                       dest="units_only",
                       default=False,
                       help="export only units, including problem, html -- no course, chapter, section",)
+    parser.add_option("--timestamp",
+                      action="store_true",
+                      default=False,
+                      help="add timestamps at the bottom of each HTML page",)
+    parser.add_option("--timestamp-revision",
+                      action="store",
+                      default="",
+                      help="additional revision number to add to the timestamp",)
+    parser.add_option("--timestamp-threshold",
+                      type="int",
+                      action="store",
+                      default=10,
+                      help="minimum number of elements in HTML, for a timestamp to be added",)
     parser.add_option("--popups",
                       action="store_true",
                       dest="popups",
@@ -1912,6 +1954,9 @@ def CommandLine():
                   allow_dirs=opts.allow_dirs,
                   output_cutset=opts.output_cutset,
                   extra_xml_filters=extra_xml_filters,
+                  add_timestamp=opts.timestamp,
+                  timestamp_revision=opts.timestamp_revision,
+                  timestamp_threshold=opts.timestamp_threshold,
                   )
     c.convert()
 
