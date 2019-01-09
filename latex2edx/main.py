@@ -1365,10 +1365,15 @@ class latex2edx(object):
         Find containing html or parent container, for element elem
         '''
         par = elem.getparent()
+        parent_tags = [elem.tag, par.tag]
         while (par.tag != 'html') and (par.tag != 'problem'):
             oldpar = par
             par = par.getparent()
+            if par is not None:
+                parent_tags.append(par.tag)
             if par is None:
+                print("Error finding root for %s" % etree.tostring(elem))
+                print("parent tags = %s" % parent_tags)
                 raise Exception("Strange - %s is in a %s environment?" % (name, oldpar.tag))
             if par.tag == 'vertical' or par.tag == 'sequential':
                 raise Exception("Must use %s inside html or problem element" % name)
