@@ -117,3 +117,6 @@ name: edXgitlink
 
 name: edXsplittest
 <split_test tal:attributes='attrib_string string:${self/attributes/attrib_string}' tal:content='self'></split_test>
+
+name: html
+<customhtml tal:attributes='tag string:${self/attributes/tag}; attrib_string string:${self/attributes/attrib_string}' tal:content='self'></customhtml>

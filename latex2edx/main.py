@@ -188,6 +188,7 @@ class latex2edx(object):
                             self.process_video,
                             self.process_lti,
                             self.process_split_test,
+                            self.process_custom_html,
                             self.process_marginote,
                             self.process_general_hint_system,
                             self.check_all_python_scripts,
@@ -262,7 +263,12 @@ class latex2edx(object):
         Returns a string (giving the filter-processed XML representation)
         '''
         if self.the_xml is None:
-            xml = etree.fromstring(self.xhtml)
+            try:
+                xml = etree.fromstring(self.xhtml)
+            except Exception as err:
+                print("Error!  Failed to convert xhtml string into proper XML, err=%s" % str(err))
+                print("xhtml string = %s" % self.xhtml)
+                raise
             for filter in self.fix_filters:
                 filter(xml)
             self.the_xml = xml
@@ -1818,6 +1824,21 @@ class latex2edx(object):
         for tag in TAGS:
             for elem in xml.findall('.//%s' % tag):
                 self.do_attrib_string(elem)
+
+    def process_custom_html(self, tree):
+        '''
+        Handle \begin{html}{tag}[attribs] ... \end{html}
+        '''
+        cnt = 0
+        for ch in tree.findall(".//customhtml"):
+            tag = ch.get("tag")
+            if not tag:
+                raise Exception("Oops, empty tag specified in custom html %s" % etree.tostring(ch))
+            ch.tag = tag
+            ch.attrib.pop("tag")
+            self.do_attrib_string(ch)
+            cnt += 1
+        print("Processed %s custom HTML stanzas" % cnt)
 
     def fix_xhtml_descriptor_in_p(self, xml):
         '''

@@ -306,3 +306,11 @@ class edXgitlink(Command):
 
 class edXsplittest(MyBaseEnvironment):
     args = '[ attrib_string:str ] self'
+
+class html(Base.Environment):
+    '''
+    Custom HTML element, e.g. \begin{html}{span}[class="bluebox"] ... \end{html}
+    produces <customhtml tag="span" attrib_string=... > ... </customhtml>
+    which is then post-processed to become <span class="bluebox"> ... </span>
+    '''
+    args = '{ tag } [ attrib_string:str ] self'
