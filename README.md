@@ -188,3 +188,4 @@ History
 * v1.5.3: Add \edXsplittest
 * v1.5.4: Add \marginote{note text}{anchor text}
 * v1.5.5: Add command options: --timestamp --timestamp-revision <REV> --timestamp-threshold 5
+* v1.5.6: Add \html{tag}[attributes] for custom HTML
