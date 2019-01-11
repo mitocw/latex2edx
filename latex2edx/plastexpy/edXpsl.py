@@ -140,7 +140,11 @@ class marginote(Base.Command):  # tooltip margin note \marginote[options]{note}{
     args = '[ options ] { note } self'
     def invoke(self, tex):
         Command.invoke(self, tex)
-        print "  --> marginote in %s: note=%s, linenum=%s" % (tex.filename, self.attributes['note'].source, tex.lineNumber)
+        try:
+            print "  --> marginote in %s: note=%s, linenum=%s" % (tex.filename, self.attributes['note'].source, tex.lineNumber)
+        except Exception as err:
+            print(" --> marginnote in %s: note=<unicode error>, linenum=%s" % (tex.filename, tex.lineNumber))
+            print(err)
 
 
 class edXcite(Base.Command):  # tooltip citation (appears onmoseover, using <a title="self" href="#"><sup>[ref]</sup></a>)
