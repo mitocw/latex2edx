@@ -29,7 +29,7 @@ class TestKey(unittest.TestCase):
         '''
         testdir = path(l2e.__file__).parent / 'testtex'
         tfn = testdir / 'example12_index.tex'
-        print "file %s" % tfn
+        print("file %s" % tfn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, tfn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))

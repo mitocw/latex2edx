@@ -17,7 +17,7 @@ class TestExamples(unittest.TestCase):
     def test_example1(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example1.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -54,7 +54,7 @@ class TestExamples(unittest.TestCase):
         testdir = path(l2emod.__file__).parent / 'testtex'
         with make_temp_directory() as tmdir:
             fn = testdir / 'example1.tex'
-            print "file %s" % fn
+            print("file %s" % fn)
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
             os.chdir(tmdir)
@@ -62,7 +62,7 @@ class TestExamples(unittest.TestCase):
             l2e.convert()
 
             fn = testdir / 'example2.tex'
-            print "file %s" % fn
+            print("file %s" % fn)
             nfn = '%s/%s' % (tmdir, fn.basename())
             l2e = latex2edx(nfn, output_dir=tmdir, do_merge=True)
             l2e.convert()

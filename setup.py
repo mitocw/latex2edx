@@ -33,7 +33,7 @@ setup(
     install_requires=['lxml',
                       'path.py',
                       'plastex',
-                      'beautifulsoup',
+                      'beautifulsoup4',
                       'latex2dnd',
                       'pyyaml',
                       ],

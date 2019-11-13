@@ -1,14 +1,20 @@
 import os
+import glob
 import contextlib
 import unittest
 import tempfile
 import shutil
+
 try:
     from path import path	# needs path.py
 except Exception as err:
     from path import Path as path
 from lxml import etree
-from StringIO import StringIO
+
+try:
+    from StringIO import StringIO
+except:
+    from io import StringIO
 
 import latex2edx as l2emod
 from latex2edx.main import latex2edx
@@ -20,7 +26,7 @@ class TestVideo(unittest.TestCase):
     def test_video1(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example4.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -32,6 +38,7 @@ class TestVideo(unittest.TestCase):
             # xb = open(xbfn).read()
 
             cfn = path(tmdir) / 'chapter/Unit_2.xml'
+            print("Files: %s" % str(glob.glob("%s/*" % path(tmdir))))
             self.assertTrue(os.path.exists(cfn))
 
             xml = etree.parse(cfn).getroot()

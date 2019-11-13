@@ -37,7 +37,7 @@ class AnswerBoxUnitTest(object):
         if test_spec:
             for field in self.SPEC_FIELDS:
                 if not field in test_spec:
-                    print "Missing %s from test %s" % (field, test_name)
+                    print("Missing %s from test %s" % (field, test_name))
                 else:
                     setattr(self, field, test_spec[field])
             self.box_indexes = test_spec.get('box_indexes', self.box_indexes)
@@ -164,7 +164,7 @@ class CourseUnitTestSet(object):
             self.tests.append(abutest)
         self.ntests = len(self.tests)
         if self.verbose:
-            print "[CourseUnitTestSet] Loaded %s answer box unit tests from %s" % (self.ntests, fn)
+            print("[CourseUnitTestSet] Loaded %s answer box unit tests from %s" % (self.ntests, fn))
             
 #-----------------------------------------------------------------------------
 # unit tests

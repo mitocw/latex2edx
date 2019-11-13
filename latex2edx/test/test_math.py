@@ -35,7 +35,7 @@ class TestMath(unittest.TestCase):
             expect = '[mathjaxinline]\\displaystyle \\dot{Q} = \\frac{A}{R_{\\rm thermal}} \\Delta T[/mathjaxinline]'
             l2e = latex2edx(tmdir + '/test.tex', latex_string=tex, add_wrap=True,
                             do_images=False, output_dir=tmdir)
-            # print l2e.p2x.renderer.__dict__
+            # print(l2e.p2x.renderer.__dict__)
             self.assertIn(expect, l2e.xhtml)
 
 if __name__ == '__main__':

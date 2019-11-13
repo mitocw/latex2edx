@@ -40,8 +40,8 @@ class TestAskTA(unittest.TestCase):
             fp = MakeTeX(tex).fp
             l2e = latex2edx(tmdir + '/test.tex', fp=fp, do_images=False, output_dir=tmdir)
             l2e.xhtml2xbundle()
-            # print "xbundle = "
-            # print str(l2e.xb)
+            # print("xbundle = ")
+            # print(str(l2e.xb))
             # print
             self.assertIn(r'<a style="display:none" href="/course/jump_to_id" id="aturl_1"/>', str(l2e.xb))
 

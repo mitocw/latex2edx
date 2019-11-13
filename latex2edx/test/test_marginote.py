@@ -40,9 +40,9 @@ class TestMarginote(unittest.TestCase):
             fp = MakeTeX(tex).fp
             l2e = latex2edx(tmdir + '/test.tex', fp=fp, do_images=False, output_dir=tmdir)
             l2e.xhtml2xbundle()
-            # print "xbundle = "
-            # print str(l2e.xb)
-            # print
+            # print("xbundle = ")
+            # print(str(l2e.xb))
+            # eprint
 
             # self.assertIn(r'<html display_name="My Name" url_name="text_url_name">', str(l2e.xb))
 

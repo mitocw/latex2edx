@@ -88,7 +88,7 @@ def lower_dict(input_dict):
     variables that have the same lowercase representation. It would be hard to
     tell which is used in the final dict and which isn't.
     """
-    return {k.lower(): v for k, v in input_dict.iteritems()}
+    return {k.lower(): v for k, v in input_dict.items()}
 
 
 # The following few functions define evaluation actions, which are run on lists

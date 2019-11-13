@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import, division, print_function
+from builtins import (bytes, str, open, super, range,
+                      zip, round, input, int, pow, object)
+
 import datetime
 import json
 import optparse
@@ -9,7 +13,9 @@ import py_compile
 import sys
 import tempfile
 import urllib
-import xbundle
+import traceback
+
+from . import xbundle
 import pkg_resources
 
 try:
@@ -23,9 +29,9 @@ except Exception as err:
     from path import Path as path
 
 from lxml import etree
-from plastexit import plastex2xhtml
-from course_tests import AnswerBoxUnitTest, CourseUnitTestSet
-from abox import split_args_with_quoted_strings
+from .plastexit import plastex2xhtml
+from .course_tests import AnswerBoxUnitTest, CourseUnitTestSet
+from .abox import split_args_with_quoted_strings
 
 # from logging import Logger
 
@@ -72,7 +78,7 @@ def date_parse(datestr, retbad=False, verbose=True):
             continue
 
     if verbose:
-        print "--> Date %s unparsable" % datestr
+        print("--> Date %s unparsable" % datestr)
     if retbad:
         return "Bad"
     return None
@@ -220,13 +226,13 @@ class latex2edx(object):
 
         tags = ['sequential', 'problem', 'html', 'video']
         for tag in tags:
-            print "    %s: %d" % (tag, len(self.xml.findall('.//%s' % tag)))
+            print("    %s: %d" % (tag, len(self.xml.findall('.//%s' % tag))))
 
         for seq in self.xml.findall('.//sequential'):
             nprob = len(seq.findall('.//problem'))
             nhtml = len(seq.findall('.//html'))
-            print "--> exporting sequential %s (%d problem, %d html)" % (seq.get('display_name', '<unknown display_name>'),
-                                                                         nprob, nhtml)
+            print("--> exporting sequential %s (%d problem, %d html)" % (seq.get('display_name', '<unknown display_name>'),
+                                                                         nprob, nhtml))
             xb.add_descriptors(seq)
             xb.export_xml_to_directory(seq, dowrite=True)
 
@@ -241,14 +247,14 @@ class latex2edx(object):
 
         tags = ['problem', 'html', 'video']
         for tag in tags:
-            print "    %s: %d" % (tag, len(self.xml.findall('.//%s' % tag)))
+            print("    %s: %d" % (tag, len(self.xml.findall('.//%s' % tag))))
 
         for tag in tags:
             for unit in self.xml.findall('.//%s' % tag):
-                print "--> exporting %s (%s) url_name=%s" % (unit.get('display_name', '<unknown display_name>'),
+                print("--> exporting %s (%s) url_name=%s" % (unit.get('display_name', '<unknown display_name>'),
                                                              self.get_filename_and_linenum(unit),
                                                              unit.get('url_name', '<unknown>'),
-                                                             )
+                                                             ))
                 xb.add_descriptors(unit)
                 xb.export_xml_to_directory(unit, dowrite=True)
 
@@ -280,7 +286,7 @@ class latex2edx(object):
         if self.do_merge then do not overwrite course files; attempt to merge them.
         '''
         if self.section_only and self.xml_only:
-            print "Saving XML to file %s" % self.output_fn
+            print("Saving XML to file %s" % self.output_fn)
             return self.save_xml()
 
         if self.section_only:
@@ -292,21 +298,24 @@ class latex2edx(object):
 
         self.xhtml2xbundle()
         self.xb.save(self.output_fn)
-        print "xbundle generated (%s): " % self.output_fn
+        print("xbundle generated (%s): " % self.output_fn)
         tags = ['chapter', 'sequential', 'problem', 'html', 'video', 'lti']
         for tag in tags:
-            print "    %s: %d" % (tag, len(self.xb.course.findall('.//%s' % tag)))
+            print("    %s: %d" % (tag, len(self.xb.course.findall('.//%s' % tag))))
         if self.xml_only:
-            print "Saved xbundle XML to file %s" % self.output_fn
+            print("Saved xbundle XML to file %s" % self.output_fn)
             return
-        self.xb.export_to_directory(self.output_dir, xml_only=True)
-        print "Course exported to %s/" % self.output_dir
+        try:
+            self.xb.export_to_directory(self.output_dir, xml_only=True)
+            print("Course exported to %s/" % self.output_dir)
+        except Exception as err:
+            print("Failed to export course, err=%s, traceback=%s" % (err, traceback.format_exc()))
 
         if self.do_merge and self.xb.overwrite_files:
             self.merge_course()
 
     def merge_course(self):
-        print "    merging files %s" % self.xb.overwrite_files
+        print("    merging files %s" % self.xb.overwrite_files)
         for fn in self.xb.overwrite_files:
             if str(fn).endswith('course.xml.new'):
                 # course.xml shouldn't need merging
@@ -324,7 +333,7 @@ class latex2edx(object):
                     newchapters.append(chapter.get('url_name'))
                 self.xb.write_xml_file(oldfn, oldcourse, force_overwrite=True)
                 os.unlink(fn)
-                print "    added new chapters %s" % newchapters
+                print("    added new chapters %s" % newchapters)
 
     def xhtml2xbundle(self):
         '''
@@ -363,7 +372,7 @@ class latex2edx(object):
         def fixdate(dtin):
             dt = date_parse(dtin)
             if dt is None:
-                print "--> Error: bad date '%s' given for policy setting" % dtin
+                print("--> Error: bad date '%s' given for policy setting" % dtin)
                 raise
             return dt.strftime('%Y-%m-%dT%H:%M')
 
@@ -372,7 +381,7 @@ class latex2edx(object):
                 return 'true'
             elif 'false' in x.lower():
                 return 'false'
-            print "--> Warning: in policy settings turning %s in to false" % x
+            print("--> Warning: in policy settings turning %s in to false" % x)
             return 'false'
 
         policy_settings = {'start': fixdate, 'end': fixdate, 'due': fixdate,
@@ -383,11 +392,11 @@ class latex2edx(object):
             semester = course.get('semester', course.get('url_name'))
             policydir = self.output_dir / 'policies' / semester
             if not policydir.exists():
-                print "--> Creating directory %s" % policydir
+                print("--> Creating directory %s" % policydir)
                 os.system('mkdir -p "%s"' % policydir)
             policyfile = policydir / 'policy.json'
             if not policyfile.exists():
-                print "--> No existing policy.json, creating default"
+                print("--> No existing policy.json, creating default")
                 policy = OrderedDict()
                 policy["course/%s" % semester] = OrderedDict(
                     start="2012-06-02T02:00",
@@ -873,7 +882,7 @@ class latex2edx(object):
                     tablecont.text = tocname
             tocbody.append(toctable)
         if len(tocdict) != 0:
-            print "Writing ToC index content..."
+            print("Writing ToC index content...")
             if not os.path.exists(self.output_dir):
                 os.mkdir(self.output_dir)
             if not os.path.exists(self.output_dir / 'tabs'):
@@ -906,8 +915,8 @@ class latex2edx(object):
             try:
                 raise MissingLabel(tocref)
             except MissingLabel as referr:
-                print ('WARNING: There is a reference to non-existent '
-                       'ToC label: {}'.format(str(referr)))
+                print(('WARNING: There is a reference to non-existent '
+                       'ToC label: {}'.format(str(referr))))
 
         # EVH: Handle equation refs. Search for labels and build dictionaries
         eqndict = {}  # {'eqnlabel':'eqnnum'}
@@ -1048,15 +1057,15 @@ class latex2edx(object):
                 try:
                     raise MissingLabel(aref.text)
                 except MissingLabel as referr:
-                    print ('WARNING: There is a reference to non-existent '
-                           'label: {}'.format(str(referr)))
+                    print(('WARNING: There is a reference to non-existent '
+                           'label: {}'.format(str(referr))))
 
         if len(keymap) != 0:
             if not os.path.exists(self.output_dir):
                 os.mkdir(self.output_dir)
             if not os.path.exists(self.output_dir / 'static'):
                 os.mkdir(self.output_dir / 'static')
-            print "Writing key_map.json to static/ ..."
+            print("Writing key_map.json to static/ ...")
             kwjson = open(self.output_dir / 'static' / 'key_map.json', 'w')
             kwjson.write(json.dumps(keymap, default=lambda o: o.__dict__))
             kwjson.close()
@@ -1098,14 +1107,14 @@ class latex2edx(object):
                     args = dict([x.split('=', 1) for x in argset])
                     for arg in args:
                         args[arg] = self.stripquotes(args[arg], checkinternal=True)
-                except Exception, err:
-                    print "Error %s" % err
-                    print "Failed in parsing args to edXaskta = %s" % text
+                except Exception as err:
+                    print("Error %s" % err)
+                    print("Failed in parsing args to edXaskta = %s" % text)
                     raise
                 if 'settings' in args:
                     args.pop('settings')
                     self.askta_data.update(args)
-                    print "askTA settings updated: %s" % self.askta_data
+                    print("askTA settings updated: %s" % self.askta_data)
                     # remove this element from xml tree
                     # self.remove_parent_p(askta)
                     p = askta.getparent()
@@ -1235,7 +1244,7 @@ class latex2edx(object):
             sup.text = ref
             exc.set('href', '#')
             exc.set('title', text)
-            # print "  --> %s" % etree.tostring(exc)
+            # print("  --> %s" % etree.tostring(exc))
             p = edxcite.getparent()
             p.remove(edxcite)
 
@@ -1299,6 +1308,12 @@ class latex2edx(object):
                 vsource = etree.Element('source')
                 vsource.set('src', ytid)
                 video.append(vsource)
+            if not video.get("youtube"):
+                video.set("youtube", "1.00:%s" % ytid)
+            if not video.get("edx_video_id"):
+                video.set("edx_video_id", "")
+            if not video.get("download_video"):
+                video.set("download_video", "false")
 
     def process_lti(self, tree):
         '''
@@ -1314,7 +1329,7 @@ class latex2edx(object):
             if cplist:
                 lti.set('custom_parameters', '[%s]' % ', '.join(['"' + x + '"' for x in cplist]))
             if self.verbose:
-                print "    lti %s, cp=%s" % (lti, lti.get('custom_parameters'))
+                print("    lti %s, cp=%s" % (lti, lti.get('custom_parameters')))
 
     def process_split_test(self, tree):
         '''
@@ -1339,7 +1354,7 @@ class latex2edx(object):
                 pp.remove(parent)
 
             if self.verbose:
-                print "    split_test %s, group_id_to_child=%s" % (st, st.get('group_id_to_child'))
+                print("    split_test %s, group_id_to_child=%s" % (st, st.get('group_id_to_child')))
 
     def process_marginote(self, tree):
         '''
@@ -1356,7 +1371,7 @@ class latex2edx(object):
             desc.set('class', 'marginote_desc')
             desc.set('style', "display:none")
             if self.verbose:
-                print("    marginote %s" % (mn))
+                print("    marginote %s" % (etree.tostring(mn)))
 
             # insert <script> tag for marginote javascript, if not already in this container
             par = self.find_container_root(mn, "marginote")
@@ -1398,7 +1413,7 @@ class latex2edx(object):
         if not os.path.exists(staticdir / resource_fn):
             l2ejs = pkg_resources.resource_filename(__name__, resource_fn)
             cmd = 'cp {} {}/'.format(l2ejs, staticdir)
-            print '----> Copying {}: {}'.format(description, cmd)
+            print('----> Copying {}: {}'.format(description, cmd))
             sys.stdout.flush()
             os.system(cmd)
 
@@ -1455,16 +1470,16 @@ class latex2edx(object):
             linenum = include.get('linenum', '<unavailable>')
             texfn = include.get('filename', '<unavailable>')
             if incfn is None:
-                print "Error: %s must specify file to include!" % cmd
+                print("Error: %s must specify file to include!" % cmd)
                 raise Exception(self.standard_error_msg(include))
             incfn = incfn.strip()
             if not os.path.exists(incfn):
-                print "Error: include file %s does not exist!" % incfn
+                print("Error: include file %s does not exist!" % incfn)
                 raise Exception(self.standard_error_msg(include))
             try:
                 incdata = open(incfn).read()
-            except Exception, err:
-                print "Error %s: cannot open include file %s to read" % (err, incfn)
+            except Exception as err:
+                print("Error %s: cannot open include file %s to read" % (err, incfn))
                 raise Exception(self.standard_error_msg(include))
 
             # if python script, then check its syntax
@@ -1472,8 +1487,8 @@ class latex2edx(object):
                 try:
                     py_compile.compile(incfn, doraise=True)
                 except Exception as err:
-                    print "Error in python script %s! Err=%s" % (incfn, err)
-                    print "Aborting!"
+                    print("Error in python script %s! Err=%s" % (incfn, err))
+                    print("Aborting!")
                     raise Exception(self.standard_error_msg(include))
 
             try:
@@ -1481,9 +1496,9 @@ class latex2edx(object):
                     incxml = etree.fromstring('<script><![CDATA[\n%s\n]]></script>' % incdata)
                 else:
                     incxml = etree.fromstring(incdata)
-            except Exception, err:
-                print "Error %s parsing XML for include file %s" % (err, incfn)
-                print "See tex file %s line %s" % (texfn, linenum)
+            except Exception as err:
+                print("Error %s parsing XML for include file %s" % (err, incfn))
+                print("See tex file %s line %s" % (texfn, linenum))
                 raise Exception(self.standard_error_msg(include))
 
         # remove parent <p> if it exists
@@ -1493,7 +1508,7 @@ class latex2edx(object):
                 parent.addprevious(include)
                 pp.remove(parent)
 
-            print "--> including file %s at line %s" % (incfn, linenum)
+            print("--> including file %s at line %s" % (incfn, linenum))
             if incxml.tag == 'html' and len(incxml) > 0:  # strip out outer <html> container
                 for k in incxml:
                     include.addprevious(k)
@@ -1530,23 +1545,23 @@ class latex2edx(object):
             linenum = dndxml.get('linenum', '<unavailable>')
             texfn = dndxml.get('filename', '<unavailable>')
             if dndfn is None:
-                print "Error: %s must specify dnd tex filename!" % tag  # EVH changed 'cmd' to 'tag'
-                print "See tex file %s line %s" % (texfn, linenum)
+                print("Error: %s must specify dnd tex filename!" % tag)  # EVH changed 'cmd' to 'tag'
+                print("See tex file %s line %s" % (texfn, linenum))
                 raise
             dndfn = dndfn.strip()
             if not (dndfn.endswith('.tex') or dndfn.endswith('.dndspec')):
-                print "Error: dnd file %s should be a .tex or a .dndspec file!" % dndfn
-                print "See tex file %s line %s" % (texfn, linenum)
+                print("Error: dnd file %s should be a .tex or a .dndspec file!" % dndfn)
+                print("See tex file %s line %s" % (texfn, linenum))
                 raise
             if not os.path.exists(dndfn):
-                print "Error: dnd tex file %s does not exist!" % dndfn
-                print "See tex file %s line %s" % (texfn, linenum)
+                print("Error: dnd tex file %s does not exist!" % dndfn)
+                print("See tex file %s line %s" % (texfn, linenum))
                 raise
             try:
                 dndsrc = open(dndfn).read()
-            except Exception, err:
-                print "Error %s: cannot open dnd tex / dndpec file %s to read" % (err, dndfn)
-                print "See tex file %s line %s" % (texfn, linenum)
+            except Exception as err:
+                print("Error %s: cannot open dnd tex / dndpec file %s to read" % (err, dndfn))
+                print("See tex file %s line %s" % (texfn, linenum))
                 raise
 
             # Use latex2dnd to compile dnd tex into edX XML.
@@ -1576,23 +1591,23 @@ class latex2edx(object):
                 if dndxml.get('can_reuse', 'False').lower().strip() != 'false':
                     options += '-C'
                 cmd = 'cd "%s"; latex2dnd --cleanup -r %s -v %s %s' % (fndir, dndxml.get('resolution', 210), options, fnb)
-                print "--> Running %s" % cmd
+                print("--> Running %s" % cmd)
                 sys.stdout.flush()
                 status = os.system(cmd)
                 if status:
-                    print "Oops - latex2dnd apparently failed - aborting!"
+                    print("Oops - latex2dnd apparently failed - aborting!")
                     raise
                 imdir = self.output_dir / ('static/images/%s' % fnpre)
                 os.system('mkdir -p %s' % imdir)
                 cmd = "cp %s/%s*.png %s/" % (fndir, fnpre, imdir)
-                print "----> Copying dnd images: %s" % cmd
+                print("----> Copying dnd images: %s" % cmd)
                 sys.stdout.flush()
                 status = os.system(cmd)
                 if status:
-                    print "Oops - copying images from latex2dnd apparently failed - aborting!"
+                    print("Oops - copying images from latex2dnd apparently failed - aborting!")
                     raise
             else:
-                print "--> latex2dnd XML file %s is up to date: %s" % (xmlfn, fnpre)
+                print("--> latex2dnd XML file %s is up to date: %s" % (xmlfn, fnpre))
 
             # change dndtex tag to become include
             # change filename to become dndfile_dnd.xml
@@ -1618,7 +1633,7 @@ class latex2edx(object):
                 incxml = etree.fromstring('<script><![CDATA[\n%s\n]]></script>' % open(ghsfn).read())
                 if not isdone:
                     eghs.addprevious(incxml)
-                    # print "  added eghs to problem %s" % problem.get('url_name')
+                    # print("  added eghs to problem %s" % problem.get('url_name'))
                     isdone = True
                 p = eghs.getparent()
                 p.remove(eghs)
@@ -1630,23 +1645,23 @@ class latex2edx(object):
         for script in tree.findall('.//script[@type="text/python"]'):
             pyfile = tempfile.NamedTemporaryFile(mode='w', delete=False)
             if script.text is None:
-                print "Warning: empty script!"
-                print "Script location: %s" % etree.tostring(script)
+                print("Warning: empty script!")
+                print("Script location: %s" % etree.tostring(script))
                 continue
             try:
                 pyfile.write(script.text)
             except Exception as err:
-                print "Error checking python script %s" % script.text
-                print str(err)
-                print "Script location: %s" % etree.tostring(script)
+                print("Error checking python script %s" % script.text)
+                print(str(err))
+                print("Script location: %s" % etree.tostring(script))
                 continue
             pyfile.close()
             try:
                 py_compile.compile(pyfile.name, doraise=True)
             except Exception as err:
-                print "Error in python script %s! Err=%s" % (pyfile.name, err)
-                print "Script location: %s" % etree.tostring(script)
-                print "Aborting!"
+                print("Error in python script %s! Err=%s" % (pyfile.name, err))
+                print("Script location: %s" % etree.tostring(script))
+                print("Aborting!")
                 raise Exception(self.standard_error_msg(script))
             os.unlink(pyfile.name)
 
@@ -1691,10 +1706,10 @@ class latex2edx(object):
                 abox = self.p2x.renderer.answer_box_objects.get(xmlstr, None)
                 if not abox:
                     if self.verbose:
-                        print "[latex2edx] generate_course_unit_tests %s: failed to find abox for response '%s'" % (un, xmlstr)
+                        print("[latex2edx] generate_course_unit_tests %s: failed to find abox for response '%s'" % (un, xmlstr))
                     continue
                 if self.verbose:
-                    print "[latex2edx] generate_course_unit_tests %s: found abox %s" % (un, abox.aboxstr)
+                    print("[latex2edx] generate_course_unit_tests %s: found abox %s" % (un, abox.aboxstr))
                 
                 # turn abox test list (of dicts) into list of AnswerBoxUnitTest objects
                 abox_test_set = []
@@ -1702,7 +1717,7 @@ class latex2edx(object):
                 for test in abox.tests:
                     count += 1
                     test['url_name'] = un
-                    # print "test_spec=%s" % test
+                    # print("test_spec=%s" % test)
                     abut = AnswerBoxUnitTest(test_spec=test, test_name="%s/test_%d" % (dn, count))
                     abox_test_set.append(abut)
 
@@ -1725,10 +1740,10 @@ class latex2edx(object):
             try:
                 make_test(response_tests)
             except Exception as err:
-                print "[latex2edx] Failed to generate course unit tests for problem %s, err=%s" % (un, str(err))
+                print("[latex2edx] Failed to generate course unit tests for problem %s, err=%s" % (un, str(err)))
                 continue
             if self.verbose:
-                print "[latex2edx] generate_course_unit_tests adding %d tests for problem %s" % (len(all_combined_tests), un)
+                print("[latex2edx] generate_course_unit_tests adding %d tests for problem %s" % (len(all_combined_tests), un))
 
             count = 0
             for test in all_combined_tests:	# rename tests, since counts may have changed
@@ -1737,7 +1752,7 @@ class latex2edx(object):
                 
             cutset.add_tests(all_combined_tests)
         cutset.output_to_file(self.output_cutset)
-        print "[latex2edx] %s course unit tests output to %s" % (len(cutset.tests), self.output_cutset)
+        print("[latex2edx] %s course unit tests output to %s" % (len(cutset.tests), self.output_cutset))
 
     def add_url_names(self, xml):
         '''
@@ -1745,7 +1760,7 @@ class latex2edx(object):
         which the user did not provide one.  Do this by recursively walking the
         xml tree.
         '''
-        # print "add_url_names: %s" % xml.tag
+        # print("add_url_names: %s" % xml.tag)
         if xml.tag in self.DescriptorTags:
             if not xml.tag == 'course':
                 dn = xml.get('display_name', '')
@@ -1753,7 +1768,7 @@ class latex2edx(object):
                     dn = xml.getparent().get('display_name', '') + '_' + xml.tag
                 new_un = self.make_url_name(xml.get('url_name', dn), xml.tag)
                 if 'url_name' in xml.keys() and not new_un == xml.get('url_name'):
-                    print "Warning: url_name %s changed to %s" % (xml.get('url_name'), new_un)
+                    print("Warning: url_name %s changed to %s" % (xml.get('url_name'), new_un))
                 xml.set('url_name', new_un)
         if xml.tag not in ['problem', 'html']:
             for child in xml:
@@ -1807,9 +1822,9 @@ class latex2edx(object):
                 for s in attrib_list:
                     attrib_and_val = s.split('=')
                     if len(attrib_and_val) != 2:
-                        print "ERROR! the attribute list '%s' for element %s is not properly formatted" % (attrib_string, elem.tag)
-                        # print "attrib_and_val=%s" % attrib_and_val
-                        print etree.tostring(elem)
+                        print("ERROR! the attribute list '%s' for element %s is not properly formatted" % (attrib_string, elem.tag))
+                        # print("attrib_and_val=%s" % attrib_and_val)
+                        print(etree.tostring(elem))
                         sys.exit(-1)
                     elem.set(attrib_and_val[0], attrib_and_val[1].strip("\""))  # remove extra quotes
         if 'attrib_string' in elem.keys():
@@ -1950,7 +1965,7 @@ def CommandLine():
     (opts, args) = parser.parse_args()
 
     if len(args) < 1:
-        print 'latex2edx: wrong number of arguments'
+        print('latex2edx: wrong number of arguments')
         parser.print_help()
         sys.exit(-2)
     fn = args[0]

@@ -18,7 +18,7 @@ class TestedXinclude(unittest.TestCase):
     def test_edXinclude1(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example7.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -44,7 +44,7 @@ class TestedXinclude(unittest.TestCase):
     def test_edXinclude2(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example7_bad.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -56,7 +56,7 @@ class TestedXinclude(unittest.TestCase):
             except Exception as err:
                 pass
 
-            print "Error = %s" % str(err)
+            print("Error = %s" % str(err))
             self.assertTrue(re.search('Error processing element edxincludepy in file .*example.*\.tex line 25', str(err)))
 
 if __name__ == '__main__':

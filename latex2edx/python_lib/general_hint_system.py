@@ -136,8 +136,8 @@ class HintFormulaCheck(object):
                 # sum() used to handle matrix comparisons
                 return numpy.sum(abs(complex1 - complex2)) <= tolerance
         except Exception as err:
-            print "failure in comparison, complex1=%s, complex2=%s" % (complex1, complex2)
-            print "err = ", err
+            print("failure in comparison, complex1=%s, complex2=%s" % (complex1, complex2))
+            print("err = ", err)
             raise
     
     def is_formula_equal(self, expected, given, samples, cs=True, tolerance='0.01', evalfun=None,
@@ -191,7 +191,7 @@ class HintFormulaCheck(object):
         ranges = dict(zip(variables, sranges))
     
         if debug:
-            print "ranges = ", ranges
+            print("ranges = ", ranges)
     
         for i in range(numsamples):
             vvariables = {}
@@ -199,7 +199,7 @@ class HintFormulaCheck(object):
                 value = random.uniform(*ranges[var])
                 vvariables[str(var)] = value
             if debug:
-                print "vvariables = ", vvariables
+                print("vvariables = ", vvariables)
             try:
                 instructor_result = evalfun(vvariables, dict(), expected, case_sensitive=cs)
             except Exception as err:
@@ -212,10 +212,10 @@ class HintFormulaCheck(object):
                 #raise Exception("is_formula_eq: vvariables=%s, err=%s" % (vvariables, str(err)))
                 raise Exception("-- %s " % str(err))
                 # raise Exception("Error evaluating your input, given=%s, vv=%s -- %s " % (given, vvariables, str(err)))
-            #print "instructor=%s, student=%s" % (instructor_result, student_result)
+            #print("instructor=%s, student=%s" % (instructor_result, student_result))
             cfret = cmpfun(instructor_result, student_result, tolerance)
             if debug:
-                print "comparison result = %s" % cfret
+                print("comparison result = %s" % cfret)
             if not cfret:
                 return False
         return True
@@ -430,7 +430,7 @@ class HintSystem(object):
         math_interpreter.parse_algebra()
         found = term in math_interpreter.variables_used
         # for debugging
-        # print 'for %s, found=%s, variables = %s' % (ans, found, math_interpreter.variables_used)
+        # print('for %s, found=%s, variables = %s' % (ans, found, math_interpreter.variables_used))
         return found
         
     
@@ -450,7 +450,7 @@ class HintSystem(object):
         math_interpreter.parse_algebra()
         found = term in math_interpreter.functions_used
         # for debugging
-        # print 'for %s, found=%s, variables = %s' % (ans, found, math_interpreter.variables_used)
+        # print('for %s, found=%s, variables = %s' % (ans, found, math_interpreter.variables_used))
         return found
         
     
@@ -489,7 +489,7 @@ class HintSystem(object):
         if isinstance(the_hints, dict):
             for anum, hint in the_hints.items():
                 self.check_hint(answer_ids, student_answers, new_cmap, old_cmap, anum=anum, the_hints=hint)
-                # print "--> anum=%s, hint=%s, ncm=%s" % (anum, hint, new_cmap.hints)	# for debugging
+                # print("--> anum=%s, hint=%s, ncm=%s" % (anum, hint, new_cmap.hints)	# for debugging)
             return
 
         if anum is None:
@@ -521,7 +521,7 @@ class HintSystem(object):
             for key, ehf in self.extra_hint_functions.items():
                 htypes[key] = partial(ehf, ans)
     
-        # print "using the_hints = %s" % the_hints
+        # print("using the_hints = %s" % the_hints)
         the_hint = None
         for hintinfo in the_hints:
             for htype, hfun in htypes.items():
