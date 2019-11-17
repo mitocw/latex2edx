@@ -5,6 +5,6 @@ Pillow==2.5.3
 lxml==3.3.3
 path.py==5.1
 pep8==1.5.7
--e git+https://github.com/tiarno/plastex@master#egg=plasTeX-master
+-e git+https://github.com/tiarno/plastex@python2#egg=plasTeX-master
 wsgiref==0.1.2
 pyyaml==3.10
