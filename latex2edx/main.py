@@ -1168,8 +1168,8 @@ class latex2edx(object):
             mailto = 'mailto:%s' % data['to']
             data.pop('to')
             body = data.pop('body')
-            mailto += '?' + urllib.urlencode(data)
-            mailto += '&' + urllib.urlencode({'body': body})
+            mailto += '?' + urllib.urlencode(data).replace('+', '%20')
+            mailto += '&' + urllib.urlencode({'body': body}).replace('+', '%20')
 
             jscode = ('\nfunction %s() {\n'
                       '    var cu = encodeURI(window.location.origin + $("#%s").attr("href"));\n'
