@@ -6,7 +6,7 @@ try:
     from path import path	# needs path.py
 except Exception as err:
     from path import Path as path
-from StringIO import StringIO
+from io import StringIO
 
 import latex2edx as l2emod
 from latex2edx.main import latex2edx
@@ -18,7 +18,7 @@ class TestPolicy(unittest.TestCase):
     def test_policy1(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example3.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -51,7 +51,7 @@ class TestPolicy(unittest.TestCase):
         '''
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example10_badpolicy.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -63,7 +63,7 @@ class TestPolicy(unittest.TestCase):
             except Exception as err:
                 pass
 
-            print "Error = %s" % str(err)
+            print("Error = %s" % str(err))
             self.assertTrue(re.search('Error processing element sequential in file .*example10_badpolicy.tex line 18', str(err)))
 
 if __name__ == '__main__':

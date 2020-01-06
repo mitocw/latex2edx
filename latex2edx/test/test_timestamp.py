@@ -1,7 +1,7 @@
 import os
 import unittest
 from lxml import etree
-from StringIO import StringIO
+from io import StringIO
 
 from latex2edx.main import latex2edx
 from latex2edx.test.util import make_temp_directory
@@ -44,8 +44,8 @@ class TestTextTimestamp(unittest.TestCase):
                             timestamp_threshold=0,
             )
             l2e.xhtml2xbundle()
-            print "xbundle = "
-            print str(l2e.xb)
+            print("xbundle = ")
+            print(str(l2e.xb))
             # print
 
             # self.assertIn(r'<html display_name="My Name" url_name="text_url_name">', str(l2e.xb))
@@ -79,8 +79,8 @@ class TestTextTimestamp(unittest.TestCase):
                             timestamp_threshold=0,
             )
             l2e.xhtml2xbundle()
-            print "xbundle = "
-            print str(l2e.xb)
+            print("xbundle = ")
+            print(str(l2e.xb))
             # print
 
             # self.assertIn(r'<html display_name="My Name" url_name="text_url_name">', str(l2e.xb))

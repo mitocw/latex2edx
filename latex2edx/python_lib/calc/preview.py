@@ -8,7 +8,8 @@ Because intermediate values of the render contain more data than simply the
 string of latex, store it in a custom class `LatexRendered`.
 """
 
-from calc import ParseAugmenter, DEFAULT_VARIABLES, DEFAULT_FUNCTIONS, SUFFIXES
+from .calc import ParseAugmenter, DEFAULT_VARIABLES, DEFAULT_FUNCTIONS, SUFFIXES
+from functools import reduce
 
 
 class LatexRendered(object):
@@ -46,7 +47,7 @@ class LatexRendered(object):
                      r'\{': r'\}'}
             if left_parens not in pairs:
                 raise Exception(
-                    u"Unknown parenthesis '{}': coder error".format(left_parens)
+                    "Unknown parenthesis '{}': coder error".format(left_parens)
                 )
             right_parens = pairs[left_parens]
 
@@ -54,7 +55,7 @@ class LatexRendered(object):
                 left_parens = r"\left" + left_parens
                 right_parens = r"\right" + right_parens
 
-            self.latex = u"{left}{expr}{right}".format(
+            self.latex = "{left}{expr}{right}".format(
                 left=left_parens,
                 expr=latex,
                 right=right_parens
@@ -68,14 +69,14 @@ class LatexRendered(object):
         If `tall` then have '<[]>' around the code, otherwise '<>'.
         """
         if self.latex == self.sans_parens:
-            latex_repr = u'"{}"'.format(self.latex)
+            latex_repr = '"{}"'.format(self.latex)
         else:
-            latex_repr = u'"{}" or "{}"'.format(self.latex, self.sans_parens)
+            latex_repr = '"{}" or "{}"'.format(self.latex, self.sans_parens)
 
         if self.tall:
-            wrap = u'<[{}]>'
+            wrap = '<[{}]>'
         else:
-            wrap = u'<{}>'
+            wrap = '<{}>'
 
         return wrap.format(latex_repr)
 
@@ -89,14 +90,14 @@ def render_number(children):
     suffix = ""
     if children_latex[-1] in SUFFIXES:
         suffix = children_latex.pop()
-        suffix = ur"\text{{{s}}}".format(s=suffix)
+        suffix = r"\text{{{s}}}".format(s=suffix)
 
     # Exponential notation-- the "E" splits the mantissa and exponent
     if "E" in children_latex:
         pos = children_latex.index("E")
         mantissa = "".join(children_latex[:pos])
         exponent = "".join(children_latex[pos + 1:])
-        latex = ur"{m}\!\times\!10^{{{e}}}{s}".format(
+        latex = r"{m}\!\times\!10^{{{e}}}{s}".format(
             m=mantissa, e=exponent, s=suffix
         )
         return LatexRendered(latex, tall=True)
@@ -123,7 +124,7 @@ def enrich_varname(varname):
     greek.append('infty')
 
     if varname in greek:
-        return ur"\{letter}".format(letter=varname)
+        return r"\{letter}".format(letter=varname)
     else:
         return varname.replace("_", r"\_")
 
@@ -144,7 +145,7 @@ def variable_closure(variables, casify):
 
         if second:
             # Then 'a_b' must become 'a_{b}'
-            varname = ur"{a}_{{{b}}}".format(
+            varname = r"{a}_{{{b}}}".format(
                 a=enrich_varname(first),
                 b=enrich_varname(second)
             )
@@ -172,22 +173,22 @@ def function_closure(functions, casify):
         # Wrap the input of the function with parens or braces.
         inner = children[1].latex
         if fname == "sqrt":
-            inner = u"{{{expr}}}".format(expr=inner)
+            inner = "{{{expr}}}".format(expr=inner)
         else:
             if children[1].tall:
-                inner = ur"\left({expr}\right)".format(expr=inner)
+                inner = r"\left({expr}\right)".format(expr=inner)
             else:
-                inner = u"({expr})".format(expr=inner)
+                inner = "({expr})".format(expr=inner)
 
         # Correctly format the name of the function.
         if fname == "sqrt":
-            fname = ur"\sqrt"
+            fname = r"\sqrt"
         elif fname == "log10":
-            fname = ur"\log_{10}"
+            fname = r"\log_{10}"
         elif fname == "log2":
-            fname = ur"\log_2"
+            fname = r"\log_2"
         else:
-            fname = ur"\text{{{fname}}}".format(fname=fname)
+            fname = r"\text{{{fname}}}".format(fname=fname)
 
         # Put it together.
         latex = fname + inner
@@ -209,7 +210,7 @@ def render_power(children):
     children_latex = [k.latex for k in children if k.latex != "^"]
     children_latex[-1] = children[-1].sans_parens
 
-    raise_power = lambda x, y: u"{}^{{{}}}".format(y, x)
+    raise_power = lambda x, y: "{}^{{{}}}".format(y, x)
     latex = reduce(raise_power, reversed(children_latex))
     return LatexRendered(latex, tall=True)
 
@@ -243,7 +244,7 @@ def render_frac(numerator, denominator):
     else:
         den_latex = r"\cdot ".join(k.latex for k in denominator)
 
-    latex = ur"\frac{{{num}}}{{{den}}}".format(num=num_latex, den=den_latex)
+    latex = r"\frac{{{num}}}{{{den}}}".format(num=num_latex, den=den_latex)
     return latex
 
 

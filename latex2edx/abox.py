@@ -338,10 +338,10 @@ class AnswerBox(object):
 
         # if config specifies default parameters for this type of answer box, then use them
         if abtype in self.config:
-            for k,v in self.config[abtype].iteritems():
+            for k,v in self.config[abtype].items():
                 if k not in self.abargs:
                     self.abargs[k] = v
-            print "abargs = ", abargs
+            print("abargs = ", abargs)
 
         if abtype == 'optionresponse':
             self.require_args(['expect'])
@@ -390,7 +390,7 @@ class AnswerBox(object):
             cnt = 1
             correctset = []
             if self.verbose:
-                print "[abox.py] oldmultichoice: options=/%s/, expects=/%s/" % (options, expects)
+                print("[abox.py] oldmultichoice: options=/%s/, expects=/%s/" % (options, expects))
             for op in options:
                 choice = etree.SubElement(cg, 'choice')
                 choice.set('correct', 'true' if (op in expects) else 'false')
@@ -404,7 +404,7 @@ class AnswerBox(object):
                                         box_indexes=[[0,0]]*len(correctset))
 
         elif abtype == 'shortanswerresponse':
-            print "[latex2html.abox] Warning - short answer response quite yet implemented in edX!"
+            print("[latex2html.abox] Warning - short answer response quite yet implemented in edX!")
             if 1:
                 tb = etree.Element('textbox')
                 self.copy_attrib(abargs, 'rows', tb)
@@ -532,7 +532,7 @@ class AnswerBox(object):
                 cnt += 1
 
             self.make_default_test_pass(orig_answers, None,
-                                        zip([0]*len(orig_answers), range(len(orig_answers))))
+                                        list(zip([0]*len(orig_answers), list(range(len(orig_answers))))))
                     
         elif abtype == 'customresponse_jsinput':
             abxml.tag = 'customresponse'
@@ -644,8 +644,8 @@ class AnswerBox(object):
             do_inline = abargs.get('inline')
 
             if not len(prompts)==len(sizes):
-                print "Error: number of sizes and prompts must match in:"
-                print aboxstr
+                print("Error: number of sizes and prompts must match in:")
+                print(aboxstr)
                 sys.exit(-1)
 
             cnt = 0
@@ -868,7 +868,7 @@ class AnswerBox(object):
                 params.pop('type')
                 params.pop('for')
                 self.config[type2response[cfor]] = params
-                print "[abox.py] Setting default parameters for %s to %s" % (cfor, params)
+                print("[abox.py] Setting default parameters for %s to %s" % (cfor, params))
  
         # has hint function?
         if 'hintfn' in abargs:
@@ -888,7 +888,7 @@ class AnswerBox(object):
         self.hint_extras = hint_extras
 
         xml_str = etree.tostring(abxml, pretty_print=True)
-        xml_str = re.sub('(?ms)<html>(.*)</html>', '\\1', xml_str)
+        xml_str = re.sub('(?ms)<html>(.*)</html>', '\\1', xml_str.decode())
 
         if script_code:
             code_str = '<script type="text/python" system_path="python_lib">\n'
@@ -897,8 +897,8 @@ class AnswerBox(object):
             code_str += "\n]]>\n</script>\n"
             xml_str = "<span>%s\n%s</span>" % (xml_str, code_str)
             if self.verbose:
-                print "script code!"
-                print xml_str
+                print("script code!")
+                print(xml_str)
 
         the_xml = etree.XML(xml_str)
 
@@ -912,9 +912,9 @@ class AnswerBox(object):
         if self.has_test_pass:
             return
         # default box indexes increment "y" but not "x"
-        box_indexes = box_indexes or zip([0]*len(responses), range(len(responses)))
+        box_indexes = box_indexes or list(zip([0]*len(responses), list(range(len(responses)))))
         # generate unit test if no explicit tests specified in abox arguments
-        self.tests.append({'responses': map(self.unescape, responses),
+        self.tests.append({'responses': list(map(self.unescape, responses)),
                            'expected': expected or ['correct'] * len(responses),
                            'box_indexes': box_indexes,
         })
@@ -926,8 +926,8 @@ class AnswerBox(object):
         if not optstr.startswith('"') and not optstr.startswith("'"):
             optraw = repr(optstr)
             optstr = optraw[0] + optstr + optraw[0]
-        options = split_args_with_quoted_strings(optstr, lambda(x): x == ',')		# turn into list of strings
-        options = map(self.stripquotes, options)
+        options = split_args_with_quoted_strings(optstr, lambda x: x == ',')		# turn into list of strings
+        options = list(map(self.stripquotes, options))
         options = [x.strip() for x in options]		# strip strings
         if "" in options: options.remove("")
         optionstr = ','.join(["'%s'" % x for x in options])  # string of single quoted strings
@@ -950,8 +950,8 @@ class AnswerBox(object):
         Record a unit test case.  These are specified by arguments like test_pass=...
         test_fail=..., test_spec=...
         '''
-        test_args = map(self.stripquotes, split_args_with_quoted_strings(val, lambda(x): x == ','))
-        test_args = map(self.unescape, test_args)
+        test_args = list(map(self.stripquotes, split_args_with_quoted_strings(val, lambda x: x == ',')))
+        test_args = list(map(self.unescape, test_args))
         if key=="test_spec":
             nargs = len(test_args)
             if not (nargs&1==0):
@@ -972,11 +972,11 @@ class AnswerBox(object):
         if responses and (not responses[0]==''):
             test = {'responses': responses, 
                     'expected': expected,
-                    'box_indexes': zip([0]*len(responses), range(len(responses))),
+                    'box_indexes': list(zip([0]*len(responses), list(range(len(responses))))),
             }
             self.tests.append(test)
         elif self.verbose:
-            print '[abox] Warning: empty test_pass="" in %s' % self.aboxstr
+            print('[abox] Warning: empty test_pass="" in %s' % self.aboxstr)
 
     def unescape(self, str):
         '''
@@ -994,17 +994,17 @@ class AnswerBox(object):
         Arguments with those keys are stored in self.tests ; they may be used
         by the caller to construct answer box unit tests and course unit tests.
         '''
-        s = s.replace(u'\u2019', "'")
+        s = s.replace('\u2019', "'")
         try:
             s = str(s)
-        except Exception, err:
-            print "Error %s in obtaining string form of abox argument %s" % (err, s)
+        except Exception as err:
+            print("Error %s in obtaining string form of abox argument %s" % (err, s))
             return {}
         try:
             # abargstxt = shlex.split(s)
             abargstxt = split_args_with_quoted_strings(s)
-        except Exception, err:
-            print "Error %s in parsing abox argument %s" % (err, s)
+        except Exception as err:
+            print("Error %s in parsing abox argument %s" % (err, s))
             return {}
 
         if '' in abargstxt:
@@ -1017,10 +1017,10 @@ class AnswerBox(object):
                     self.process_test_arg(key, val)
                 else:
                     abargs[key] = val
-        except Exception, err:
-            print "Error %s" % err
-            print "Failed in parsing args = %s" % s
-            print "abargstxt = %s" % abargstxt
+        except Exception as err:
+            print("Error %s" % err)
+            print("Failed in parsing args = %s" % s)
+            print("abargstxt = %s" % abargstxt)
             raise
 
         for arg in abargs:
@@ -1114,32 +1114,32 @@ def split_args_with_quoted_strings(command_line, checkfn=None):
 
 def test_abox1():
     ab = AnswerBox('type="option" expect="float" options=" ","noneType","int","float"')
-    print ab.xmlstr
+    print(ab.xmlstr)
     assert('''<optioninput options="('noneType','int','float')" correct="float"/>''' in ab.xmlstr)
 
 def test_abox2_custom_config():
     config = {}
     ab = AnswerBox('type="config" for="custom" wrapclass=mywrap.wrap(debug=True) import=mywrap', config=config)
-    print ab.xmlstr
-    print "config=%s" % config
+    print(ab.xmlstr)
+    print("config=%s" % config)
     assert('''<span/>''' in ab.xmlstr)
     assert('customresponse' in config)
 
     ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
-    print ab.xmlstr
+    print(ab.xmlstr)
     assert('''def cfn_wrap_''' in ab.xmlstr)
     assert "span" not in ab.xmlstr_just_code
     assert "span" in ab.xmlstr
 
     # unset defaults
     ab = AnswerBox('type="config" for="custom"', config=config)
-    print ab.xmlstr
-    print "config=%s" % config
+    print(ab.xmlstr)
+    print("config=%s" % config)
     assert('''<span/>''' in ab.xmlstr)
     assert('customresponse' in config)
 
     ab = AnswerBox('type="custom" expect=10 cfn=mytest', config=config)
-    print ab.xmlstr
+    print(ab.xmlstr)
     assert('''def cfn_wrap_''' not in ab.xmlstr)
 
 def test_abox_unit_test1():
@@ -1161,7 +1161,7 @@ def test_abox_unit_test3():
 
 def test_abox_unit_test4():
     ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10 test_fail=3 test_pass=11')
-    print ab.tests
+    print(ab.tests)
     assert(len(ab.tests)==3)
     assert(ab.tests[2]['responses']==['11'])
     assert(ab.tests[2]['expected']=='correct')
@@ -1178,21 +1178,21 @@ def test_abox_unit_test6():
 
 def test_abox_mc_ut1():
     ab = AnswerBox('type="multichoice" options="green","blue","red" expect="blue"')
-    print ab.xmlstr
+    print(ab.xmlstr)
     assert('choicegroup' in ab.xmlstr)
     assert(ab.tests[0]['responses']==['choice_2'])
     assert(ab.tests[0]['expected']=='correct')
 
 def test_abox_mc_ut2():
     ab = AnswerBox('type="oldmultichoice" options="green","blue","red" expect="blue","red"')
-    print ab.xmlstr
+    print(ab.xmlstr)
     assert('checkboxgroup' in ab.xmlstr)
     assert(ab.tests[0]['responses']==['choice_2', 'choice_3'])
     assert(ab.tests[0]['expected']=='correct')
 
 def test_abox_option_ut1():
     ab = AnswerBox('type="option" options="green","blue","red" expect="blue"')
-    print ab.xmlstr
+    print(ab.xmlstr)
     assert('optionresponse' in ab.xmlstr)
     assert(ab.tests[0]['responses']==['blue'])
     assert(ab.tests[0]['expected']==['correct'])
@@ -1230,7 +1230,7 @@ def test_multicoderesponse1():
     abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" inline="1"}"""
     ab = AnswerBox(abstr)
     xmlstr = etree.tostring(ab.xml)
-    print xmlstr
+    print(xmlstr)
     assert ab.xml
     assert '<grader_payload>{"debug": true, "grader": "designGrader", "options": "", "expect": ""}</grader_payload>' in xmlstr
     assert '<p style="display:inline">$\mathtt{numtaps} = $<input size="10" style="display:inline" ' in xmlstr
@@ -1239,26 +1239,26 @@ def test_multicoderesponse2():
     abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
     ab = AnswerBox(abstr)
     xmlstr = etree.tostring(ab.xml)
-    print xmlstr
+    print(xmlstr)
     assert ab.xml
     assert '<span id="abc123"' in xmlstr
 
 def test_abox_skip_unit_test6():
     ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=""', verbose=True)
-    print ab.tests
+    print(ab.tests)
     assert(len(ab.tests)==0)
 
 def test_abox_coderesponse1():
     ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
                    'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
-    print ab.xmlstr
+    print(ab.xmlstr)
     assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" in ab.xmlstr
 
 def test_abox_coderesponse2():
     ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
                    """grader_payload='{"a":2, "cfn":"test"}' """
                    'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
-    print ab.xmlstr
+    print(ab.xmlstr)
     assert ("""<grader_payload>{"debug": true, "grader": "qis_cfn", """
             """options": "test_opt", "expect": "test_expect"}</grader_payload>""" not in ab.xmlstr)
     assert """<grader_payload>{"a":2, "cfn":"test"}</grader_payload>""" in ab.xmlstr
@@ -1273,14 +1273,14 @@ def test_multiexternalresponse1():
     abstr = """\edXabox{expect="." url="https://localhost/test/6341" type="multiexternal" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
     ab = AnswerBox(abstr)
     xmlstr = etree.tostring(ab.xml)
-    print xmlstr
+    print(xmlstr)
     assert ab.xml is not None
     assert '<span id="abc123"' in xmlstr
     m = re.search('<script type="text/python">(.*)</script>', xmlstr, flags=re.M+re.S)
     sc = m.group(1)
     context = {}
     exec(sc, globals(), context)
-    print context
+    print(context)
     gp = json.loads(context['grader_payload'])
     assert gp['grader']=="designGrader"
 
@@ -1302,7 +1302,7 @@ def test_multiexternalresponse2():
     abstr = """type="multiexternal" api_key="secret_key" url="http://localhost:9091/grade"  size=70  debug=0  hidden="parity_circuit"  prompts="circuit = "  expect="[]"  options="nqubits=5"  cfn=qis_qcircuit  inline="1" """
     ab = AnswerBox(abstr)
     xmlstr = etree.tostring(ab.xml)
-    print xmlstr
+    print(xmlstr)
     assert "<answer" not in xmlstr
     m = re.search('<script type="text/python">(.*)</script>', xmlstr, flags=re.M+re.S)
     sc = m.group(1)

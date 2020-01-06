@@ -4,7 +4,7 @@ try:
     from path import path	# needs path.py
 except Exception as err:
     from path import Path as path
-from StringIO import StringIO
+from io import StringIO
 
 import latex2edx as l2emod
 from latex2edx.main import latex2edx
@@ -16,7 +16,7 @@ class TestHints(unittest.TestCase):
     def test_hints1(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example3.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))

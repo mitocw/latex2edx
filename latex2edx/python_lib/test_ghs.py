@@ -43,7 +43,7 @@ class TestClass(object):
         ans = 'x+2'
         ret = self.hfc.check_formula(expect, ans, options=options)
         if not ret['ok']:
-            print ret
+            print(ret)
         assert(ret['ok'])
 
     def test_check_formula(self):
@@ -95,7 +95,7 @@ class TestClass(object):
 
         answers = ['12*1.04']
         check_hint(aids, answers, ncmap, ocmap)
-        print ncmap.hints
+        print(ncmap.hints)
         assert('a hint' in ncmap.hints[0])
 
     def test_hint_string2(self):
@@ -114,12 +114,12 @@ class TestClass(object):
 
         answers = ['cxab syy cd13']
         check_hint(aids, answers, ncmap, ocmap)
-        print ncmap.hints
+        print(ncmap.hints)
         assert('a hint' in ncmap.hints[0])
 
         answers = ['asdx y  zbb']
         check_hint(aids, answers, ncmap, ocmap)
-        print ncmap.hints
+        print(ncmap.hints)
         assert('another hint' in ncmap.hints[0])
 
     def test_hint_val2(self):
@@ -142,7 +142,7 @@ class TestClass(object):
 
         answers = ['1/(16.3*16.3)']
         check_hint(aids, answers, ncmap, ocmap)
-        print ncmap.hints
+        print(ncmap.hints)
         assert('factor of two' in ncmap.hints[0])
 
     def test_hint_symbol(self):
@@ -300,7 +300,7 @@ class TestClass(object):
         ch1 = HintSystem(anum=0, hints=hints1).check_hint
         ch2 = HintSystem(anum=1, hints=hints2).check_hint
         ch1(aids, answers, ncmap, ocmap)
-        print ncmap.hints
+        print(ncmap.hints)
         assert('why' in ncmap.hints[0])
 
         ncmap = self.correct_map()
@@ -327,7 +327,7 @@ class TestClass(object):
         ncmap = self.correct_map()
         ocmap = self.correct_map()
         ch2(aids, answers, ncmap, ocmap)
-        print ncmap.hints[0]
+        print(ncmap.hints[0])
         assert('units correct' in ncmap.hints[0])
         
     def test_multiple_hints1(self):
@@ -343,7 +343,7 @@ class TestClass(object):
         ocmap = self.correct_map()
         ch = HintSystem(hints=my_hints).check_hint
         ch(aids, answers, ncmap, ocmap)
-        print ncmap.hints
+        print(ncmap.hints)
         assert('why' in ncmap.hints[0])
         assert('hello' in ncmap.hints[1])
 

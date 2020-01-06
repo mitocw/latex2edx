@@ -13,8 +13,8 @@ from plasTeX.TeX import TeX
 from plasTeX.Renderers.PageTemplate import Renderer as _Renderer
 from plasTeX.Config import config as plasTeXconfig
 from xml.sax.saxutils import escape, unescape
-from abox import AnswerBox, split_args_with_quoted_strings
-from StringIO import StringIO
+from .abox import AnswerBox, split_args_with_quoted_strings
+from io import StringIO
 
 class MyRenderer(XHTML.Renderer):
     """
@@ -63,8 +63,8 @@ class MyRenderer(XHTML.Renderer):
     def fix_math_common(m, removenl=True):
         x = m.group(1).strip()
         x = x.replace('\\$ ','$')	# dollar sign must be escaped in plasTeX, but shouldn't be in XML
-        x = x.replace(u'\u2019',"'")
-        x = x.replace(u'\u201c',"'")
+        x = x.replace('\u2019',"'")
+        x = x.replace('\u201c',"'")
         try:
             x = x.decode('ascii','ignore')
         except Exception as err:
@@ -87,7 +87,7 @@ class MyRenderer(XHTML.Renderer):
             x = cls.fix_math_common(m)
         except Exception as err:
             print("Failed to fix_math_common, match=")
-            print(m.group(1))
+            print((m.group(1)))
             raise
         if len(x)==0 or x=="\displaystyle":
             return "&nbsp;"
@@ -120,7 +120,7 @@ class MyRenderer(XHTML.Renderer):
     def filter_fix_image(self, m):
         width = 400
         attribs = []
-        print "[do_image] m=%s" % repr(m.groups())
+        print("[do_image] m=%s" % repr(m.groups()))
         style = m.group(1)
         sms = style.split(',')
         for sm in sms:
@@ -153,7 +153,7 @@ class MyRenderer(XHTML.Renderer):
             if 1:
                 cmd = 'cp %s %s' % (fn+k,wwwfn)
                 os.system(cmd)
-                print cmd
+                print(cmd)
                 os.system('chmod og+r %s' % wwwfn)
             return '<img src="/static/%s/%s" width="%d" %s/>' % (self.imurl,
                     fnbase, width, attribs)
@@ -168,19 +168,19 @@ class MyRenderer(XHTML.Renderer):
                         # see how many pages it is
                         try:
                             npages = int(os.popen('pdfinfo %s.pdf | grep Pages:' % fn).read()[6:].strip())
-                        except Exception, err:
+                        except Exception as err:
                             # print "npages error %s" % err
                             npages = 1
                         nfound = 0
                         if npages>1:	# handle multi-page PDFs
                             fnset = ['%s-%d' % (fn,x) for x in range(npages)]
                             nfound = sum([ 1 if os.path.exists(x+'.png') else 0 for x in fnset])
-                            print "--> %d page PDF, fnset=%s (nfound=%d)" % (npages, fnset, nfound)
+                            print("--> %d page PDF, fnset=%s (nfound=%d)" % (npages, fnset, nfound))
                         if not nfound==npages:
                             os.system('convert -density 800 {fn}.pdf -scale {dim}x{dim} {fn}.png'.format(fn=fn,dim=dim))
                         if npages>1:	# handle multi-page PDFs
                             fnset = ['%s-%d' % (fn,x) for x in range(npages)]
-                            print "--> %d page PDF, fnset=%s" % (npages, fnset)
+                            print("--> %d page PDF, fnset=%s" % (npages, fnset))
                         else:
                             fnset = [fn]
                         imghtml = ''
@@ -191,7 +191,7 @@ class MyRenderer(XHTML.Renderer):
                         return make_image_html(fn, k, attribs)
                 
         fn = fnset[0]
-        print 'Cannot find image file %s' % fn
+        print('Cannot find image file %s' % fn)
         return '<img src="NOTFOUND-%s" />' % fn
 
     filter_fix_abox_match = r'(?s)<abox(|linenum="\d+" filename="[^>]+")>(.*?)</abox>'
@@ -210,28 +210,28 @@ class MyRenderer(XHTML.Renderer):
 
     @staticmethod
     def fix_unicode(stxt):
-        ucfixset = { u'\u201d': '"',
-                     u'\u2014': '&#8212;',
-                     u'\u2013': '&#8211;',
-                     u'\u2019': "'",
+        ucfixset = { '\u201d': '"',
+                     '\u2014': '&#8212;',
+                     '\u2013': '&#8211;',
+                     '\u2019': "'",
                      }
 
-        for pre, post in ucfixset.iteritems():
+        for pre, post in ucfixset.items():
             try:
                 stxt = stxt.replace(pre, post)
-            except Exception, err:
-                print "Error in rendering (fix unicode): ",err
+            except Exception as err:
+                print("Error in rendering (fix unicode): ",err)
         return stxt
 
     def processFileContent(self, document, stxt):
         stxt = XHTML.Renderer.processFileContent(self, document, stxt)
         stxt = self.fix_unicode(stxt)
 
-        for fmatch, filfun in self.filters.iteritems():
+        for fmatch, filfun in self.filters.items():
             try:
                 stxt = re.sub(fmatch, filfun, stxt)
-            except Exception, err:
-                print "Error in rendering %s: %s" % (filfun, str(err))
+            except Exception as err:
+                print("Error in rendering %s: %s" % (filfun, str(err)))
                 raise
 
         stxt = stxt.replace('<p>','<p>\n')
@@ -318,10 +318,10 @@ class plastex2xhtml(object):
     def generate_xhtml(self):
 
         if self.verbose:
-            print "============================================================================="
-            print "Converting latex to XHTML using PlasTeX with custom edX macros"
-            print "Source file: %s" % self.input_fn
-            print "============================================================================="
+            print("=============================================================================")
+            print("Converting latex to XHTML using PlasTeX with custom edX macros")
+            print("Source file: %s" % self.input_fn)
+            print("=============================================================================")
     
         # set the zpts templates path
         mydir = os.path.dirname(__file__)
@@ -357,7 +357,7 @@ class plastex2xhtml(object):
         
         self.renderer.render(document)
 
-        print "XHTML generated (%s): %d lines" % (self.output_fn, len(self.renderer.xhtml.split('\n')))
+        print("XHTML generated (%s): %d lines" % (self.output_fn, len(self.renderer.xhtml.split('\n'))))
         return self.renderer.xhtml
 
     @property

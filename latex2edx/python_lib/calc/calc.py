@@ -9,12 +9,13 @@ import operator
 import numbers
 import numpy
 import scipy.constants
-import functions
+from . import functions
 
 from pyparsing import (
     Word, Literal, CaselessLiteral, ZeroOrMore, MatchFirst, Optional, Forward,
     Group, ParseResults, stringEnd, Suppress, Combine, alphas, nums, alphanums
 )
+from functools import reduce
 
 DEFAULT_FUNCTIONS = {
     'sin': numpy.sin,
@@ -88,7 +89,7 @@ def lower_dict(input_dict):
     variables that have the same lowercase representation. It would be hard to
     tell which is used in the final dict and which isn't.
     """
-    return {k.lower(): v for k, v in input_dict.iteritems()}
+    return {k.lower(): v for k, v in input_dict.items()}
 
 
 # The following few functions define evaluation actions, which are run on lists
@@ -314,7 +315,7 @@ class ParseAugmenter(object):
         inner_number = Combine(inner_number)
 
         # SI suffixes and percent.
-        number_suffix = MatchFirst(Literal(k) for k in SUFFIXES.keys())
+        number_suffix = MatchFirst(Literal(k) for k in list(SUFFIXES.keys()))
 
         # 0.33k or 17
         plus_minus = Literal('+') | Literal('-')
@@ -388,7 +389,7 @@ class ParseAugmenter(object):
 
             node_name = node.getName()
             if node_name not in handle_actions:  # pragma: no cover
-                raise Exception(u"Unknown branch name '{}'".format(node_name))
+                raise Exception("Unknown branch name '{}'".format(node_name))
 
             action = handle_actions[node_name]
             handled_kids = [handle_node(k) for k in node]

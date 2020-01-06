@@ -136,8 +136,8 @@ class HintFormulaCheck(object):
                 # sum() used to handle matrix comparisons
                 return numpy.sum(abs(complex1 - complex2)) <= tolerance
         except Exception as err:
-            print "failure in comparison, complex1=%s, complex2=%s" % (complex1, complex2)
-            print "err = ", err
+            print("failure in comparison, complex1=%s, complex2=%s" % (complex1, complex2))
+            print("err = ", err)
             raise
     
     def is_formula_equal(self, expected, given, samples, cs=True, tolerance='0.01', evalfun=None,
@@ -186,12 +186,11 @@ class HintFormulaCheck(object):
             else:
                 return float(sstr)
     
-        sranges = zip(*map(lambda x: map(to_math_atom, x.split(",")),
-                           samples.split('@')[1].split('#')[0].split(':')))
-        ranges = dict(zip(variables, sranges))
+        sranges = list(zip(*[list(map(to_math_atom, x.split(","))) for x in samples.split('@')[1].split('#')[0].split(':')]))
+        ranges = dict(list(zip(variables, sranges)))
     
         if debug:
-            print "ranges = ", ranges
+            print("ranges = ", ranges)
     
         for i in range(numsamples):
             vvariables = {}
@@ -199,7 +198,7 @@ class HintFormulaCheck(object):
                 value = random.uniform(*ranges[var])
                 vvariables[str(var)] = value
             if debug:
-                print "vvariables = ", vvariables
+                print("vvariables = ", vvariables)
             try:
                 instructor_result = evalfun(vvariables, dict(), expected, case_sensitive=cs)
             except Exception as err:
@@ -215,7 +214,7 @@ class HintFormulaCheck(object):
             #print "instructor=%s, student=%s" % (instructor_result, student_result)
             cfret = cmpfun(instructor_result, student_result, tolerance)
             if debug:
-                print "comparison result = %s" % cfret
+                print("comparison result = %s" % cfret)
             if not cfret:
                 return False
         return True
@@ -487,7 +486,7 @@ class HintSystem(object):
         # hints should be a list of dicts.  If it's a dict, then the keys give the answer number
         # and each of those dict elements should be called one at a time.
         if isinstance(the_hints, dict):
-            for anum, hint in the_hints.items():
+            for anum, hint in list(the_hints.items()):
                 self.check_hint(answer_ids, student_answers, new_cmap, old_cmap, anum=anum, the_hints=hint)
                 # print "--> anum=%s, hint=%s, ncm=%s" % (anum, hint, new_cmap.hints)	# for debugging
             return
@@ -518,13 +517,13 @@ class HintSystem(object):
                   'eval': None,
               }
         if self.extra_hint_functions is not None:
-            for key, ehf in self.extra_hint_functions.items():
+            for key, ehf in list(self.extra_hint_functions.items()):
                 htypes[key] = partial(ehf, ans)
     
         # print "using the_hints = %s" % the_hints
         the_hint = None
         for hintinfo in the_hints:
-            for htype, hfun in htypes.items():
+            for htype, hfun in list(htypes.items()):
                 if htype in hintinfo:
                     try:
                         term = hintinfo[htype]

@@ -1,7 +1,7 @@
 import os
 import unittest
 from lxml import etree
-from StringIO import StringIO
+from io import StringIO
 
 from latex2edx.main import latex2edx
 from latex2edx.test.util import make_temp_directory
@@ -49,10 +49,10 @@ class TestMarginote(unittest.TestCase):
             xml = etree.fromstring(str(l2e.xb))
             html = xml.find('.//html')
             mn = html.find('.//span[@class="marginote"]')
-            print("marginote xml = %s" % etree.tostring(mn))
+            print(("marginote xml = %s" % etree.tostring(mn)))
             self.assertTrue(mn is not None)
             mnspan = mn.findall(".//span")[1]
-            print("mnspan.text=%s" % mnspan.text)
+            print(("mnspan.text=%s" % mnspan.text))
             self.assertTrue(mnspan.text == "this is the anchor text")
             desc = mn.find('.//span[@class="marginote_desc"]')
             self.assertTrue(desc is not None)

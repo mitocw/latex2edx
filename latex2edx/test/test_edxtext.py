@@ -1,7 +1,7 @@
 import os
 import unittest
 from lxml import etree
-from StringIO import StringIO
+from io import StringIO
 
 from latex2edx.main import latex2edx
 from latex2edx.test.util import make_temp_directory
