@@ -709,7 +709,7 @@ class latex2edx(object):
                 pareftag = paref.tag
             # EVH: Prepend letter to identify content type
             if pareftag == 'vertical':
-                parind = []
+                parind = len(paref)+1
                 for i, child in enumerate(paref):
                     if child.tag in ['html', 'problem']:
                         parind = min(parind, i)
