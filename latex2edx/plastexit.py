@@ -65,12 +65,6 @@ class MyRenderer(XHTML.Renderer):
         x = x.replace('\\$ ','$')	# dollar sign must be escaped in plasTeX, but shouldn't be in XML
         x = x.replace('\u2019',"'")
         x = x.replace('\u201c',"'")
-        try:
-            x = x.decode('ascii','ignore')
-        except Exception as err:
-            print("Failed to decode string:")
-            print(x)
-            raise 
         x = x.replace('\\ensuremath','')
         x = x.replace('{^\\circ','{}^\\circ')	# workaround plasTeX bug
         if removenl:

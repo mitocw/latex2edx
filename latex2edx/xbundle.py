@@ -190,7 +190,7 @@ class XBundle(object):
         abfile.set('filename',filename)
         # Unicode characters in the "about" HTML file were causing
         # the lxml package to break.
-        abfile.text = filedata.decode('utf-8')
+        abfile.text = filedata
 
     #----------------------------------------
     # load/save
@@ -219,7 +219,7 @@ class XBundle(object):
         self.xml = xml
         xml.append(self.metadata)
         xml.append(self.course)
-        return self.pp_xml(xml)
+        return self.pp_xml(xml).decode()
 
     #----------------------------------------
     # import/export
@@ -480,7 +480,7 @@ class XBundle(object):
             print("[xbundle] Not overwriting %s for %s" % (fn, xml))
             fn = fn + '.new'
             self.overwrite_files.append(fn)
-        open(fn, 'w').write(self.pp_xml(xml))
+        open(fn, 'w').write(self.pp_xml(xml).decode())
 
     def export_xml_to_directory(self, elem, dowrite=False):
         '''
@@ -558,7 +558,7 @@ class XBundle(object):
             print("[xbundle.py] Warning - no xmllint")
             xml = etree.tostring(xml, pretty_print=True)
 
-        if xml.startswith('<?xml '):
+        if xml.startswith(b'<?xml '):
             xml = xml.split('\n', 1)[1]
         return xml
 
@@ -579,14 +579,14 @@ class XBundle(object):
                }
         for m, v in list(map.items()):
             for ch in m:
-                s = s.replace(ch, v)
+                s = s.replace(ch.encode(), v.encode())
         if dn and s in self.urlnames and parent:
             s += '_' + parent
         while s in self.urlnames:
-            m = re.match('(.+?)([0-9]*)$', s)
+            m = re.match(b'(.+?)([0-9]*)$', s)
             (s, idx) = m.groups()
             idx = int(idx or 0)
-            s += str(idx + 1)
+            s += str(idx + 1).encode()
         self.urlnames.append(s)
         return s
 

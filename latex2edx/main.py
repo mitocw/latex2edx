@@ -207,7 +207,7 @@ class latex2edx(object):
         '''
         Save XML file (as .xbundle, normally) to the output_fn
         '''
-        open(self.output_fn, 'w').write(etree.tostring(self.xml, pretty_print=True))
+        open(self.output_fn, 'w').write(etree.tostring(self.xml, pretty_print=True).decode())
 
     def export_sections_only(self):
         '''
@@ -270,7 +270,7 @@ class latex2edx(object):
                 print(("xhtml string = %s" % self.xhtml))
                 raise
             for filter in self.fix_filters:
-                list(filter(xml))
+                filter(xml)
             self.the_xml = xml
         return self.the_xml
 
@@ -880,7 +880,7 @@ class latex2edx(object):
                 os.mkdir(self.output_dir / 'tabs')
             tocf = open(self.output_dir / 'tabs' / 'tocindex.html', 'w')
             tocf.write(etree.tostring(
-                toctree, method='html', pretty_print=True))
+                toctree, method='html', pretty_print=True).decode())
             tocf.close()
 
         class MissingLabel(Exception):
@@ -970,7 +970,7 @@ class latex2edx(object):
                 if self.popup_flag and len(eqnlabel) != 0:
                     eqnattrib[eqnlabel]['href'] = 'javascript: void(0)'
                     eqntablecontent = (etree.tostring(
-                        tr, encoding="utf-8", method="html")).rstrip()
+                        tr, encoding="utf-8", method="html")).rstrip().decode()
                     eqntablecontent = ''.join(re.findall(
                         r'\[mathjax[a-z]*\](.*?)\[/mathjax[a-z]*\]',
                         eqntablecontent, re.S))
@@ -1581,7 +1581,7 @@ class latex2edx(object):
                 status = os.system(cmd)
                 if status:
                     print("Oops - latex2dnd apparently failed - aborting!")
-                    raise
+                    raise Exception("Oops - latex2dnd apparently failed - aborting!")
                 imdir = self.output_dir / ('static/images/%s' % fnpre)
                 os.system('mkdir -p %s' % imdir)
                 cmd = "cp %s/%s*.png %s/" % (fndir, fnpre, imdir)
@@ -1590,7 +1590,7 @@ class latex2edx(object):
                 status = os.system(cmd)
                 if status:
                     print("Oops - copying images from latex2dnd apparently failed - aborting!")
-                    raise
+                    raise Exception("Oops - latex2dnd apparently failed - aborting!")
             else:
                 print("--> latex2dnd XML file %s is up to date: %s" % (xmlfn, fnpre))
 
@@ -1687,7 +1687,7 @@ class latex2edx(object):
             response_tests = []
 
             for response in response_elements:
-                xmlstr = etree.tostring(response).strip()
+                xmlstr = etree.tostring(response).strip().decode()
                 abox = self.p2x.renderer.answer_box_objects.get(xmlstr, None)
                 if not abox:
                     if self.verbose:

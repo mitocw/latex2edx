@@ -184,7 +184,7 @@ class Test_Abox(unittest.TestCase):
             ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10 test_fail=3 test_bad=5')
         except Exception as err:
             the_err = err
-        assert "unknown test argument key" in str(the_err)
+            assert "unknown test argument key" in str(the_err)
     
     def test_abox_unit_test4(self):
         ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=10 test_fail=3 test_pass=11')
@@ -230,7 +230,7 @@ class Test_Abox(unittest.TestCase):
             ab = AnswerBox('type="option" options="green","blue","red" expect="orange"')
         except Exception as err:
             the_err = err
-        assert("orange is not one of the options" in str(the_err))
+            assert("orange is not one of the options" in str(the_err))
         
     def test_abox_custom_ut1(self):
         ab = AnswerBox('type="custom" expect="20" answers="11","9" prompts="Integer 1:","Integer 2:" inline="1" cfn="test_add"')
@@ -259,9 +259,9 @@ class Test_Abox(unittest.TestCase):
         xmlstr = etree.tostring(ab.xml)
         print(xmlstr)
         assert ab.xml
-        assert '<grader_payload>{"debug": true, "grader": "designGrader", "queuename": "test-6341", "options": "", "expect": ""}</grader_payload>' in xmlstr
+        assert b'<grader_payload>{"debug": true, "grader": "designGrader", "queuename": "test-6341", "options": "", "expect": ""}</grader_payload>' in xmlstr
         # assert '<grader_payload>{"debug": true, "grader": "designGrader", "options": "", "expect": ""}</grader_payload>' in xmlstr
-        assert '<p style="display:inline">$\mathtt{numtaps} = $<input size="10" style="display:inline" ' in xmlstr
+        assert b'<p style="display:inline">$\mathtt{numtaps} = $<input size="10" style="display:inline" ' in xmlstr
     
     def test_multicoderesponse2(self):
         abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
@@ -269,7 +269,7 @@ class Test_Abox(unittest.TestCase):
         xmlstr = etree.tostring(ab.xml)
         print(xmlstr)
         assert ab.xml
-        assert '<span id="abc123"' in xmlstr
+        assert b'<span id="abc123"' in xmlstr
 
     def test_abox_skip_unit_test6(self):
         ab = AnswerBox('type="custom" expect=10 cfn=mytest test_pass=""', verbose=True)

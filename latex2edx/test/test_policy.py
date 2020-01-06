@@ -61,10 +61,8 @@ class TestPolicy(unittest.TestCase):
                 l2e = latex2edx(nfn, output_dir=tmdir, update_policy=True, suppress_policy=True)
                 l2e.convert()
             except Exception as err:
-                pass
-
-            print("Error = %s" % str(err))
-            self.assertTrue(re.search('Error processing element sequential in file .*example10_badpolicy.tex line 18', str(err)))
+                print("Error = %s" % str(err))
+                self.assertTrue(re.search('Error processing element sequential in file .*example10_badpolicy.tex line 18', str(err)))
 
 if __name__ == '__main__':
     unittest.main()

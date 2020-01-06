@@ -285,8 +285,8 @@ class AnswerBox(object):
         if (self.xml.tag=="span") and len(self.xml)>1:	# xml has script code, and abtype is not config
             self.xml_just_code = self.xml[0]
             
-        self.xmlstr = self.hint_extras + etree.tostring(self.xml)
-        self.xmlstr_just_code = etree.tostring(self.xml_just_code).strip()
+        self.xmlstr = self.hint_extras + etree.tostring(self.xml).decode()
+        self.xmlstr_just_code = etree.tostring(self.xml_just_code).strip().decode()
         
     def abox2xml(self, aboxstr):
         if aboxstr.startswith('abox '): aboxstr = aboxstr[5:]
@@ -887,8 +887,8 @@ class AnswerBox(object):
             hint_extras += '<script type="text/python">\n%s = HintSystem(hints=%s).check_hint\n</script>\n' % (hintfn, hints)
         self.hint_extras = hint_extras
 
-        xml_str = etree.tostring(abxml, pretty_print=True)
-        xml_str = re.sub('(?ms)<html>(.*)</html>', '\\1', xml_str.decode())
+        xml_str = etree.tostring(abxml, pretty_print=True).decode()
+        xml_str = re.sub('(?ms)<html>(.*)</html>', '\\1', xml_str)
 
         if script_code:
             code_str = '<script type="text/python" system_path="python_lib">\n'
@@ -956,8 +956,8 @@ class AnswerBox(object):
             nargs = len(test_args)
             if not (nargs&1==0):
                 raise Exception("[abox] test_spec must be given with an even number of subarguments, specifying equal number of responses and expected grader outputs")
-            responses = test_args[:nargs/2]
-            expected = test_args[nargs/2:]
+            responses = test_args[:nargs//2]
+            expected = test_args[nargs//2:]
             if 'correct' in expected:
                 self.has_test_pass = True
         elif key=="test_pass":
@@ -1229,7 +1229,7 @@ def test_abox_custom_ut2():
 def test_multicoderesponse1():
     abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" inline="1"}"""
     ab = AnswerBox(abstr)
-    xmlstr = etree.tostring(ab.xml)
+    xmlstr = etree.tostring(ab.xml).decode()
     print(xmlstr)
     assert ab.xml
     assert '<grader_payload>{"debug": true, "grader": "designGrader", "options": "", "expect": ""}</grader_payload>' in xmlstr
@@ -1238,7 +1238,7 @@ def test_multicoderesponse1():
 def test_multicoderesponse2():
     abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
     ab = AnswerBox(abstr)
-    xmlstr = etree.tostring(ab.xml)
+    xmlstr = etree.tostring(ab.xml).decode()
     print(xmlstr)
     assert ab.xml
     assert '<span id="abc123"' in xmlstr
@@ -1272,7 +1272,7 @@ def test_abox_multichoice_indexes1():
 def test_multiexternalresponse1():
     abstr = """\edXabox{expect="." url="https://localhost/test/6341" type="multiexternal" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
     ab = AnswerBox(abstr)
-    xmlstr = etree.tostring(ab.xml)
+    xmlstr = etree.tostring(ab.xml).decode()
     print(xmlstr)
     assert ab.xml is not None
     assert '<span id="abc123"' in xmlstr
@@ -1301,7 +1301,7 @@ def test_multiexternalresponse2():
     # abstr = """\edXabox{expect="." url="https://localhost/test/6341" type="multiexternal" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" hidden="abc123" inline="1"}"""
     abstr = """type="multiexternal" api_key="secret_key" url="http://localhost:9091/grade"  size=70  debug=0  hidden="parity_circuit"  prompts="circuit = "  expect="[]"  options="nqubits=5"  cfn=qis_qcircuit  inline="1" """
     ab = AnswerBox(abstr)
-    xmlstr = etree.tostring(ab.xml)
+    xmlstr = etree.tostring(ab.xml).decode()
     print(xmlstr)
     assert "<answer" not in xmlstr
     m = re.search('<script type="text/python">(.*)</script>', xmlstr, flags=re.M+re.S)

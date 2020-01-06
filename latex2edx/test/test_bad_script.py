@@ -31,10 +31,8 @@ class TestBad_Script(unittest.TestCase):
                 l2e = latex2edx(nfn, output_dir=tmdir)
                 l2e.convert()
             except Exception as err:
-                pass
-
-            print("Error = %s" % str(err))
-            self.assertTrue(re.search('Error processing element script in file .*\.tex line 82', str(err)))
+                print("Error = %s" % str(err))
+                self.assertTrue(re.search('Error processing element script in file .*\.tex line 82', str(err)))
 
     def test_bad_script2(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
@@ -49,10 +47,8 @@ class TestBad_Script(unittest.TestCase):
                 l2e = latex2edx(nfn, output_dir=tmdir)
                 l2e.convert()
             except Exception as err:
-                pass
-
-            print("Error = %s" % str(err))
-            self.assertTrue(re.search('Error processing element edxincludepy in file .*\.tex line 25', str(err)))
+                print("Error = %s" % str(err))
+                self.assertTrue(re.search('Error processing element edxincludepy in file .*\.tex line 25', str(err)))
 
 if __name__ == '__main__':
     unittest.main()

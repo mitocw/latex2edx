@@ -30,7 +30,7 @@ class TestBad_Abox(unittest.TestCase):
                 err = ""
             except Exception as err:
                 print(err)
-            assert('abox located: linenum="43"' in str(err))
+                assert('abox located: linenum="43"' in str(err))
             xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(not os.path.exists(xbfn))
 
