@@ -39,6 +39,7 @@ class TestTextTimestamp(unittest.TestCase):
             os.chdir(tmdir)
             fp = MakeTeX(tex).fp
             l2e = latex2edx(tmdir + '/test.tex', fp=fp, do_images=False, output_dir=tmdir,
+                            verbose=True,
                             add_timestamp=True,
                             timestamp_revision="91234",
                             timestamp_threshold=0,

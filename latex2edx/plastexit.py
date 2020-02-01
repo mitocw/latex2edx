@@ -341,6 +341,8 @@ class plastex2xhtml(object):
             self.latex_string = self.latex_string.replace('\r','\n') # convert from mac format EOL
         
         if self.fix_plastex_optarg_bug:
+            if self.verbose:
+                print("[latex2html.plastexit] fixing plastex optarg bug")
             self.latex_string = self.do_fix_plastex_optarg_bug(self.latex_string)
 
         # add preamble and postfix wrap?
@@ -364,8 +366,7 @@ class plastex2xhtml(object):
     def xhtml(self):
         return self.renderer.xhtml
     
-    @staticmethod
-    def do_fix_plastex_optarg_bug(texstring):
+    def do_fix_plastex_optarg_bug(self, texstring):
         '''
         PlasTeX processing appears to have a bug, 
         wherein if the tex document has two consecutive lines like this:
@@ -401,10 +402,12 @@ class plastex2xhtml(object):
                            'edXproblem',
                            'edXsolution',
                            'edXshowhide',
+                           'document',
                            ]
 
         newstring = []
         insert_nl = False
+        nnl = 0
 
         for line in texstring.split('\n'):
 
@@ -412,6 +415,7 @@ class plastex2xhtml(object):
                 # insert empty line if current line is not already empty line
                 if not line=='':
                     newstring.append('')
+                    nnl += 1
                 insert_nl = False
 
             if not r'\begin' in line:
@@ -425,4 +429,6 @@ class plastex2xhtml(object):
                     insert_nl = True
 
         newstring = '\n'.join(newstring)
+        if self.verbose:
+            print("[latex2html.plastexit] added %d newlines to workaround plastex bug crashing when \\begin{edXchapter} and \\begin{edXsection} with no intermediate newline" % nnl)
         return newstring
