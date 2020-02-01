@@ -219,7 +219,7 @@ class MyRenderer(XHTML.Renderer):
             try:
                 stxt = stxt.replace(pre, post)
             except Exception as err:
-                print("Error in rendering (fix unicode): ",err)
+                print("Error in rendering (fix unicode): ", str(err)[:1000])
         return stxt
 
     def processFileContent(self, document, stxt):
@@ -230,7 +230,7 @@ class MyRenderer(XHTML.Renderer):
             try:
                 stxt = re.sub(fmatch, filfun, stxt)
             except Exception as err:
-                print("Error in rendering %s: %s" % (filfun, str(err)))
+                print("Error in rendering %s: %s" % (str(filfun)[:1000], str(err)[:1000]))
                 raise
 
         stxt = stxt.replace('<p>','<p>\n')
