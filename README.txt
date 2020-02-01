@@ -138,4 +138,5 @@ History
 * v1.5.4: Add \marginote{note text}{anchor text}
 * v1.5.5: Add command options: --timestamp --timestamp-revision <REV> --timestamp-threshold 5
 * v1.5.6: Add \html{tag}[attributes] for custom HTML
+* v1.6.0: Migrate to python3
 
