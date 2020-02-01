@@ -20,7 +20,8 @@ before_install:
   - conda install --yes -n condaenv pip
   - source activate condaenv
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy
+  #- conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy
   - pip install -r requirements.txt
   - pip install -r test_requirements.txt
 script:  bash test.sh -q
