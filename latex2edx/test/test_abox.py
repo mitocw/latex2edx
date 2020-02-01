@@ -1,9 +1,11 @@
 '''
 Test various answer box types for proper XML rendering by `latex2edx/abox.py`
 '''
-from latex2edx.abox import AnswerBox
+import re
+import json
 import unittest
 from lxml import etree
+from latex2edx.abox import AnswerBox
 
 class Test_Abox(unittest.TestCase):
     '''
@@ -253,13 +255,27 @@ class Test_Abox(unittest.TestCase):
         assert(ab.tests[2]['expected']==['correct']*2)
         assert(ab.tests[0]['box_indexes'] == [(0,0), (0,1)])
     
+    def check_payload_json(self, xmlstr, expect_dictstr):
+        '''
+        return True if expect_dict is in grader_payload
+        '''
+        m = re.search("<grader_payload>(.*)</grader_payload>", xmlstr)
+        if not m:
+            return False
+        dstr = m.group(1)
+        data = json.loads(dstr)
+        expect = json.loads(expect_dictstr)
+        shared_items = {k: data[k] for k in data if k in expect and data[k] == expect[k]}
+        return len(shared_items)==len(expect)
+    
     def test_multicoderesponse1(self):
         abstr = """\edXabox{expect="." queuename="test-6341" type="multicode" prompts="$\mathtt{numtaps} = $","$\mathtt{bands} = $","$\mathtt{amps} = $","$\mathtt{weights} = $"  answers=".",".",".","." cfn="designGrader" sizes="10","25","25","25" inline="1"}"""
         ab = AnswerBox(abstr)
         xmlstr = etree.tostring(ab.xml)
         print(xmlstr)
         assert ab.xml
-        assert b'<grader_payload>{"debug": true, "grader": "designGrader", "queuename": "test-6341", "options": "", "expect": ""}</grader_payload>' in xmlstr
+        assert self.check_payload_json(ab.xmlstr, '{"debug": true, "grader": "designGrader", "queuename": "test-6341", "options": "", "expect": ""}')
+        # assert b'<grader_payload>{"debug": true, "grader": "designGrader", "queuename": "test-6341", "options": "", "expect": ""}</grader_payload>' in xmlstr
         # assert '<grader_payload>{"debug": true, "grader": "designGrader", "options": "", "expect": ""}</grader_payload>' in xmlstr
         assert b'<p style="display:inline">$\mathtt{numtaps} = $<input size="10" style="display:inline" ' in xmlstr
     
@@ -280,7 +296,8 @@ class Test_Abox(unittest.TestCase):
         ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
                        'cfn="qis_cfn" debug=1 options="test_opt" expect="test_expect"', verbose=True)
         print(ab.xmlstr)
-        assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" in ab.xmlstr
+        # assert """<grader_payload>{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}</grader_payload>""" in ab.xmlstr
+        assert self.check_payload_json(ab.xmlstr, '{"debug": true, "grader": "qis_cfn", "options": "test_opt", "expect": "test_expect"}')
 
     def test_abox_coderesponse2(self):
         ab = AnswerBox('type="code" rows=30 cols=90 queuename="some_queue" mode="python" answer_display="see text" '
