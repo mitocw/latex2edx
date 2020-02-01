@@ -20,6 +20,7 @@ import sys
 import re
 import string
 import glob
+import codecs
 import subprocess
 
 from lxml import etree
@@ -554,12 +555,14 @@ class XBundle(object):
             p.stdin.close()
             p.wait()
             xml = codecs.open('tmp.xml', encoding="utf8").read()
+            xml = xml.encode("utf8")
         except Exception as err:
             print("[xbundle.py] Warning - no xmllint")
+            print(err)
             xml = etree.tostring(xml, pretty_print=True)
 
         if xml.startswith(b'<?xml '):
-            xml = xml.split('\n', 1)[1]
+            xml = xml.split(b'\n', 1)[1]
         return xml
 
     def make_urlname(self, xml, parent=''):
