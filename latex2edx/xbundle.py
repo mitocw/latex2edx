@@ -553,7 +553,7 @@ class XBundle(object):
             p.stdin.write(etree.tostring(xml))
             p.stdin.close()
             p.wait()
-            xml = open('tmp.xml').read()
+            xml = codecs.open('tmp.xml', encoding="utf8").read()
         except Exception as err:
             print("[xbundle.py] Warning - no xmllint")
             xml = etree.tostring(xml, pretty_print=True)
