@@ -24,8 +24,11 @@ class TestText(unittest.TestCase):
     def test_text1(self):
 
         tex = ('\\begin{edXcourse}{1.00x}{1.00x Fall 2013}[url_name=2013_Fall]\n'
+               '\n'
                '\\begin{edXchapter}{Unit 1}[start="2013-11-22"]\n'
+               '\n'
                '\\begin{edXsection}{Introduction}\n'
+               '\n'
                '\\begin{edXtext}{My Name}[url_name=text_url_name]\n'
                'Hello world!\n\n'
                '\\end{edXtext}\n'

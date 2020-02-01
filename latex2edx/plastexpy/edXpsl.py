@@ -205,7 +205,9 @@ class endedXmath(Base.endverbatim):
 
 class edXxml(Base.Command):
     args = 'self'
-
+    def debug_invoke(self, tex):
+        Command.invoke(self, tex)
+        print("  --> edXxml in %s: %s, line=%s" % (tex.filename, self.attributes['self'].source, tex.lineNumber))
 
 class edXproblem(MyBaseEnvironment):
     args = '{ display_name } { attrib_string } self'

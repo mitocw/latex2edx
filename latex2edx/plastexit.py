@@ -56,6 +56,10 @@ class MyRenderer(XHTML.Renderer):
         xmlstr = xmlstr.replace('\\$ ','$')	# dollar sign must be escaped in plasTeX, but shouldn't be in XML
         xmlstr = xmlstr.replace('& ', '&')  # remove ampersand space from plasTeX
         xmlstr = xmlstr.replace('\\% ', '%')  # unescape percentage sign
+
+        # new for python3 plastex2.1 version: unescape xmlstr
+        xmlstr = unescape(xmlstr)
+
         # return xmlstr
         return "<edxxml>%s</edxxml>" % xmlstr
 
@@ -106,7 +110,8 @@ class MyRenderer(XHTML.Renderer):
 
     @classmethod
     def filter_fix_displaymathverbatim(cls, m):
-        x = escape(m.group(1).strip())
+        # x = escape(m.group(1).strip())
+        x = m.group(1).strip()			# plastex2.1 - already escaped
         return '[mathjax]%s[/mathjax]' % x.replace('\\end{edXmath}', '')
 
     filter_fix_image_match = '<includegraphics style="(.*?)">(.*?)</includegraphics>'
@@ -351,6 +356,7 @@ class plastex2xhtml(object):
         
         self.renderer.render(document)
 
+        # print(self.renderer.xhtml) # DEBUG
         print("XHTML generated (%s): %d lines" % (self.output_fn, len(self.renderer.xhtml.split('\n'))))
         return self.renderer.xhtml
 

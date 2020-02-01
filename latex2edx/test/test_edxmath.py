@@ -40,6 +40,8 @@ class TestedXmath(unittest.TestCase):
 S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
         &amp;=&amp;  H((1+r)/2)
 \end{eqnarray}[/mathjax]"""
+            if not (expect in data):
+                print("data=%s" % data)
             assert(expect in data)
 
 if __name__ == '__main__':
