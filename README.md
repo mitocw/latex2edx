@@ -190,3 +190,4 @@ History
 * v1.5.5: Add command options: --timestamp --timestamp-revision <REV> --timestamp-threshold 5
 * v1.5.6: Add \html{tag}[attributes] for custom HTML
 * v1.6.0: Migrate to python3
+* v1.6.1: Minor readme update
