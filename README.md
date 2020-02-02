@@ -6,7 +6,7 @@ latex2edx
 [![PyPi Version](http://img.shields.io/pypi/v/latex2edx.svg?style=flat)](https://pypi.python.org/pypi/latex2edx)
 [![License AGPLv3](http://img.shields.io/badge/license-AGPv3-blue.svg?style=flat)](http://www.gnu.org/licenses/agpl-3.0.html)
 
-This is version 1.5 of the open-source latex2edx compiler for
+This is version 1.6 of the open-source latex2edx compiler for
 generating interactive MITx / edX courses from LaTeX
 
 ![latex2edx logo](https://raw.github.com/mitocw/latex2edx/master/docs/images/latex2edx-logo.png)
@@ -47,13 +47,15 @@ are written in YAML format.  This "course unit test" set can then be used
 with the [edxcut package](https://github.com/mitodl/edxcut), to execute unit 
 tests on a running edx course instance.
 
+Version 1.6 works under python3.7, and PlasTex 2.1
+
 Requirements
 ============
 
-* python 2.7
+* python 3.7
 * python-lxml
 * plastex
-* beautifulsoup
+* beautifulsoup4
 * latex2dnd
 * pyyaml
 
@@ -189,3 +191,4 @@ History
 * v1.5.4: Add \marginote{note text}{anchor text}
 * v1.5.5: Add command options: --timestamp --timestamp-revision <REV> --timestamp-threshold 5
 * v1.5.6: Add \html{tag}[attributes] for custom HTML
+* v1.6.0: Migrate to python3

@@ -1,6 +1,6 @@
 import os
 import unittest
-from StringIO import StringIO
+from io import StringIO
 
 from latex2edx.main import latex2edx
 from latex2edx.test.util import make_temp_directory
@@ -23,9 +23,13 @@ class TestAskTA(unittest.TestCase):
     def test_askta1(self):
 
         tex = ('\\begin{edXcourse}{1.00x}{1.00x Fall 2013}[url_name=2013_Fall]\n'
+               '\n'
                '\\begin{edXchapter}{Unit 1}[start="2013-11-22"]\n'
+               '\n'
                '\\begin{edXsection}{Introduction}\n'
+               '\n'
                '\\begin{edXproblem}{test problem}\n'
+               '\n'
                '\\edXaskta{settings=1 to="test@gmail.com"}\n\n'
                '\\edXaskta{cc="tocc@gmail.com"}\n\n'
                '\\end{edXproblem}\n'

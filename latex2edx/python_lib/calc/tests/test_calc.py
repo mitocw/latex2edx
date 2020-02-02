@@ -534,7 +534,7 @@ class EvaluatorTest(unittest.TestCase):
         Incorrectly capitilized should fail
         Also, it should pick the correct version of a function.
         """
-        with self.assertRaisesRegexp(calc.UndefinedVariable, 'SiN'):
+        with self.assertRaisesRegex(calc.UndefinedVariable, 'SiN'):
             calc.evaluator({}, {}, 'SiN(6)', case_sensitive=True)
 
         # With case sensitive turned on, it should pick the right function
@@ -552,9 +552,9 @@ class EvaluatorTest(unittest.TestCase):
         """
         variables = {'R1': 2.0, 'R3': 4.0}
 
-        with self.assertRaisesRegexp(calc.UndefinedVariable, 'QWSEKO'):
+        with self.assertRaisesRegex(calc.UndefinedVariable, 'QWSEKO'):
             calc.evaluator({}, {}, "5+7*QWSEKO")
-        with self.assertRaisesRegexp(calc.UndefinedVariable, 'r2'):
+        with self.assertRaisesRegex(calc.UndefinedVariable, 'r2'):
             calc.evaluator({'r1': 5}, {}, "r1+r2")
-        with self.assertRaisesRegexp(calc.UndefinedVariable, 'r1 r3'):
+        with self.assertRaisesRegex(calc.UndefinedVariable, 'r1 r3'):
             calc.evaluator(variables, {}, "r1*r3", case_sensitive=True)

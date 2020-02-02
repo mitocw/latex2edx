@@ -141,9 +141,9 @@ class marginote(Base.Command):  # tooltip margin note \marginote[options]{note}{
     def invoke(self, tex):
         Command.invoke(self, tex)
         try:
-            print "  --> marginote in %s: note=%s, linenum=%s" % (tex.filename, self.attributes['note'].source, tex.lineNumber)
+            print("  --> marginote in %s: note=%s, linenum=%s" % (tex.filename, self.attributes['note'].source, tex.lineNumber))
         except Exception as err:
-            print(" --> marginnote in %s: note=<unicode error>, linenum=%s" % (tex.filename, tex.lineNumber))
+            print((" --> marginnote in %s: note=<unicode error>, linenum=%s" % (tex.filename, tex.lineNumber)))
             print(err)
 
 
@@ -164,7 +164,7 @@ class edXdndtex(MyBaseCommand):  # insert external drag-and-drop problem (should
 
     def invoke(self, tex):
         Command.invoke(self, tex)
-        print "  --> edXdndtex in %s: dndtex=%s, line=%s" % (tex.filename, self.attributes['self'].source, tex.lineNumber)
+        print("  --> edXdndtex in %s: dndtex=%s, line=%s" % (tex.filename, self.attributes['self'].source, tex.lineNumber))
 
 
 class edXshowhide(Base.Environment):  # block of text to be hidden by default, but with clickable "show"
@@ -205,7 +205,9 @@ class endedXmath(Base.endverbatim):
 
 class edXxml(Base.Command):
     args = 'self'
-
+    def debug_invoke(self, tex):
+        Command.invoke(self, tex)
+        print("  --> edXxml in %s: %s, line=%s" % (tex.filename, self.attributes['self'].source, tex.lineNumber))
 
 class edXproblem(MyBaseEnvironment):
     args = '{ display_name } { attrib_string } self'
@@ -275,21 +277,21 @@ class input(Command):
         # print "myinput a=%s, tex=%s" % (a,tex)
         try:
             path = tex.kpsewhich(a['name'])
-        except Exception, msg:
+        except Exception as msg:
             # print "myinput kpsewhich error=%s" % msg
             path = a['name']
             if not path.endswith('.tex'):
                 path += '.tex'
 
         try:
-            print "\n----------------------------------------------------------------------------- Input [%s]" % path
+            print("\n----------------------------------------------------------------------------- Input [%s]" % path)
             status.info(' ( %s ' % path)
             encoding = self.config['files']['input-encoding']
             tex.input(codecs.open(path, 'r', encoding, 'replace'))
             status.info(' ) ')
 
-        except (OSError, IOError), msg:
-            print "myinput error=%s" % msg
+        except (OSError, IOError) as msg:
+            print("myinput error=%s" % msg)
             log.warning(msg)
             status.info(' ) ')
 
@@ -306,7 +308,7 @@ class edXgitlink(Command):
         self.attributes['linenum'] = tex.lineNumber
         self.attributes['url'] = '%s/%s#L%s' % (self.attributes['url_root'].source, tex.filename, tex.lineNumber)
         # print "root=%s, name=%s" % (self.attributes['url_root'].source, self.attributes['name'].source)
-        print "  --> edXgitlink: file=%s, line=%s, url=%s" % (tex.filename, tex.lineNumber, self.attributes['url'])
+        print("  --> edXgitlink: file=%s, line=%s, url=%s" % (tex.filename, tex.lineNumber, self.attributes['url']))
 
 class edXsplittest(MyBaseEnvironment):
     args = '[ attrib_string:str ] self'

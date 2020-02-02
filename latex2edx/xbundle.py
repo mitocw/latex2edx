@@ -20,6 +20,7 @@ import sys
 import re
 import string
 import glob
+import codecs
 import subprocess
 
 from lxml import etree
@@ -190,7 +191,7 @@ class XBundle(object):
         abfile.set('filename',filename)
         # Unicode characters in the "about" HTML file were causing
         # the lxml package to break.
-        abfile.text = filedata.decode('utf-8')
+        abfile.text = filedata
 
     #----------------------------------------
     # load/save
@@ -219,7 +220,7 @@ class XBundle(object):
         self.xml = xml
         xml.append(self.metadata)
         xml.append(self.course)
-        return self.pp_xml(xml)
+        return self.pp_xml(xml).decode()
 
     #----------------------------------------
     # import/export
@@ -255,7 +256,7 @@ class XBundle(object):
             try:
                 self.add_about_file(os.path.basename(afn), open(afn).read())
             except Exception as err:
-                print "Oops, failed to add file %s, error=%s" % (afn, err)
+                print("Oops, failed to add file %s, error=%s" % (afn, err))
 
 
     def import_course_from_directory(self, dir):
@@ -314,7 +315,7 @@ class XBundle(object):
         pkey = '%s/%s' % (xml.tag, xml.get('url_name',xml.get('url_name_orig','<no_url_name>')))
         if policy and pkey in policy:
             #print "policy match for %s" % pkey
-            for (k,v) in policy[pkey].iteritems():
+            for (k,v) in policy[pkey].items():
                 #if 'hide' in k:
                 #    print "metadata: %s" % [k,v]
                 if xml.get(k,None) is None:	# don't overwrite xml's metadata setting, if exists already
@@ -341,15 +342,15 @@ class XBundle(object):
             try:
                 dxml = etree.parse(fn).getroot()
             except Exception as err:
-                print "[xbundle] Error parsing xml for %s" % fn
+                print("[xbundle] Error parsing xml for %s" % fn)
                 raise
             try:
                 dxml.attrib.update(xml.attrib)
             except Exception as err:
-                print "[xbundle] error updating attribute, dxml=%s\nxml=%s"  % (etree.tostring(dxml), etree.tostring(xml))
-                print "dxml.attrib=%s" % dxml.attrib
-                print "xml.attrib=%s" % xml.attrib
-                print "likely your version of lxml is too old (need version >= 3)"
+                print("[xbundle] error updating attribute, dxml=%s\nxml=%s"  % (etree.tostring(dxml), etree.tostring(xml)))
+                print("dxml.attrib=%s" % dxml.attrib)
+                print("xml.attrib=%s" % xml.attrib)
+                print("likely your version of lxml is too old (need version >= 3)")
                 raise
             dxml.attrib.pop('url_name')
 
@@ -363,7 +364,7 @@ class XBundle(object):
             if self.skip_hidden:
                 self.update_metadata_from_policy(dxml)
                 if xml.get('hide_from_toc','')=='true':
-                    print "[xbundle] Skipping %s (%s), it has hide_from_toc=true" % (xml.tag, xml.get('display_name','<noname>'))
+                    print("[xbundle] Skipping %s (%s), it has hide_from_toc=true" % (xml.tag, xml.get('display_name','<noname>')))
                 else:
                     xml = dxml
             else:
@@ -391,8 +392,8 @@ class XBundle(object):
             try:
                 dxml = etree.parse(dir / xml.tag / fn, **options).getroot()
             except Exception as err:
-                print "Error!  Can't load and parse HTML file %s, error:" % (dir/xml.tag/fn)
-                print err
+                print("Error!  Can't load and parse HTML file %s, error:" % (dir/xml.tag/fn))
+                print(err)
                 dxml = None
             if dxml is not None:
                 if 'xmlns' in dxml.attrib:
@@ -406,7 +407,7 @@ class XBundle(object):
         if self.skip_hidden:
             self.update_metadata_from_policy(xml)
             if xml.get('hide_from_toc','')=='true':
-                print "[xbundle] Skipping %s (%s), it has hide_from_toc=true" % (xml.tag, xml.get('display_name','<noname>'))
+                print("[xbundle] Skipping %s (%s), it has hide_from_toc=true" % (xml.tag, xml.get('display_name','<noname>')))
                 return xml
 
         for child in xml:
@@ -477,10 +478,10 @@ class XBundle(object):
 
     def write_xml_file(self, fn, xml, force_overwrite=False):
         if (not force_overwrite) and (xml.tag in self.no_overwrite) and os.path.exists(fn):
-            print "[xbundle] Not overwriting %s for %s" % (fn, xml)
+            print("[xbundle] Not overwriting %s for %s" % (fn, xml))
             fn = fn + '.new'
             self.overwrite_files.append(fn)
-        open(fn, 'w').write(self.pp_xml(xml))
+        open(fn, 'w').write(self.pp_xml(xml).decode())
 
     def export_xml_to_directory(self, elem, dowrite=False):
         '''
@@ -536,7 +537,7 @@ class XBundle(object):
 
 
     def errlog(self, msg):
-        print msg
+        print(msg)
 
 
     def mkdir(self, p):
@@ -553,13 +554,15 @@ class XBundle(object):
             p.stdin.write(etree.tostring(xml))
             p.stdin.close()
             p.wait()
-            xml = open('tmp.xml').read()
+            xml = codecs.open('tmp.xml', encoding="utf8").read()
+            xml = xml.encode("utf8")
         except Exception as err:
-            print "[xbundle.py] Warning - no xmllint"
+            print("[xbundle.py] Warning - no xmllint")
+            print(err)
             xml = etree.tostring(xml, pretty_print=True)
 
-        if xml.startswith('<?xml '):
-            xml = xml.split('\n', 1)[1]
+        if xml.startswith(b'<?xml '):
+            xml = xml.split(b'\n', 1)[1]
         return xml
 
     def make_urlname(self, xml, parent=''):
@@ -577,16 +580,16 @@ class XBundle(object):
                '/': '__',
                '&': 'and',
                }
-        for m, v in map.items():
+        for m, v in list(map.items()):
             for ch in m:
-                s = s.replace(ch, v)
+                s = s.replace(ch.encode(), v.encode())
         if dn and s in self.urlnames and parent:
             s += '_' + parent
         while s in self.urlnames:
-            m = re.match('(.+?)([0-9]*)$', s)
+            m = re.match(b'(.+?)([0-9]*)$', s)
             (s, idx) = m.groups()
             idx = int(idx or 0)
-            s += str(idx + 1)
+            s += str(idx + 1).encode()
         self.urlnames.append(s)
         return s
 
@@ -648,7 +651,7 @@ def RunTests():  # pragma: no cover
     class TestXBundle(unittest.TestCase):
         def testRoundTrip(self):
 
-            print "Testing XBundle round trip import -> export"
+            print("Testing XBundle round trip import -> export")
             xb = XBundle()
             cxmls = '''
 <course semester="2013_Spring" course="mitx.01">
@@ -689,10 +692,10 @@ def RunTests():  # pragma: no cover
             xbreloaded = str(xb2)
 
             if not xbin == xbreloaded:
-                print "xbin"
-                print xbin
-                print "xbreloaded"
-                print xbreloaded
+                print("xbin")
+                print(xbin)
+                print("xbreloaded")
+                print(xbreloaded)
 
             self.assertEqual(xbin, xbreloaded)
 
@@ -707,17 +710,17 @@ def RunTests():  # pragma: no cover
 if __name__ == '__main__':
 
     def usage():
-        print "Usage: python xbundle.py [--force-studio] [cmd] [infn] [outfn]"
-        print "where:"
-        print "  cmd = test:    run unit tests"
-        print "  cmd = convert: convert between xbundle and edX directory format"
-        print "                 the xbundle filename must end with .xml"
-        print "  --force-studio forces <sequential> to always be followed by <vertical> in export"
-        print "                 this makes it compatible with Studio import"
-        print ""
-        print "examples:"
-        print "  python xbundle.py convert ../data/edx4edx edx4edx_xbundle.xml"
-        print "  python xbundle.py convert edx4edx_xbundle.xml ./"
+        print("Usage: python xbundle.py [--force-studio] [cmd] [infn] [outfn]")
+        print("where:")
+        print("  cmd = test:    run unit tests")
+        print("  cmd = convert: convert between xbundle and edX directory format")
+        print("                 the xbundle filename must end with .xml")
+        print("  --force-studio forces <sequential> to always be followed by <vertical> in export")
+        print("                 this makes it compatible with Studio import")
+        print("")
+        print("examples:")
+        print("  python xbundle.py convert ../data/edx4edx edx4edx_xbundle.xml")
+        print("  python xbundle.py convert edx4edx_xbundle.xml ./")
 
     if len(sys.argv) < 2:
         usage()
@@ -740,15 +743,15 @@ if __name__ == '__main__':
         outfn = sys.argv[argc + 1]
         xb = XBundle(**options)
         if infn.endswith('.xml'):
-            print "Converting xbundle file '%s' to edX xml directory '%s'" % (infn, outfn)
+            print("Converting xbundle file '%s' to edX xml directory '%s'" % (infn, outfn))
             xb.load(infn)
             xb.export_to_directory(outfn)
-            print "done"
+            print("done")
         elif outfn.endswith('.xml'):
-            print "Converting edX xml directory '%s' to xbundle file '%s'" % (infn, outfn)
+            print("Converting edX xml directory '%s' to xbundle file '%s'" % (infn, outfn))
             xb.import_from_directory(infn)
             xb.save(outfn)
-            print "done"
+            print("done")
         else:
             usage()
     else:

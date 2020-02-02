@@ -15,7 +15,7 @@ data_files = [
 
 setup(
     name='latex2edx',
-    version='1.5.6',
+    version='1.6.0',
     author='I. Chuang',
     author_email='ichuang@mit.edu',
     packages=['latex2edx', 'latex2edx.test'],
@@ -33,7 +33,7 @@ setup(
     install_requires=['lxml',
                       'path.py',
                       'plastex',
-                      'beautifulsoup',
+                      'beautifulsoup4',
                       'latex2dnd',
                       'pyyaml',
                       ],

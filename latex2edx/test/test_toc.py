@@ -32,7 +32,7 @@ class TestToC(unittest.TestCase):
         '''
         testdir = path(l2e.__file__).parent / 'testtex'
         tfn = testdir / 'example11_toc_test.tex'
-        print "file %s" % tfn
+        print("file %s" % tfn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, tfn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -92,7 +92,7 @@ class TestToC(unittest.TestCase):
         '''
         testdir = path(l2e.__file__).parent / 'testtex'
         tfn = testdir / 'example11_toc_test.tex'
-        print "file %s" % tfn
+        print("file %s" % tfn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, tfn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -130,7 +130,7 @@ class TestToC(unittest.TestCase):
         '''
         testdir = path(l2e.__file__).parent / 'testtex'
         tfn = testdir / 'example17_toc_vert.tex'
-        print "file %s" % tfn
+        print("file %s" % tfn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, tfn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))

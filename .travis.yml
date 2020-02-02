@@ -1,28 +1,36 @@
 language: python
 python:
-  - "2.7"
+  - "3.7"
 before_install:
   # - sudo add-apt-repository ppa:texlive-backports/ppa -y
   # - sudo add-apt-repository ppa:jonathonf/texlive -y
   - sudo apt-get update -y
   - sudo apt-get install texlive 
   - sudo apt-get install libxml2-utils dvipng texlive texlive-latex-extra poppler-utils
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - conda update --yes conda
-  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
-  - conda update --yes conda
-  - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
-  - conda install --yes -n condaenv pip
-  - source activate condaenv
+  # for pdfcrop (needed by latex2dnd)
+  - sudo apt-get install texlive-extra-utils
+  #- wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  #- chmod +x miniconda.sh
+  #- bash miniconda.sh -b -p $HOME/miniconda
+  #- export PATH="$HOME/miniconda/bin:$PATH"
+  #- conda update --yes conda
+  ## The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
+  ##- sudo rm -rf /dev/shm
+  ##- sudo ln -s /run/shm /dev/shm
+  #- conda update --yes conda
+  #- conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
+  #- conda install --yes -n condaenv pip
+  #- source activate condaenv
+  - pip install --upgrade pip
+  - pip install numpy scipy
+  - pip install cython
+  - pip install lxml
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy
+  #- conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy
+  #- conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy
   - pip install -r requirements.txt
   - pip install -r test_requirements.txt
+  - python setup.py develop
 script:  bash test.sh -q
 after_success:
   coveralls

@@ -4,7 +4,7 @@ try:
     from path import path	# needs path.py
 except Exception as err:
     from path import Path as path
-from StringIO import StringIO
+from io import StringIO
 
 import latex2edx as l2emod
 from latex2edx.main import latex2edx
@@ -16,7 +16,7 @@ class TestOutput_Fmts(unittest.TestCase):
     def test_output_fmts1(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example6.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -26,7 +26,7 @@ class TestOutput_Fmts(unittest.TestCase):
                 l2e.convert()
                 err = ""
             except Exception as err:
-                print err
+                print(err)
 
             xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
@@ -37,7 +37,7 @@ class TestOutput_Fmts(unittest.TestCase):
     def test_output_fmts2(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example9_section_only.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -47,7 +47,7 @@ class TestOutput_Fmts(unittest.TestCase):
                 l2e.convert()
                 err = ""
             except Exception as err:
-                print err
+                print(err)
 
             xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
@@ -68,7 +68,7 @@ class TestOutput_Fmts(unittest.TestCase):
     def test_output_fmts3(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example9_section_only.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -78,7 +78,7 @@ class TestOutput_Fmts(unittest.TestCase):
                 l2e.convert()
                 err = ""
             except Exception as err:
-                print err
+                print(err)
 
             xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))
@@ -102,7 +102,7 @@ class TestOutput_Fmts(unittest.TestCase):
         '''
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example1.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -112,7 +112,7 @@ class TestOutput_Fmts(unittest.TestCase):
                 l2e.convert()
                 err = ""
             except Exception as err:
-                print err
+                print(err)
 
             xbfn = nfn[:-4] + '.xbundle'
             self.assertTrue(os.path.exists(xbfn))

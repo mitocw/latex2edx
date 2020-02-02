@@ -5,7 +5,7 @@ try:
 except Exception as err:
     from path import Path as path
 from lxml import etree
-from StringIO import StringIO
+from io import StringIO
 
 import latex2edx as l2emod
 from latex2edx.main import latex2edx
@@ -17,7 +17,7 @@ class TestedXmath(unittest.TestCase):
     def test_edXmath1(self):
         testdir = path(l2emod.__file__).parent / 'testtex'
         fn = testdir / 'example6.tex'
-        print "file %s" % fn
+        print("file %s" % fn)
         with make_temp_directory() as tmdir:
             nfn = '%s/%s' % (tmdir, fn.basename())
             os.system('cp %s/* %s' % (testdir, tmdir))
@@ -40,6 +40,8 @@ class TestedXmath(unittest.TestCase):
 S(\rho) &amp;=&amp;  -\lambda_{1} \log \lambda_{1} -\lambda_{2} \log \lambda_{2} \\
         &amp;=&amp;  H((1+r)/2)
 \end{eqnarray}[/mathjax]"""
+            if not (expect in data):
+                print("data=%s" % data)
             assert(expect in data)
 
 if __name__ == '__main__':

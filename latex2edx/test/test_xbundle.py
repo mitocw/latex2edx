@@ -12,7 +12,7 @@ from latex2edx.xbundle import XBundle
 class TestXBundle(unittest.TestCase):
     def testRoundTrip(self):
 
-        print "Testing XBundle round trip import -> export"
+        print("Testing XBundle round trip import -> export")
         xb = XBundle()
         cxmls = '''
 <course semester="2013_Spring" course="mitx.01">

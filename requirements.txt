@@ -1,10 +1,9 @@
-BeautifulSoup==3.2.0
-Cython==0.20.1
-Pillow==2.5.3
+beautifulsoup4==4.8.0
+Pillow==7.0.0
 -e git+https://github.com/mitocw/latex2dnd.git@master#egg=latex2dnd-master
-lxml==3.3.3
+lxml
 path.py==5.1
 pep8==1.5.7
--e git+https://github.com/tiarno/plastex@python2#egg=plasTeX-master
-wsgiref==0.1.2
-pyyaml==3.10
+# -e git+https://github.com/tiarno/plastex@python2#egg=plasTeX-master
+-e git+https://github.com/tiarno/plastex#egg=plasTeX-master
+pyyaml==5.3
