@@ -207,7 +207,8 @@ class latex2edx(object):
         '''
         Save XML file (as .xbundle, normally) to the output_fn
         '''
-        open(self.output_fn, 'w').write(etree.tostring(self.xml, pretty_print=True).decode())
+        with open(self.output_fn, 'w') as ofp:
+            ofp.write(etree.tostring(self.xml, pretty_print=True).decode())
 
     def export_sections_only(self):
         '''
@@ -312,9 +313,11 @@ class latex2edx(object):
                 # course.xml shouldn't need merging
                 os.unlink(fn)
             else:
-                newcourse = etree.parse(open(fn)).getroot()
+                with open(fn) as cfp:
+                    newcourse = etree.parse(cfp).getroot()
                 oldfn = fn[:-4]
-                oldcourse = etree.parse(open(oldfn)).getroot()
+                with open(oldfn) as cfp:
+                    oldcourse = etree.parse(cfp).getroot()
                 oldchapters = [x.get('url_name') for x in oldcourse]
                 newchapters = []
                 for chapter in newcourse:
@@ -1462,7 +1465,8 @@ class latex2edx(object):
                 print("Error: include file %s does not exist!" % incfn)
                 raise Exception(self.standard_error_msg(include))
             try:
-                incdata = open(incfn).read()
+                with open(incfn) as ifp:
+                    incdata = ifp.read()
             except Exception as err:
                 print("Error %s: cannot open include file %s to read" % (err, incfn))
                 raise Exception(self.standard_error_msg(include))
@@ -1543,7 +1547,8 @@ class latex2edx(object):
                 print("See tex file %s line %s" % (texfn, linenum))
                 raise
             try:
-                dndsrc = open(dndfn).read()
+                with open(dndfn) as dfp:
+                    dndsrc = dfp.read()
             except Exception as err:
                 print("Error %s: cannot open dnd tex / dndpec file %s to read" % (err, dndfn))
                 print("See tex file %s line %s" % (texfn, linenum))
@@ -1615,7 +1620,8 @@ class latex2edx(object):
         for problem in tree.findall('.//problem'):
             isdone = False
             for eghs in problem.findall('.//edx_general_hint_system'):
-                incxml = etree.fromstring('<script><![CDATA[\n%s\n]]></script>' % open(ghsfn).read())
+                with open(ghsfn) as gfp:
+                    incxml = etree.fromstring('<script><![CDATA[\n%s\n]]></script>' % gfp.read())
                 if not isdone:
                     eghs.addprevious(incxml)
                     # print "  added eghs to problem %s" % problem.get('url_name')
