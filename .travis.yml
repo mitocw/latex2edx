@@ -7,6 +7,8 @@ before_install:
   - sudo apt-get update -y
   - sudo apt-get install texlive 
   - sudo apt-get install libxml2-utils dvipng texlive texlive-latex-extra poppler-utils
+  # for pdfcrop (needed by latex2dnd)
+  - sudo apt-get install texlive-extra-utils
   #- wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
   #- chmod +x miniconda.sh
   #- bash miniconda.sh -b -p $HOME/miniconda
