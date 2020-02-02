@@ -20,16 +20,18 @@ class MyRenderer(XHTML.Renderer):
     """
     PlasTeX class for rendering the latex document into XHTML + edX tags
     """
-    def __init__(self, imdir='', imurl='', extra_filters=None, abox=None):
+    def __init__(self, imdir='', imurl='', extra_filters=None, abox=None, imurl_fmt=None):
         '''
         imdir = directory where images should be stored
         imurl = url base for web base location of images
+        imurl_fmt = image url format expression - defaults to "/static/{imurl}/{fnbase}"
         
         abox = (class) use this instead of AnswerBox, if provided
         '''
         XHTML.Renderer.__init__(self)
         self.imdir = imdir
         self.imurl = imurl
+        self.imurl_fmt = imurl_fmt or "/static/{imurl}/{fnbase}"
         self.imfnset = []
         self.answer_box_objects = {}	# tracks AnswerBox objects, using their xmlstr repr as keys
         self.abox_config = {}	# used by AnswerBox to store state, like default config parameters
@@ -157,8 +159,8 @@ class MyRenderer(XHTML.Renderer):
                 os.system(cmd)
                 print(cmd)
                 os.system('chmod og+r %s' % wwwfn)
-            return '<img src="/static/%s/%s" width="%d" %s/>' % (self.imurl,
-                    fnbase, width, attribs)
+            src = self.imurl_fmt.format(imurl=self.imurl, fnbase=fnbase)
+            return '<img src="%s" width="%d" %s/>' % (src, width, attribs)
 
         fnset = [m.group(2)]
         fnsuftab = ['','.png','.pdf','.png','.jpg']
@@ -272,6 +274,7 @@ class plastex2xhtml(object):
                  add_wrap=False,
                  fix_plastex_optarg_bug=True,
                  abox=None,
+                 imurl_fmt=None,
                  verbose=False):
         '''
         fn            = tex filename (should end in .tex)
@@ -286,6 +289,7 @@ class plastex2xhtml(object):
                                  triggered e.g. by \begin{edXchapter} and \begin{edXsection}
                                  being placed with no empty newline inbetween
         abox          = (class) use this in place of AnswerBox
+        imurl_fmt     = (str) image url format expression
         verbose       = if True, then do verbose logging
         '''
 
@@ -300,7 +304,7 @@ class plastex2xhtml(object):
         self.latex_string = latex_string
         self.add_wrap = add_wrap
         self.verbose = verbose
-        self.renderer = MyRenderer(imdir, imurl, extra_filters, abox)
+        self.renderer = MyRenderer(imdir, imurl, extra_filters, abox, imurl_fmt=imurl_fmt)
         self.fix_plastex_optarg_bug = fix_plastex_optarg_bug
 
         # Instantiate a TeX processor and parse the input text
