@@ -11,6 +11,9 @@ data_files = [
     ('share/plastexpy', findfiles('plastexpy/*.py')),
     ]
 
+with open("README.md", "r") as fh:
+    long_description = fh.read()
+
 # print "data_files = %s" % data_files
 
 setup(
@@ -22,8 +25,9 @@ setup(
     scripts=[],
     url='http://pypi.python.org/pypi/latex2edx/',
     license='LICENSE.txt',
-    description='Converter from latex to edX XML format course content files.',
-    long_description=open('README.txt').read(),
+    description='Converter from latex to edX XML format course content files',
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     include_package_data=True,
     entry_points={
         'console_scripts': [

@@ -77,7 +77,6 @@ Usage
 =====
 
 ```
-latex2edx -h                                                                                                                                       15:30:51
 Usage: latex2edx [options] filename.tex
 
 Options:
@@ -95,21 +94,20 @@ Options:
                         update policy.json from settings in latex file
   --suppress-policy-settings
                         suppress policy settings from XML files
-  --suppress-verticals  do not automatically add extra verticals needed for
-                        Studio compatibility
-  -S, --section-only    export only edXsections (sequentials) -- no course or
-                        chapters
-  -x, --xml-only        export only xbundle xml file -- no separate course
-                        content
-  --units-only          export only units, including problem, html -- no
-                        course, chapter, section
-  --popups              enable equation and figure popup windows on clicking
-                        their references
+  --suppress-verticals  do not automatically add extra verticals needed for Studio compatibility
+  -S, --section-only    export only edXsections (sequentials) -- no course or chapters
+  -x, --xml-only        export only xbundle xml file -- no separate course content
+  --units-only          export only units, including problem, html -- no course, chapter, section
+  --timestamp           add timestamps at the bottom of each HTML page
+  --timestamp-revision=TIMESTAMP_REVISION
+                        additional revision number to add to the timestamp
+  --timestamp-threshold=TIMESTAMP_THRESHOLD
+                        minimum number of elements in HTML, for a timestamp to be added
+  --popups              enable equation and figure popup windows on clicking their references
+  --add-wrap            add a standard latex wrapper, with documentclass and begin{document}...end{document}
   --allow-directories   allow subdirectory structure in the xml output
   --output-course-unit-tests=OUTPUT_CUTSET
-                        filename in which to output answer box unit test set
-                        (YAML format) for the course, made for testing with
-                        edxcut
+                        filename in which to output answer box unit test set (YAML format) for the course, made for testing with edxcut
 ```
 
 Example
