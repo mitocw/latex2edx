@@ -20,10 +20,12 @@ class MyRenderer(XHTML.Renderer):
     """
     PlasTeX class for rendering the latex document into XHTML + edX tags
     """
-    def __init__(self, imdir='', imurl='', extra_filters=None):
+    def __init__(self, imdir='', imurl='', extra_filters=None, abox=None):
         '''
         imdir = directory where images should be stored
         imurl = url base for web base location of images
+        
+        abox = (class) use this instead of AnswerBox, if provided
         '''
         XHTML.Renderer.__init__(self)
         self.imdir = imdir
@@ -31,6 +33,7 @@ class MyRenderer(XHTML.Renderer):
         self.imfnset = []
         self.answer_box_objects = {}	# tracks AnswerBox objects, using their xmlstr repr as keys
         self.abox_config = {}	# used by AnswerBox to store state, like default config parameters
+        self.abox_class = abox or AnswerBox
 
         # setup filters
         self.filters = OrderedDict()
@@ -73,7 +76,7 @@ class MyRenderer(XHTML.Renderer):
         x = x.replace('{^\\circ','{}^\\circ')	# workaround plasTeX bug
         if removenl:
             x = x.replace('\n','')
-        x = escape(x)
+        # x = escape(x)
         return x
 
     filter_fix_math_match  = ['(?s)<math>\$(.*?)\$</math>',
@@ -196,14 +199,14 @@ class MyRenderer(XHTML.Renderer):
     filter_fix_abox_match = r'(?s)<abox(|linenum="\d+" filename="[^>]+")>(.*?)</abox>'
 
     def filter_fix_abox(self, m):
-        abox = AnswerBox(m.group(1), config=self.abox_config)
+        abox = self.abox_class(m.group(1), config=self.abox_config)
         self.answer_box_objects[abox.xmlstr_just_code] = abox
         return abox.xmlstr
 
     filter_fix_abox_match_with_linenum = r'(?s)<abox (linenum="\d+" filename="[^>]+")>(.*?)</abox>'
 
     def filter_fix_abox_with_linenum(self, m):
-        abox = AnswerBox(m.group(2), config=self.abox_config, context=m.group(1))
+        abox = self.abox_class(m.group(2), config=self.abox_config, context=m.group(1))
         self.answer_box_objects[abox.xmlstr_just_code] = abox
         return abox.xmlstr
 
@@ -268,6 +271,7 @@ class plastex2xhtml(object):
                  latex_string=None,
                  add_wrap=False,
                  fix_plastex_optarg_bug=True,
+                 abox=None,
                  verbose=False):
         '''
         fn            = tex filename (should end in .tex)
@@ -281,6 +285,7 @@ class plastex2xhtml(object):
         fix_plastex_optarg_bug = if True, then filter the input latex to fix the plastex bug 
                                  triggered e.g. by \begin{edXchapter} and \begin{edXsection}
                                  being placed with no empty newline inbetween
+        abox          = (class) use this in place of AnswerBox
         verbose       = if True, then do verbose logging
         '''
 
@@ -295,7 +300,7 @@ class plastex2xhtml(object):
         self.latex_string = latex_string
         self.add_wrap = add_wrap
         self.verbose = verbose
-        self.renderer = MyRenderer(imdir, imurl, extra_filters)
+        self.renderer = MyRenderer(imdir, imurl, extra_filters, abox)
         self.fix_plastex_optarg_bug = fix_plastex_optarg_bug
 
         # Instantiate a TeX processor and parse the input text
