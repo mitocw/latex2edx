@@ -7,22 +7,24 @@ before_install:
   - sudo apt-get update -y
   - sudo apt-get install texlive 
   - sudo apt-get install libxml2-utils dvipng texlive texlive-latex-extra poppler-utils
-  - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
-  - chmod +x miniconda.sh
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - conda update --yes conda
-  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
-  #- sudo rm -rf /dev/shm
-  #- sudo ln -s /run/shm /dev/shm
-  - conda update --yes conda
-  - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
-  - conda install --yes -n condaenv pip
-  - source activate condaenv
+  #- wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+  #- chmod +x miniconda.sh
+  #- bash miniconda.sh -b -p $HOME/miniconda
+  #- export PATH="$HOME/miniconda/bin:$PATH"
+  #- conda update --yes conda
+  ## The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
+  ##- sudo rm -rf /dev/shm
+  ##- sudo ln -s /run/shm /dev/shm
+  #- conda update --yes conda
+  #- conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
+  #- conda install --yes -n condaenv pip
+  #- source activate condaenv
+  - pip install --upgrade pip
+  - pip install numpy scipy
+  - pip install cython
 install:
   #- conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy
-  - pip install cython
+  #- conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy
   - pip install -r requirements.txt
   - pip install -r test_requirements.txt
   - python setup.py develop
