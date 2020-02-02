@@ -22,6 +22,7 @@ before_install:
   - pip install --upgrade pip
   - pip install numpy scipy
   - pip install cython
+  - pip install lxml
 install:
   #- conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy
   #- conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy
