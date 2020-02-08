@@ -1418,7 +1418,8 @@ class latex2edx(object):
                              {'class': 'icon-caret-down toggleimage'})
             newsh.append(showhide)
             showhide.tag = 'div'  # change edxshowhide tag
-            showhide.attrib.pop('description')  # remove description
+            if 'description' in showhide.attrib:
+                showhide.attrib.pop('description')  # remove description
             showhide.set('class', 'hideshowcontent')
             sub2 = etree.SubElement(newsh, 'p',
                                     {'class': 'hideshowbottom',
@@ -1427,7 +1428,11 @@ class latex2edx(object):
             subsub2 = etree.SubElement(sub2, 'a',
                                        {'href': 'javascript: {return false;}'})
             subsub2.text = 'Show'
-            par = self.find_container_root(newsh, "showhide")
+            try:
+                par = self.find_container_root(newsh, "showhide")
+            except Exception as err:
+                print("Failed to find container root for showhide %s\n --> err: %s" % (etree.tostring(showhide), err))
+                raise
 
             scriptforsh = etree.Element('SCRIPT',
                                         {'type': 'text/javascript',
