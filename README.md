@@ -1,6 +1,6 @@
 latex2edx
 =========
-[![Build Status](http://img.shields.io/travis/mitocw/latex2edx.svg?style=flat)](https://travis-ci.org/mitocw/latex2edx)
+[![Build Status](http://img.shields.io/travis/mitocw/latex2edx.svg?style=flat)](https://travis-ci.org/mitocw/latex2edx.svg?branch=master)
 [![Coverage Status](http://img.shields.io/coveralls/mitocw/latex2edx.svg?style=flat)](https://coveralls.io/r/mitocw/latex2edx)
 [![PyPi Downloads](http://img.shields.io/pypi/dm/latex2edx.svg?style=flat)](https://pypi.python.org/pypi/latex2edx)
 [![PyPi Version](http://img.shields.io/pypi/v/latex2edx.svg?style=flat)](https://pypi.python.org/pypi/latex2edx)
