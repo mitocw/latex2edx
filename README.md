@@ -191,3 +191,4 @@ History
 * v1.5.6: Add \html{tag}[attributes] for custom HTML
 * v1.6.0: Migrate to python3
 * v1.6.1: Minor readme update
+* v1.6.2: Fixes to ensure ampersands are not doubly escaped in math

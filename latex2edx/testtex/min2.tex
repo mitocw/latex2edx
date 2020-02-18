@@ -1,0 +1,28 @@
+\documentclass[12pt]{article}
+
+\usepackage{edXpsl} % edX
+
+%\usepackage{nameref}
+%\NeedsTeXFormat{LaTeX2e}
+
+%\usepackage{code}
+%\usepackage{bm}
+
+% Package bm seems to be necessary to squash the following warnings
+% WARNING: unrecognized command/environment: edXsequentialname
+% WARNING: unrecognized command/environment: edXverticalname
+
+\begin{document}
+
+\begin{edXsection}{MIN BUG}[url_name="min-bug-sequential"]
+\begin{edXvertical}{min2-vertical}{url_name="Minimal bug"}
+\begin{edXproblem}{Problem 1}{url_name="min-bug" max_attempts="4" weight="1" showanswer="never"}
+
+Find $P(Z < 1.5)$.
+\edXabox{expect="0.93319" type="numerical" tolerance='0.001'}
+
+\end{edXproblem}
+\end{edXvertical}
+\end{edXsection}
+
+\end{document}
