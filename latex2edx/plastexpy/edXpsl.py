@@ -133,7 +133,7 @@ class edXdiscussion(Base.Command):
 
 
 class includegraphics(Base.Command):
-    args = '[ width ] self'
+    args = '[ width ] [ alt ] self'
 
 
 class marginote(Base.Command):  # tooltip margin note \marginote[options]{note}{anchor text}
