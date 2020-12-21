@@ -1437,6 +1437,7 @@ class latex2edx(object):
             scriptforsh = etree.Element('SCRIPT',
                                         {'type': 'text/javascript',
                                          'src': '/static/latex2edx.js'})
+            scriptforsh.text = " "
             styleforsh = etree.Element('LINK',
                                        {'type': 'text/css',
                                         'rel': 'stylesheet',
