@@ -384,6 +384,7 @@ class AnswerBox(object):
             
         if abtype == 'choiceresponse':
             self.require_args(['expect', 'options'])
+            abxml.set('partial_credit',"EDC")
             cg = etree.SubElement(abxml, 'checkboxgroup')
             optionstr, options = self.get_options(abargs)
             expectstr, expects = self.get_options(abargs, 'expect')
