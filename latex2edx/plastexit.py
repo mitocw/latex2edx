@@ -120,7 +120,7 @@ class MyRenderer(XHTML.Renderer):
         x = m.group(1).strip()			# plastex2.1 - already escaped
         return '[mathjax]%s[/mathjax]' % x.replace('\\end{edXmath}', '')
 
-    filter_fix_image_match = '<includegraphics style="(.*?)">(.*?)</includegraphics>'
+    filter_fix_image_match = '<includegraphics style="(.*?)" alt="(.*?)">(.*?)</includegraphics>'
 
     def filter_fix_image(self, m):
         width = 400
@@ -148,6 +148,12 @@ class MyRenderer(XHTML.Renderer):
         attribs = ';'.join(attribs)
         if attribs:
             attribs = 'style="' + attribs + '"'
+        alt = m.group(2)
+        if alt:
+            # Note for an empty alt text must have one single space
+            if alt == " ":
+                alt = ""
+            attribs = attribs + ' alt="' + alt + '"'
 
         def make_image_html(fn,k,attribs):
             self.imfnset.append(fn+k)
