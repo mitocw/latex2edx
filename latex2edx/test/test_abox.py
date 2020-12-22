@@ -87,7 +87,7 @@ class Test_Abox(unittest.TestCase):
         abox = AnswerBox('type="oldmultichoice"  expect="Python","C++" options="Cobol","Pascal","Python","C++","Clu","Forth"')
         xmlstr = abox.xmlstr
         print(xmlstr)
-        self.assertIn('<choiceresponse>', xmlstr)
+        self.assertIn('<choiceresponse partial_credit="EDC">', xmlstr)
         self.assertEqual(abox.xml.tag, 'choiceresponse')
         self.assertEqual(len(abox.xml.findall('.//choice')), 6)
         self.assertIn('<choice correct="true" name="3">', xmlstr)
