@@ -169,7 +169,7 @@ class MyRenderer(XHTML.Renderer):
             src = self.imurl_fmt.format(imurl=self.imurl, fnbase=fnbase)
             return '<img src="%s" width="%d" %s/>' % (src, width, attribs)
 
-        fnset = [m.group(2)]
+        fnset = [m.group(3)]
         fnsuftab = ['','.png','.pdf','.png','.jpg']
         for k in fnsuftab:
             for fn in fnset:
