@@ -1,5 +1,5 @@
 beautifulsoup4==4.8.0
-Pillow==7.0.0
+Pillow==7.1.0
 -e git+https://github.com/mitocw/latex2dnd.git@master#egg=latex2dnd-master
 lxml
 path.py==5.1
