@@ -21,3 +21,7 @@ Note that xmllint and lxml are required; for ubuntu, this may work:
 
 PlasTeX (http://plastex.sourceforge.net/) is also required, but should
 be installed automatically by the pip install.
+
+Poppler (https://poppler.freedesktop.org/) is required.  On a mac with homebrew this can be installed with
+
+    brew install poppler
