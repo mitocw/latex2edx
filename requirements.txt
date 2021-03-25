@@ -6,4 +6,4 @@ path.py==5.1
 pep8==1.5.7
 # -e git+https://github.com/tiarno/plastex@python2#egg=plasTeX-master
 -e git+https://github.com/tiarno/plastex#egg=plasTeX-master
-pyyaml==5.3
+pyyaml==5.4
