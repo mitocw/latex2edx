@@ -1411,12 +1411,12 @@ class latex2edx(object):
             oneup = showhide.getparent()
             newsh = etree.SubElement(oneup, 'div', {'class': 'hideshowbox'})
             sub1 = etree.SubElement(newsh, 'h4',
-                                    {'onclick': 'hideshow(this);',
+                                    {'aria-expanded':'false', 'tabindex':'0', 'onclick': 'hideshow(this);',
                                      'style': 'margin: 0px'})
             sub2 = etree.SubElement(sub1, 'span',
                              {'class': 'arrow down'})
-            sub1.text = desc
             sub2.text = ' '
+            sub1.tail = desc
             newsh.append(showhide)
             showhide.tag = 'div'  # change edxshowhide tag
             if 'description' in showhide.attrib:
