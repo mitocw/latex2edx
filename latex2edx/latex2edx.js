@@ -33,7 +33,7 @@ function hideshownocheck(object) {
   // Do the show/hide business
   stuff = $(object).parents('.hideshowbox').find('.hideshowcontent');
   text = $(object).parents('.hideshowbox').find('.hideshowbottom');
-  arrow = $(object).parents('.hideshowbox').find('.toggleimage');
+  arrow = $(object).parents('.hideshowbox').find('.arrow');
   arrowclass = $(arrow).attr('class');
   if ($(stuff).css('display') != 'none') {
       $(stuff).slideUp('slow');

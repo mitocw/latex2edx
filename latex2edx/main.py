@@ -1460,9 +1460,10 @@ class latex2edx(object):
             sub1 = etree.SubElement(newsh, 'h4',
                                     {'onclick': 'hideshow(this);',
                                      'style': 'margin: 0px'})
+            sub2 = etree.SubElement(sub1, 'span',
+                             {'class': 'arrow down'})
             sub1.text = desc
-            etree.SubElement(sub1, 'span',
-                             {'class': 'icon-caret-down toggleimage'})
+            sub2.text = ' '
             newsh.append(showhide)
             showhide.tag = 'div'  # change edxshowhide tag
             if 'description' in showhide.attrib:
