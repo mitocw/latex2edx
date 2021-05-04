@@ -1463,7 +1463,7 @@ class latex2edx(object):
             sub2 = etree.SubElement(sub1, 'span',
                              {'class': 'arrow down'})
             sub2.text = ' '
-            sub1.tail = desc
+            sub2.tail = desc
             newsh.append(showhide)
             showhide.tag = 'div'  # change edxshowhide tag
             if 'description' in showhide.attrib:
