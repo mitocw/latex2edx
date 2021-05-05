@@ -1410,25 +1410,25 @@ class latex2edx(object):
             desc = showhide.get('description', '')
             oneup = showhide.getparent()
             newsh = etree.SubElement(oneup, 'div', {'class': 'hideshowbox'})
-            sub1 = etree.SubElement(newsh, 'h4',
-                                    {'aria-expanded':'false', 'tabindex':'0', 'onclick': 'hideshow(this);',
-                                     'style': 'margin: 0px'})
+            sub1 = etree.SubElement(newsh, 'button',
+                                    {'aria-expanded':'false', 'class':'hideshowheader', 'onclick': 'hideshow(this);'})
             sub2 = etree.SubElement(sub1, 'span',
                              {'class': 'arrow down'})
             sub2.text = ' '
-            sub2.tail = desc
+            sub2.tail = ' ' + desc
             newsh.append(showhide)
             showhide.tag = 'div'  # change edxshowhide tag
             if 'description' in showhide.attrib:
                 showhide.attrib.pop('description')  # remove description
             showhide.set('class', 'hideshowcontent')
-            sub2 = etree.SubElement(newsh, 'p',
+            showhide.set('tabindex','0')
+            sub3 = etree.SubElement(newsh, 'p',
                                     {'class': 'hideshowbottom',
                                      'onclick': 'hideshow(this);',
                                      'style': 'margin: 0px'})
-            subsub2 = etree.SubElement(sub2, 'a',
+            subsub3 = etree.SubElement(sub3, 'a',
                                        {'href': 'javascript: {return false;}'})
-            subsub2.text = 'Show'
+            subsub3.text = 'Show'
             try:
                 par = self.find_container_root(newsh, "showhide")
             except Exception as err:
