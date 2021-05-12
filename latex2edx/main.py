@@ -1413,7 +1413,7 @@ class latex2edx(object):
             sub1 = etree.SubElement(newsh, 'button',
                                     {'aria-expanded':'false', 'class':'hideshowheader', 'onclick': 'hideshow(this);'})
             sub2 = etree.SubElement(sub1, 'span',
-                             {'class': 'arrow down'})
+                             {'class': 'hideshowarrow down'})
             sub2.text = ' '
             sub2.tail = ' ' + desc
             newsh.append(showhide)
