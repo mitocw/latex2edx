@@ -1,69 +1,85 @@
-    .arrow {
-      border: solid black;
-      border-width: 0 3px 3px 0;
-      display: inline-block;
-      padding: 3px;
-    }
-    .down {
-      transform: rotate(-45deg);
-      -webkit-transform: rotate(-45deg);
-    }
-    .up {
-      transform: rotate(45deg);
-      -webkit-transform: rotate(45deg);
-    }
+.hideshowarrow {
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
+}
+.hideshowarrow.down {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+.hideshowarrow.up {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
 
-    .hideshowbox .hideshowbottom {
-     background-color: #F8F8F8;
-     color: black;
-     padding: 0px 5px 1px 3px;
-     margin: 0px;
-     font-size: 1.05em;
-     text-align: right;
-     border: solid #C4C5C7;
-     border-width: 1px 0px 0px 0px;
-     border-bottom-right-radius: 5px;
-     border-bottom-left-radius: 5px;
-     cursor: pointer;
-    }
+.hideshowbox .hideshowbottom {
+ background-color: #F8F8F8;
+ color: black;
+ padding: 0px 5px 1px 3px;
+ margin: 0px;
+ font-size: 1.05em;
+ text-align: right;
+ border: solid #C4C5C7;
+ border-width: 1px 0px 0px 0px;
+ border-bottom-right-radius: 5px;
+ border-bottom-left-radius: 5px;
+ cursor: pointer;
+}
 
-    .hideshowcontent p {
-     margin: 0px 0px 7px 0px;
-    }
+.hideshowcontent p {
+ margin: 0px 0px 7px 0px;
+}
 
-    .hideshowcontent {
-     display: none;
-     padding: 10px 10px 4px 10px;
-     background-color: #FFF;
-    }
+.hideshowcontent {
+ display: none;
+ padding: 10px 10px 4px 10px;
+ background-color: #FFF;
+}
 
-    .hideshowbox {
-     border: 1px solid #C4C5c7;
-     background-color: #C4C5c7;
-     margin: 22px 5px;
-     border-radius: 6px;
-    }
+.hideshowbox {
+ border: 1px solid #C4C5c7;
+ background-color: #C4C5c7;
+ margin: 22px 5px;
+ border-radius: 6px;
+}
 
-    button.hideshowheader {
-       display:block;
-       width:100%;
-       margin:0px;
+button.hideshowheader {
+  /* Some "none"s needed to override edX defaults */
+   display: block;
+   width: 100%;
+   margin: 0px;
 
-       font-size: 1.05em;
-       font-weight: 600;
-       line-height: 1.4em;
+   font-size: 1.05em;
+   font-weight: 600;
 
-       text-align:left;
-       background-color: #F0F0F0;
-       background-image: linear-gradient(#F0F0F0,#F0F0F0);
-       color: black;
+   text-align: left;
+   background-image: none;
+   background-color: #F0F0F0;
+   color: black;
 
-       padding: 2px 4px 3px 6px;
+   padding: 2px 4px 3px 6px;
 
-       border:0px solid black;
-       border-top-right-radius: 5px;
-       border-top-left-radius: 5px;
+   border: 0px solid black;
+   border-top-right-radius: 5px;
+   border-top-left-radius: 5px;
+   border-radius: 6px 6px 0px 0px; /* affects background-color radius. Should match the containing div */
+   box-shadow: none;
 
-       cursor: pointer;
-       font-family: inherit;
-    }
+   cursor: pointer;
+   font-family: inherit;
+}
+
+button.hideshowheader:hover {
+  border: 0px solid black;
+  background-color: #F0F0F0;
+  background-image: none;
+  box-shadow: none;
+}
+
+button.hideshowheader:active, button.hideshowheader:focus {
+  border: 0px solid black;
+  background-color: #F0F0F0;
+  background-image: none;
+  box-shadow: none;
+}
