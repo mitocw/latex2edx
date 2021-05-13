@@ -33,7 +33,7 @@ from .abox import split_args_with_quoted_strings
 
 DEFAULT_CONFIG = {
     'problem_default_attributes': {
-        'showanswer': 'never',
+        'showanswer': 'closed',
         'rerandomize': 'never',
     }
 }
