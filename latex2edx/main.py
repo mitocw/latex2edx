@@ -191,7 +191,6 @@ class latex2edx(object):
                             self.process_custom_html,
                             self.process_marginote,
                             self.process_general_hint_system,
-                            self.unindent_edXscripts,
                             self.check_all_python_scripts,
                             self.handle_policy_settings,
                             self.process_add_timestamp,
@@ -437,52 +436,6 @@ class latex2edx(object):
                 suppress_policy_settings(chapter)
                 for sequential in chapter.findall('.//sequential'):
                     suppress_policy_settings(sequential)
-
-    @staticmethod
-    def unindent_edXscripts(tree):
-        '''
-        Remove common indentation from lines in <script> elements
-        '''
-        def first_nonempty_entry(L):
-            '''
-            Return first element in L for which x.strip() is not the empty string.
-            '''
-            for x in L:
-              if len(x.strip()) != 0:
-                  return x
-            return -1
-
-        def unindent(fstring):
-            '''
-            Filter lines to remove common indentation.
-
-            EXAMPLE
-              --a.txt--
-                 def f(x):
-                     return x*x
-              ---------
-              --python--
-              fstring = open('a.txt').read()
-              x = unindent(fstring)
-              open('b.txt','w').write(x)
-              ---------
-              --b.txt--
-              def f(x):
-                  return x*x
-              --------
-            '''
-            lines = fstring.split("\n")
-            fne = first_nonempty_entry(lines)
-            if fne == -1:
-                # empty edXscript, skip
-                return fstring
-            extraSpace = len(fne) - len(fne.lstrip(' '))
-            newlines = [L[extraSpace:].rstrip() for L in lines]
-            return "\n".join(newlines)
-
-        for script in tree.findall('.//script'):
-            if script.text is not None:
-                script.text = unindent(script.text)
 
     @staticmethod
     def fix_table(tree):
