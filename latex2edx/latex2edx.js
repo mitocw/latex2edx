@@ -17,18 +17,19 @@ function hideshow(object) {
   stuff = $(object).parents('.hideshowbox').find('.hideshowcontent');
   text = $(object).parents('.hideshowbox').find('.hideshowbottom');
   arrow = $(object).parents('.hideshowbox').find('.hideshowarrow');
+  button = $(object).parents('.hideshowbox').find('.hideshowheader')
   arrowclass = $(arrow).attr('class');
   if ($(stuff).css('display') != 'none') {
       $(stuff).slideUp('slow');
       $(text).html('<a href="javascript: {return false;}">Show</a>');
       newclass = arrowclass.replace('up', 'down');
-      $(object).attr('aria-expanded','false');
+      $(button).attr('aria-expanded','false');
       $(arrow).attr('class', newclass);
   } else {
       $(stuff).slideDown('slow');
       $(text).html('<a href="javascript: {return false;}">Hide</a>');
       newclass = arrowclass.replace('down', 'up');
-      $(object).attr('aria-expanded','true');
+      $(button).attr('aria-expanded','true');
       $(arrow).attr('class', newclass);
   }
-      }
+}

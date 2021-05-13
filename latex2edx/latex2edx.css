@@ -44,6 +44,14 @@
  border-radius: 6px;
 }
 
+.hideshowh3 {
+  display: inline-block;
+  margin: 0px 0px 0px 0px;
+  font-family: inherit;
+  font-size: 1.05em;
+  font-weight: 600;
+}
+
 button.hideshowheader {
   /* Some "none"s needed to override edX defaults */
    display: block;
