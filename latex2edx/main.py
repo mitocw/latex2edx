@@ -1457,18 +1457,21 @@ class latex2edx(object):
             desc = showhide.get('description', '')
             oneup = showhide.getparent()
             newsh = etree.SubElement(oneup, 'div', {'class': 'hideshowbox'})
-            sub1 = etree.SubElement(newsh, 'button',
-                                    {'aria-expanded':'false', 'class':'hideshowheader', 'onclick': 'hideshow(this);'})
-            sub2 = etree.SubElement(sub1, 'span',
-                             {'class': 'hideshowarrow down'})
-            sub2.text = ' '
-            sub2.tail = ' ' + desc
+            sub0 = etree.SubElement(newsh, 'button',
+                                    {'aria-expanded':'false', 
+                                    'class':'hideshowheader', 
+                                    'onclick': 'hideshow(this);'})
+            sub1 = etree.SubElement(sub0, 'span', 
+                                    {'class': 'hideshowarrow down'})
+            sub1.text = ' '
+            sub2 = etree.SubElement(sub0, 'h3', 
+                                    {'class':'hideshowh3'})
+            sub2.text = ' ' + desc
             newsh.append(showhide)
             showhide.tag = 'div'  # change edxshowhide tag
             if 'description' in showhide.attrib:
                 showhide.attrib.pop('description')  # remove description
             showhide.set('class', 'hideshowcontent')
-            showhide.set('tabindex','0')
             sub3 = etree.SubElement(newsh, 'p',
                                     {'class': 'hideshowbottom',
                                      'onclick': 'hideshow(this);',
