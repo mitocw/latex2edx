@@ -44,11 +44,11 @@
  border-radius: 6px;
 }
 
-.hideshowh3 {
-  display: inline-block;
-  margin: 0px 0px 0px 0px;
+.xmodule_display.xmodule_HtmlBlock .hideshowh3 {
+  display: inline-block; 
+  margin: 0px 0px 0px 5px;
   font-family: inherit;
-  font-size: 1.05em;
+  font-size: 1.05em; 
   font-weight: 600;
 }
 
