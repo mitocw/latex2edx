@@ -178,6 +178,8 @@ class edXscript(MyBaseVerbatim):
 class endedXscript(Base.endverbatim):
     macroName = "endedXscript"
 
+class unitTest(MyBaseVerbatim):
+    macroName = "unitTest"
 
 class edXanswer(Base.verbatim):
     macroName = "edXanswer"

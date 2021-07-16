@@ -55,6 +55,9 @@ name: edXsolution
 name: edXscript
 <script type="text/python" system_path="python_lib" tal:attributes="linenum string:${self/attributes/linenum}; filename string:${self/attributes/filename}" tal:content='self'></script>
 
+name: unitTest
+<!-- unit tested -->
+
 name: edXanswer
 <answer type="text/python" tal:content='self'></answer>
 
