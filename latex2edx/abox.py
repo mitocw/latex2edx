@@ -366,7 +366,9 @@ class AnswerBox(object):
             self.require_args(['expect', 'options'])
             cg = etree.SubElement(abxml, 'choicegroup')
             cg.set('direction', 'vertical')
-            optionstr, options = self.get_options(abargs)
+            if abargs.get('shuffle'):
+                cg.set('shuffle','true')
+            optionstr, options = self.get_options(abargs, arg='options')
             expectstr, expectset = self.get_options(abargs, arg='expect')
             cnt = 1
             correctset = []
