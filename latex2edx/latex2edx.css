@@ -1,14 +1,16 @@
-.hideshowbox h4 {
- background-color: #F0F0F0;
- color: black;
- padding: 2px 4px 3px 6px;
- margin: 0px;
- border-top-right-radius: 5px;
- border-top-left-radius: 5px;
- font-size: 1.05em;
- font-weight: 600;
- line-height: 1.4em;
- cursor: pointer;
+.hideshowarrow {
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
+}
+.hideshowarrow.down {
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+.hideshowarrow.up {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
 }
 
 .hideshowbox .hideshowbottom {
@@ -23,11 +25,6 @@
  border-bottom-right-radius: 5px;
  border-bottom-left-radius: 5px;
  cursor: pointer;
-}
-
-.hideshowbox .toggleimage {
- padding: 0px 4px 0px 4px;
- float: right;
 }
 
 .hideshowcontent p {
@@ -45,4 +42,52 @@
  background-color: #C4C5c7;
  margin: 22px 5px;
  border-radius: 6px;
+}
+
+.xmodule_display.xmodule_HtmlBlock .hideshowh3 {
+  display: inline-block; 
+  margin: 0px 0px 0px 5px;
+  font-family: inherit;
+  font-size: 1.05em; 
+  font-weight: 600;
+}
+
+button.hideshowheader {
+  /* Some "none"s needed to override edX defaults */
+   display: block;
+   width: 100%;
+   margin: 0px;
+
+   font-size: 1.05em;
+   font-weight: 600;
+
+   text-align: left;
+   background-image: none;
+   background-color: #F0F0F0;
+   color: black;
+
+   padding: 2px 4px 3px 6px;
+
+   border: 0px solid black;
+   border-top-right-radius: 5px;
+   border-top-left-radius: 5px;
+   border-radius: 6px 6px 0px 0px; /* affects background-color radius. Should match the containing div */
+   box-shadow: none;
+
+   cursor: pointer;
+   font-family: inherit;
+}
+
+button.hideshowheader:hover {
+  border: 0px solid black;
+  background-color: #F0F0F0;
+  background-image: none;
+  box-shadow: none;
+}
+
+button.hideshowheader:active, button.hideshowheader:focus {
+  border: 0px solid black;
+  background-color: #F0F0F0;
+  background-image: none;
+  box-shadow: none;
 }

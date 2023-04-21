@@ -1410,24 +1410,28 @@ class latex2edx(object):
             desc = showhide.get('description', '')
             oneup = showhide.getparent()
             newsh = etree.SubElement(oneup, 'div', {'class': 'hideshowbox'})
-            sub1 = etree.SubElement(newsh, 'h4',
-                                    {'onclick': 'hideshow(this);',
-                                     'style': 'margin: 0px'})
-            sub1.text = desc
-            etree.SubElement(sub1, 'span',
-                             {'class': 'icon-caret-down toggleimage'})
+            sub0 = etree.SubElement(newsh, 'button',
+                                    {'aria-expanded':'false', 
+                                    'class':'hideshowheader', 
+                                    'onclick': 'hideshow(this);'})
+            sub1 = etree.SubElement(sub0, 'span', 
+                                    {'class': 'hideshowarrow down'})
+            sub1.text = ' '
+            sub2 = etree.SubElement(sub0, 'h3', 
+                                    {'class':'hideshowh3'})
+            sub2.text = ' ' + desc
             newsh.append(showhide)
             showhide.tag = 'div'  # change edxshowhide tag
             if 'description' in showhide.attrib:
                 showhide.attrib.pop('description')  # remove description
             showhide.set('class', 'hideshowcontent')
-            sub2 = etree.SubElement(newsh, 'p',
+            sub3 = etree.SubElement(newsh, 'p',
                                     {'class': 'hideshowbottom',
                                      'onclick': 'hideshow(this);',
                                      'style': 'margin: 0px'})
-            subsub2 = etree.SubElement(sub2, 'a',
+            subsub3 = etree.SubElement(sub3, 'a',
                                        {'href': 'javascript: {return false;}'})
-            subsub2.text = 'Show'
+            subsub3.text = 'Show'
             try:
                 par = self.find_container_root(newsh, "showhide")
             except Exception as err:
@@ -1437,6 +1441,7 @@ class latex2edx(object):
             scriptforsh = etree.Element('SCRIPT',
                                         {'type': 'text/javascript',
                                          'src': '/static/latex2edx.js'})
+            scriptforsh.text = " "
             styleforsh = etree.Element('LINK',
                                        {'type': 'text/css',
                                         'rel': 'stylesheet',
