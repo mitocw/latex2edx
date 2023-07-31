@@ -29,8 +29,8 @@ type: xml
         </td>
     </metal:block>
     </metal:block>
-    <td tal:condition="self/ownerDocument/context/packages/documentclass/fleqn" style="width:80%"></td>
-    <td tal:condition="not:self/ownerDocument/context/packages/documentclass/fleqn" style="width:auto"></td>
+    <td tal:condition="self/ownerDocument/context/packages/documentclass/fleqn" style="width:auto"></td>
+    <td tal:condition="not:self/ownerDocument/context/packages/documentclass/fleqn"></td>
     <td class="eqnnum" style="width:20%; vertical-align:middle"><span tal:condition="row/ref">(<span tal:content="row/ref">1.1.1</span>)</span></td>
 </tr>
 </table>
